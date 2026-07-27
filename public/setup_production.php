@@ -17,15 +17,30 @@ $app = require_once __DIR__ . '/../bootstrap/app.php';
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Http\Request;
 
+// Ensure storage and logs directories exist and are writable
+$storageLogs = __DIR__ . '/../storage/logs';
+if (!is_dir($storageLogs)) {
+    @mkdir($storageLogs, 0775, true);
+}
+$bootstrapCache = __DIR__ . '/../bootstrap/cache';
+if (!is_dir($bootstrapCache)) {
+    @mkdir($bootstrapCache, 0775, true);
+}
+
 $action = $_GET['action'] ?? 'setup';
 
 if ($action === 'test_route') {
     echo "<h2>Testing Laravel HTTP Request Execution to /login...</h2>";
     try {
-        config(['app.debug' => true]); // Temporarily enable debug mode to reveal exact error
         $httpKernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+        
+        // Properly bootstrap the HTTP Application Kernel
+        $httpKernel->bootstrap();
+        config(['app.debug' => true]);
+
         $request = Request::create('/login', 'GET');
         $response = $httpKernel->handle($request);
+        
         echo "<p><strong>Status Code:</strong> " . $response->getStatusCode() . "</p>";
         if ($response->getStatusCode() >= 400) {
             echo "<p><strong>Response Content (Detailed Trace):</strong></p>";
@@ -39,7 +54,7 @@ if ($action === 'test_route') {
         echo "<h3 style='color: red;'>EXPLICIT EXCEPTION ON /login:</h3>";
         echo "<p><strong>Message:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
         echo "<p><strong>File:</strong> " . htmlspecialchars($e->getFile()) . " (Line " . $e->getLine() . ")</p>";
-        echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+        echo "<pre style='background:#1e1e1e; color:#ff4d4d; padding:15px; overflow:auto;'>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
     }
     exit;
 }
