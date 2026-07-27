@@ -36,12 +36,19 @@ try {
     Artisan::call('migrate:fresh', ['--force' => true, '--seed' => true]);
     echo "<pre>" . Artisan::output() . "</pre>";
 
-    echo "<p>4. Creating Public Storage Symlink...</p>";
-    try {
-        Artisan::call('storage:link');
-        echo "<pre>" . Artisan::output() . "</pre>";
-    } catch (\Exception $e) {
-        echo "<p style='color: orange;'>Storage link already exists or skipped.</p>";
+    echo "<p>4. Creating Public Storage Symlink safely...</p>";
+    $targetPath = __DIR__ . '/../storage/app/public';
+    $linkPath = __DIR__ . '/storage';
+
+    if (!file_exists($linkPath)) {
+        if (function_exists('symlink')) {
+            @symlink($targetPath, $linkPath);
+            echo "<pre>Symlink created using native PHP symlink().</pre>";
+        } else {
+            echo "<p style='color: orange;'>Native symlink function not available, skipped safely.</p>";
+        }
+    } else {
+        echo "<pre>Storage symlink already exists.</pre>";
     }
 
     echo "<p>5. Re-building optimized cache...</p>";
