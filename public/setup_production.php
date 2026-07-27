@@ -22,13 +22,16 @@ $action = $_GET['action'] ?? 'setup';
 if ($action === 'test_route') {
     echo "<h2>Testing Laravel HTTP Request Execution to /login...</h2>";
     try {
+        config(['app.debug' => true]); // Temporarily enable debug mode to reveal exact error
         $httpKernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
         $request = Request::create('/login', 'GET');
         $response = $httpKernel->handle($request);
         echo "<p><strong>Status Code:</strong> " . $response->getStatusCode() . "</p>";
         if ($response->getStatusCode() >= 400) {
-            echo "<p><strong>Response Content:</strong></p>";
-            echo "<pre>" . htmlspecialchars(substr($response->getContent(), 0, 3000)) . "</pre>";
+            echo "<p><strong>Response Content (Detailed Trace):</strong></p>";
+            echo "<div style='background:#f8f9fa; border:1px solid #ccc; padding:15px; max-height:500px; overflow:auto;'>";
+            echo $response->getContent();
+            echo "</div>";
         } else {
             echo "<p style='color: green;'>Laravel /login rendered successfully with HTTP " . $response->getStatusCode() . "!</p>";
         }
@@ -46,7 +49,7 @@ if ($action === 'tail_log') {
     $logFile = __DIR__ . '/../storage/logs/laravel.log';
     if (file_exists($logFile)) {
         $content = file_get_contents($logFile);
-        echo "<pre>" . htmlspecialchars(substr($content, -4000)) . "</pre>";
+        echo "<pre style='background:#1e1e1e; color:#00ff00; padding:15px; max-height:600px; overflow:auto;'>" . htmlspecialchars(substr($content, -8000)) . "</pre>";
     } else {
         echo "<p>No log file found at storage/logs/laravel.log</p>";
     }
