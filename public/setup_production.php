@@ -13,8 +13,6 @@ if (($_GET['token'] ?? '') !== $secretToken) {
 
 require __DIR__ . '/../vendor/autoload.php';
 $app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-$kernel->bootstrap();
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Http\Request;
@@ -22,14 +20,15 @@ use Illuminate\Http\Request;
 $action = $_GET['action'] ?? 'setup';
 
 if ($action === 'test_route') {
-    echo "<h2>Testing Laravel Request Execution to /login...</h2>";
+    echo "<h2>Testing Laravel HTTP Request Execution to /login...</h2>";
     try {
+        $httpKernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
         $request = Request::create('/login', 'GET');
-        $response = $kernel->handle($request);
+        $response = $httpKernel->handle($request);
         echo "<p><strong>Status Code:</strong> " . $response->getStatusCode() . "</p>";
         if ($response->getStatusCode() >= 400) {
             echo "<p><strong>Response Content:</strong></p>";
-            echo "<pre>" . htmlspecialchars(substr($response->getContent(), 0, 2000)) . "</pre>";
+            echo "<pre>" . htmlspecialchars(substr($response->getContent(), 0, 3000)) . "</pre>";
         } else {
             echo "<p style='color: green;'>Laravel /login rendered successfully with HTTP " . $response->getStatusCode() . "!</p>";
         }
@@ -53,6 +52,9 @@ if ($action === 'tail_log') {
     }
     exit;
 }
+
+$consoleKernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$consoleKernel->bootstrap();
 
 echo "<h2>CRM Production Setup Executing...</h2>";
 
