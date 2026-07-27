@@ -1,8 +1,8 @@
 <?php
 
 /**
- * 1-Click Production Setup & Cache Fix Script for Hostinger
- * SECURITY: Delete this file after initial database setup!
+ * 1-Click Production Setup & Diagnostic Script for Hostinger
+ * SECURITY: Delete this file after initial setup!
  */
 
 $secretToken = 'salah_secret_2026';
@@ -17,6 +17,42 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Http\Request;
+
+$action = $_GET['action'] ?? 'setup';
+
+if ($action === 'test_route') {
+    echo "<h2>Testing Laravel Request Execution to /login...</h2>";
+    try {
+        $request = Request::create('/login', 'GET');
+        $response = $kernel->handle($request);
+        echo "<p><strong>Status Code:</strong> " . $response->getStatusCode() . "</p>";
+        if ($response->getStatusCode() >= 400) {
+            echo "<p><strong>Response Content:</strong></p>";
+            echo "<pre>" . htmlspecialchars(substr($response->getContent(), 0, 2000)) . "</pre>";
+        } else {
+            echo "<p style='color: green;'>Laravel /login rendered successfully with HTTP " . $response->getStatusCode() . "!</p>";
+        }
+    } catch (\Throwable $e) {
+        echo "<h3 style='color: red;'>EXPLICIT EXCEPTION ON /login:</h3>";
+        echo "<p><strong>Message:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
+        echo "<p><strong>File:</strong> " . htmlspecialchars($e->getFile()) . " (Line " . $e->getLine() . ")</p>";
+        echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+    }
+    exit;
+}
+
+if ($action === 'tail_log') {
+    echo "<h2>Latest Laravel Log Entries:</h2>";
+    $logFile = __DIR__ . '/../storage/logs/laravel.log';
+    if (file_exists($logFile)) {
+        $content = file_get_contents($logFile);
+        echo "<pre>" . htmlspecialchars(substr($content, -4000)) . "</pre>";
+    } else {
+        echo "<p>No log file found at storage/logs/laravel.log</p>";
+    }
+    exit;
+}
 
 echo "<h2>CRM Production Setup Executing...</h2>";
 
@@ -58,7 +94,8 @@ try {
     echo "<pre>" . Artisan::output() . "</pre>";
 
     echo "<h3 style='color: green;'>SUCCESS! Setup completed cleanly.</h3>";
-    echo "<p><a href='/login'>Click here to go to Login Page (/login)</a></p>";
+    echo "<p><a href='/setup_production.php?token=salah_secret_2026&action=test_route'>Test /login Request Internal Execution</a></p>";
+    echo "<p><a href='/setup_production.php?token=salah_secret_2026&action=tail_log'>View Recent Error Logs</a></p>";
 
 } catch (\Throwable $e) {
     echo "<h3 style='color: red;'>ERROR during setup execution:</h3>";
