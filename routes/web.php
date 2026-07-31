@@ -45,16 +45,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
-
-Route::get('/admin/setup-clean-db', function () {
-    if (request()->query('key') !== 'salah2026') {
-        abort(403, 'Unauthorized');
-    }
-    \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
-    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-    return response()->json([
-        'success' => true,
-        'message' => 'Live database wiped clean! Only admin user remains.',
-        'output' => \Illuminate\Support\Facades\Artisan::output(),
-    ]);
-});
