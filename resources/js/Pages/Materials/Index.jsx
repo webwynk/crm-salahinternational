@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, useForm, usePage, router } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
 import DataTable from '@/Components/ui/DataTable';
@@ -8,12 +8,10 @@ import Badge from '@/Components/ui/Badge';
 import Drawer from '@/Components/ui/Drawer';
 import Modal from '@/Components/ui/Modal';
 import Input from '@/Components/ui/Input';
-import Alert from '@/Components/ui/Alert';
-import { Plus, RefreshCw, Layers, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
 
 export default function Index({ materials, categories = [], filters = {} }) {
-    const { props } = usePage();
-    const isAdmin = props.auth?.user?.is_admin;
+
 
     const [search, setSearch] = useState(filters.search || '');
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
@@ -128,25 +126,13 @@ export default function Index({ materials, categories = [], filters = {} }) {
                 title="Materials Master & Stock Inventory"
                 description="Track raw materials, stock on hand, and replenishment thresholds"
                 action={
-                    isAdmin ? (
-                        <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
-                            <Plus className="w-4 h-4 mr-1.5" /> Add New Material
-                        </Button>
-                    ) : (
-                        <div title="Only Admins can add or restock materials">
-                            <Button variant="secondary" disabled>
-                                <ShieldAlert className="w-4 h-4 mr-1.5" /> Admin Access Only
-                            </Button>
-                        </div>
-                    )
+                    <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
+                        <Plus className="w-4 h-4 mr-1.5" /> Add New Material
+                    </Button>
                 }
             />
 
-            {!isAdmin && (
-                <Alert variant="info" className="mb-4">
-                    You are logged in as <strong>Staff</strong>. You can view raw material stock levels, but only <strong>Admin</strong> users can add new materials or restock inventory.
-                </Alert>
-            )}
+
 
             {/* Category Chips Bar */}
             {categories.length > 0 && (
@@ -187,18 +173,16 @@ export default function Index({ materials, categories = [], filters = {} }) {
                 searchPlaceholder="Search material by name..."
                 emptyTitle="No raw materials added yet"
                 emptyDescription="Add leather hides, threads, glues, and hardware to your master list."
-                emptyActionLabel={isAdmin ? "+ Add Material" : null}
+                emptyActionLabel="+ Add Material"
                 onEmptyAction={() => setIsAddDrawerOpen(true)}
                 renderRowActions={(row) => (
-                    isAdmin ? (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setRestockMaterial(row)}
-                        >
-                            <RefreshCw className="w-3.5 h-3.5 mr-1" /> Restock
-                        </Button>
-                    ) : null
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setRestockMaterial(row)}
+                    >
+                        <RefreshCw className="w-3.5 h-3.5 mr-1" /> Restock
+                    </Button>
                 )}
             />
 

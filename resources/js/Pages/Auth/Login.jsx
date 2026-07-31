@@ -130,19 +130,12 @@ export default function Login({ status, canResetPassword }) {
                     {/* Quick Demo Login Credentials Help */}
                     <div className="mt-8 pt-6 border-t border-neutral-200">
                         <h4 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">
-                            Demo Accounts
+                            Demo Account
                         </h4>
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                            <div className="p-2.5 rounded border border-neutral-200 bg-neutral-50">
-                                <span className="font-semibold text-neutral-800 block">Admin Role</span>
-                                <span className="text-neutral-500 block truncate">admin@salahinternational.com</span>
-                                <span className="text-neutral-400 block mt-0.5">pass: password</span>
-                            </div>
-                            <div className="p-2.5 rounded border border-neutral-200 bg-neutral-50">
-                                <span className="font-semibold text-neutral-800 block">Staff Role</span>
-                                <span className="text-neutral-500 block truncate">staff@salahinternational.com</span>
-                                <span className="text-neutral-400 block mt-0.5">pass: password</span>
-                            </div>
+                        <div className="p-2.5 rounded border border-neutral-200 bg-neutral-50 text-xs">
+                            <span className="font-semibold text-neutral-800 block">Administrator</span>
+                            <span className="text-neutral-500 block truncate">admin@salahinternational.com</span>
+                            <span className="text-neutral-400 block mt-0.5">pass: password</span>
                         </div>
                     </div>
                 </div>

@@ -34,7 +34,6 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
             href: route('materials.index'),
             icon: Layers,
             active: url.startsWith('/materials'),
-            adminOnly: true,
         },
         {
             label: 'Labour Artisans',
@@ -50,7 +49,7 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
         },
     ];
 
-    const filteredNav = navItems.filter((item) => !item.adminOnly || user?.is_admin);
+    const filteredNav = navItems;
 
     return (
         <>

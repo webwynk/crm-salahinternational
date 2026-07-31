@@ -41,7 +41,6 @@ class HandleInertiaRequests extends Middleware
                     'email' => $user->email,
                     'role' => $user->role,
                     'is_admin' => $user->isAdmin(),
-                    'is_staff' => $user->isStaff(),
                     'last_login_at' => $user->last_login_at ? Carbon::parse($user->last_login_at)->toIso8601String() : null,
                 ] : null,
             ],

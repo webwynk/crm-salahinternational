@@ -10,17 +10,17 @@ class AuthLockoutTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_login_with_correct_credentials(): void
+    public function test_admin_user_can_login_with_correct_credentials(): void
     {
         $user = User::factory()->create([
-            'email' => 'testuser@example.com',
+            'email' => 'testadmin@example.com',
             'password' => bcrypt('password123'),
-            'role' => 'STAFF',
+            'role' => 'ADMIN',
             'is_active' => true,
         ]);
 
         $response = $this->post('/login', [
-            'email' => 'testuser@example.com',
+            'email' => 'testadmin@example.com',
             'password' => 'password123',
         ]);
 
@@ -31,16 +31,16 @@ class AuthLockoutTest extends TestCase
     public function test_account_locks_after_5_failed_login_attempts(): void
     {
         $user = User::factory()->create([
-            'email' => 'staff@example.com',
+            'email' => 'admin@example.com',
             'password' => bcrypt('correctpassword'),
-            'role' => 'STAFF',
+            'role' => 'ADMIN',
             'is_active' => true,
             'failed_login_attempts' => 0,
         ]);
 
         for ($i = 1; $i <= 5; $i++) {
             $this->post('/login', [
-                'email' => 'staff@example.com',
+                'email' => 'admin@example.com',
                 'password' => 'wrongpassword',
             ]);
         }
@@ -51,7 +51,7 @@ class AuthLockoutTest extends TestCase
 
         // 6th attempt should be blocked with lockout message
         $response = $this->post('/login', [
-            'email' => 'staff@example.com',
+            'email' => 'admin@example.com',
             'password' => 'correctpassword',
         ]);
 
@@ -64,7 +64,7 @@ class AuthLockoutTest extends TestCase
         $user = User::factory()->create([
             'email' => 'inactive@example.com',
             'password' => bcrypt('password123'),
-            'role' => 'STAFF',
+            'role' => 'ADMIN',
             'is_active' => false,
         ]);
 
@@ -77,23 +77,23 @@ class AuthLockoutTest extends TestCase
         $response->assertSessionHasErrors(['email']);
     }
 
-    public function test_staff_user_cannot_access_admin_restock_route(): void
+    public function test_non_admin_user_cannot_login(): void
     {
+        // A STAFF-role user with valid credentials must be blocked at the admin-only gate.
         $staff = User::factory()->create([
+            'email' => 'staff@example.com',
+            'password' => bcrypt('password123'),
             'role' => 'STAFF',
             'is_active' => true,
         ]);
 
-        $this->actingAs($staff);
-
-        $response = $this->post('/materials', [
-            'name' => 'New Leather',
-            'category' => 'LEATHER',
-            'base_unit' => 'cm2',
-            'reorder_level' => 100,
-            'initial_stock' => 500,
+        $response = $this->post('/login', [
+            'email' => 'staff@example.com',
+            'password' => 'password123',
         ]);
 
-        $response->assertStatus(403);
+        // Must NOT be authenticated — admin gate must reject the login
+        $this->assertGuest();
+        $response->assertSessionHasErrors(['email']);
     }
 }

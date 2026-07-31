@@ -58,6 +58,17 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
+        // Admin-only gate: block any non-ADMIN account from entering the system.
+        if (strtoupper($user->role ?? '') !== 'ADMIN') {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'Access denied. Only Administrator accounts can log in.',
+            ]);
+        }
+
         $user->update([
             'failed_login_attempts' => 0,
             'locked_until' => null,

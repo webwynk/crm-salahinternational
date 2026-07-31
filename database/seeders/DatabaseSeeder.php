@@ -14,9 +14,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Spatie Roles
+        // Create Spatie Admin Role
         $adminRole = Role::firstOrCreate(['name' => 'ADMIN']);
-        $staffRole = Role::firstOrCreate(['name' => 'STAFF']);
 
         // Default Admin User
         $admin = User::firstOrCreate(
@@ -30,19 +29,6 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $admin->assignRole($adminRole);
-
-        // Default Staff User
-        $staff = User::firstOrCreate(
-            ['email' => 'staff@salahinternational.com'],
-            [
-                'name' => 'CRM Staff',
-                'password' => Hash::make('password'),
-                'role' => 'STAFF',
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
-        $staff->assignRole($staffRole);
 
         $this->call([
             MaterialSeeder::class,

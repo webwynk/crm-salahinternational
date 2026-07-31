@@ -59,9 +59,4 @@ class User extends Authenticatable
     {
         return strtoupper($this->role) === 'ADMIN';
     }
-
-    public function isStaff(): bool
-    {
-        return strtoupper($this->role) === 'STAFF';
-    }
 }

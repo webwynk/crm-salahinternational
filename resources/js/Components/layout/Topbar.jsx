@@ -23,7 +23,7 @@ export default function Topbar({ onOpenMobile }) {
 
             {user && (
                 <div className="flex items-center gap-4">
-                    <Badge variant={user.is_admin ? 'brand' : 'neutral'}>
+                    <Badge variant="brand">
                         <Shield className="w-3 h-3 mr-1" />
                         {user.role} ROLE
                     </Badge>
