@@ -22,7 +22,7 @@ class AssignmentService
     {
         $product = Product::with('materials.material.inventory')->findOrFail($productId);
         /** @var \Illuminate\Database\Eloquent\Collection<int, ProductMaterial> $bom */
-        $bom = $product->materials->where('material_type', 'CONSUMABLE');
+        $bom = $product->materials->whereNotNull('material_id');
 
         $items = [];
         $hasInsufficient = false;
@@ -64,7 +64,7 @@ class AssignmentService
         return DB::transaction(function () use ($productId, $labourId, $quantity, $assignedByUserId, $notes) {
             $product = Product::with('materials')->findOrFail($productId);
             /** @var \Illuminate\Database\Eloquent\Collection<int, ProductMaterial> $bom */
-            $bom = $product->materials->where('material_type', 'CONSUMABLE');
+            $bom = $product->materials->whereNotNull('material_id');
 
             // Lock inventory rows FOR UPDATE to prevent race conditions under high concurrency
             $lockedInventory = [];

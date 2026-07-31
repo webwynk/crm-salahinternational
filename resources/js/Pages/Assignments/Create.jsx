@@ -10,11 +10,14 @@ import Badge from '@/Components/ui/Badge';
 import Modal from '@/Components/ui/Modal';
 import { Search, CheckCircle2, AlertTriangle, ArrowLeft, Layers, ShieldCheck } from 'lucide-react';
 
+import axios from 'axios';
+
 export default function Create({ products = [], labour = [] }) {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [productSearch, setProductSearch] = useState('');
     const [preCheckResult, setPreCheckResult] = useState(null);
     const [isPreChecking, setIsPreChecking] = useState(false);
+    const [preCheckError, setPreCheckError] = useState(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
@@ -34,35 +37,35 @@ export default function Create({ products = [], labour = [] }) {
         setSelectedProduct(p);
         setData('product_id', p.id);
         setPreCheckResult(null);
+        setPreCheckError(null);
     };
 
     // Run Dry-Run Pre-Check Stock Validation whenever product or quantity changes
     useEffect(() => {
         if (!data.product_id || !data.quantity || data.quantity < 1) {
             setPreCheckResult(null);
+            setPreCheckError(null);
+            setIsPreChecking(false);
             return;
         }
 
         setIsPreChecking(true);
+        setPreCheckError(null);
 
         const timer = setTimeout(() => {
-            fetch(route('assignments.pre-check'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                },
-                body: JSON.stringify({
-                    product_id: data.product_id,
-                    quantity: data.quantity,
-                }),
+            axios.post(route('assignments.pre-check'), {
+                product_id: data.product_id,
+                quantity: data.quantity,
             })
-                .then((res) => res.json())
-                .then((json) => {
-                    setPreCheckResult(json);
-                    setIsPreChecking(false);
-                })
-                .catch(() => setIsPreChecking(false));
+            .then((res) => {
+                setPreCheckResult(res.data);
+                setIsPreChecking(false);
+            })
+            .catch((err) => {
+                console.error('Pre-check stock error:', err);
+                setPreCheckError('Failed to validate inventory stock. Please try again.');
+                setIsPreChecking(false);
+            });
         }, 200);
 
         return () => clearTimeout(timer);
@@ -209,8 +212,18 @@ export default function Create({ products = [], labour = [] }) {
                             <p className="text-xs text-neutral-500 py-8 text-center bg-neutral-50 rounded border border-neutral-200">
                                 Select a product from step 1 to run live inventory stock validation.
                             </p>
+                        ) : isPreChecking ? (
+                            <p className="text-xs text-neutral-500 py-8 text-center animate-pulse">
+                                Validating stock requirements...
+                            </p>
+                        ) : preCheckError ? (
+                            <Alert variant="danger" title="Validation Failed">
+                                {preCheckError}
+                            </Alert>
                         ) : !preCheckResult ? (
-                            <p className="text-xs text-neutral-500 py-8 text-center">Validating stock requirements...</p>
+                            <p className="text-xs text-neutral-500 py-8 text-center">
+                                Select product and quantity to check stock.
+                            </p>
                         ) : (
                             <div className="space-y-4">
                                 {preCheckResult.can_assign ? (
@@ -227,32 +240,38 @@ export default function Create({ products = [], labour = [] }) {
                                     <h4 className="text-xs font-bold text-neutral-600 uppercase tracking-wider">
                                         Required Raw Materials Breakdown:
                                     </h4>
-                                    {preCheckResult.items.map((item, idx) => (
-                                        <div
-                                            key={idx}
-                                            className={`p-3 rounded border text-xs flex items-center justify-between ${
-                                                item.is_sufficient
-                                                    ? 'bg-neutral-50 border-neutral-200'
-                                                    : 'bg-danger-50 border-danger-500/40 text-danger-900 font-semibold'
-                                            }`}
-                                        >
-                                            <div>
-                                                <span className="font-semibold text-neutral-900 block">{item.label}</span>
-                                                <span className="text-neutral-500">
-                                                    Needed: {item.needed} {item.unit} | Available: {item.available} {item.unit}
-                                                </span>
+                                    {preCheckResult.items.length === 0 ? (
+                                        <p className="text-xs text-neutral-500 italic p-3 bg-neutral-50 rounded border border-neutral-200">
+                                            This product has no physical raw materials linked in its specification (process notes only).
+                                        </p>
+                                    ) : (
+                                        preCheckResult.items.map((item, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`p-3 rounded border text-xs flex items-center justify-between ${
+                                                    item.is_sufficient
+                                                        ? 'bg-neutral-50 border-neutral-200'
+                                                        : 'bg-danger-50 border-danger-500/40 text-danger-900 font-semibold'
+                                                }`}
+                                            >
+                                                <div>
+                                                    <span className="font-semibold text-neutral-900 block">{item.label}</span>
+                                                    <span className="text-neutral-500">
+                                                        Needed: {item.needed} {item.unit} | Available: {item.available} {item.unit}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    {item.is_sufficient ? (
+                                                        <Badge variant="success">OK</Badge>
+                                                    ) : (
+                                                        <Badge variant="danger">
+                                                            Short by {item.shortage} {item.unit}
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div>
-                                                {item.is_sufficient ? (
-                                                    <Badge variant="success">OK</Badge>
-                                                ) : (
-                                                    <Badge variant="danger">
-                                                        Short by {item.shortage} {item.unit}
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                    )}
                                 </div>
 
                                 <div className="pt-4 border-t border-neutral-200">
