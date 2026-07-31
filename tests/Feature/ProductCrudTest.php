@@ -91,4 +91,51 @@ class ProductCrudTest extends TestCase
 
         $response->assertSessionHasErrors(['code']);
     }
+
+    public function test_product_with_assignments_cannot_be_deleted(): void
+    {
+        $this->actingAs($this->user);
+
+        $product = Product::create([
+            'code' => 'WAL-BF-002',
+            'name' => 'Bifold Wallet Deluxe',
+            'created_by' => $this->user->id,
+        ]);
+
+        $labour = \App\Models\Labour::create([
+            'name' => 'Artisan Test',
+            'phone' => '1234567890',
+            'is_active' => true,
+        ]);
+
+        \App\Models\Assignment::create([
+            'assignment_no' => 'WO-2026-9999',
+            'product_id' => $product->id,
+            'labour_id' => $labour->id,
+            'quantity' => 10,
+            'assigned_by' => $this->user->id,
+            'status' => 'ASSIGNED',
+        ]);
+
+        $response = $this->delete("/products/{$product->id}");
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('products', ['id' => $product->id]);
+    }
+
+    public function test_product_without_assignments_can_be_deleted(): void
+    {
+        $this->actingAs($this->user);
+
+        $product = Product::create([
+            'code' => 'WAL-BF-003',
+            'name' => 'Bifold Wallet Simple',
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->delete("/products/{$product->id}");
+
+        $response->assertRedirect('/products');
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+    }
 }

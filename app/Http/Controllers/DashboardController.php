@@ -20,12 +20,14 @@ class DashboardController extends Controller
         $totalLabour = Labour::where('is_active', true)->count();
         $activeAssignments = Assignment::whereIn('status', ['ASSIGNED', 'IN_PROGRESS'])->count();
 
-        // Low stock count (quantity_on_hand <= reorder_level)
-        $lowStockMaterials = Inventory::with('material')
-            ->whereHas('material', fn ($q) => $q->where('is_active', true))
-            ->get()
-            ->filter(fn ($inv) => (float) $inv->quantity_on_hand <= (float) ($inv->material->reorder_level ?? 0))
-            ->values();
+        // Low stock count (quantity_on_hand <= reorder_level) via pure SQL query
+        $lowStockQuery = Inventory::with('material')
+            ->join('materials', 'inventory.material_id', '=', 'materials.id')
+            ->where('materials.is_active', true)
+            ->whereColumn('inventory.quantity_on_hand', '<=', 'materials.reorder_level');
+
+        $lowStockCount = (clone $lowStockQuery)->count();
+        $lowStockMaterials = $lowStockQuery->select('inventory.*')->take(5)->get();
 
         $recentAssignments = Assignment::with(['product', 'labour'])
             ->orderBy('created_at', 'desc')
@@ -38,9 +40,9 @@ class DashboardController extends Controller
                 'total_materials' => $totalMaterials,
                 'total_labour' => $totalLabour,
                 'active_assignments' => $activeAssignments,
-                'low_stock_count' => $lowStockMaterials->count(),
+                'low_stock_count' => $lowStockCount,
             ],
-            'low_stock_materials' => $lowStockMaterials->take(5),
+            'low_stock_materials' => $lowStockMaterials,
             'recent_assignments' => $recentAssignments,
         ]);
     }

@@ -32,18 +32,6 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $user = User::where('email', $request->email)->first();
-
-        if ($user && $user->locked_until) {
-            $lockedUntil = Carbon::parse($user->locked_until);
-            if ($lockedUntil->isFuture()) {
-                $minutesRemaining = ceil(now()->diffInSeconds($lockedUntil) / 60);
-                throw ValidationException::withMessages([
-                    'email' => "Account temporarily locked due to 5 failed attempts. Try again in {$minutesRemaining} minute(s).",
-                ]);
-            }
-        }
-
         $request->authenticate();
 
         /** @var User $user */

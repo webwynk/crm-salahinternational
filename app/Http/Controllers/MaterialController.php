@@ -62,7 +62,7 @@ class MaterialController extends Controller
                 StockTransaction::create([
                     'material_id' => $material->id,
                     'change_qty' => $validated['initial_stock'],
-                    'type' => 'RESTOCK',
+                    'type' => StockTransaction::TYPE_RESTOCK,
                     'balance_after' => $validated['initial_stock'],
                     'note' => 'Initial inventory stock creation',
                     'created_by' => $request->user()->id,
@@ -92,7 +92,7 @@ class MaterialController extends Controller
         StockTransaction::create([
             'material_id' => $material->id,
             'change_qty' => $validated['add_quantity'],
-            'type' => 'RESTOCK',
+            'type' => StockTransaction::TYPE_RESTOCK,
             'balance_after' => $inv->fresh()->quantity_on_hand,
             'note' => $validated['note'] ?? 'Manual stock replenishment',
             'created_by' => $request->user()->id,

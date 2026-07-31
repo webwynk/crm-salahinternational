@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -69,6 +70,17 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
+        $user = User::where('email', $this->email)->first();
+        if ($user && $user->locked_until) {
+            $lockedUntil = Carbon::parse($user->locked_until);
+            if ($lockedUntil->isFuture()) {
+                $minutesRemaining = ceil(now()->diffInSeconds($lockedUntil) / 60);
+                throw ValidationException::withMessages([
+                    'email' => "Account temporarily locked due to 5 failed attempts. Try again in {$minutesRemaining} minute(s).",
+                ]);
+            }
+        }
+
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }

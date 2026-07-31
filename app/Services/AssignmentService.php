@@ -125,13 +125,13 @@ class AssignmentService
                 ]);
 
                 /** @var Inventory $inv */
-                $inv = Inventory::where('material_id', $materialId)->lockForUpdate()->first();
+                $inv = $data['inv'];
                 $inv->decrement('quantity_on_hand', $data['needed']);
 
                 StockTransaction::create([
                     'material_id'   => $materialId,
                     'change_qty'    => -$data['needed'],
-                    'type'          => 'ASSIGNMENT_DEDUCTION',
+                    'type'          => StockTransaction::TYPE_ASSIGNMENT_DEDUCTION,
                     'reference_id'  => $assignment->id,
                     'balance_after' => $inv->fresh()->quantity_on_hand,
                     'note'          => "Auto-deducted for Work Order #{$assignment->assignment_no}",

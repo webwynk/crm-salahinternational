@@ -8,6 +8,7 @@ use App\Models\Material;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -56,26 +57,28 @@ class ProductController extends Controller
     {
         $validated = $request->validated();
 
-        $product = Product::create([
-            'code' => strtoupper($validated['code']),
-            'name' => $validated['name'],
-            'category' => $validated['category'] ?? null,
-            'description' => $validated['description'] ?? null,
-            'created_by' => $request->user()->id,
-        ]);
-
-        foreach ($validated['materials'] as $index => $item) {
-            $product->materials()->create([
-                'material_id' => $item['material_id'] ?? null,
-                'material_type' => $item['material_type'],
-                'label' => $item['label'],
-                'quantity_min' => $item['quantity_min'] ?? null,
-                'quantity_max' => $item['quantity_max'] ?? null,
-                'unit' => $item['unit'] ?? null,
-                'dimension_note' => $item['dimension_note'] ?? null,
-                'sort_order' => $index + 1,
+        DB::transaction(function () use ($validated, $request, &$product) {
+            $product = Product::create([
+                'code' => strtoupper($validated['code']),
+                'name' => $validated['name'],
+                'category' => $validated['category'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'created_by' => $request->user()->id,
             ]);
-        }
+
+            foreach ($validated['materials'] as $index => $item) {
+                $product->materials()->create([
+                    'material_id' => $item['material_id'] ?? null,
+                    'material_type' => $item['material_type'],
+                    'label' => $item['label'],
+                    'quantity_min' => $item['quantity_min'] ?? null,
+                    'quantity_max' => $item['quantity_max'] ?? null,
+                    'unit' => $item['unit'] ?? null,
+                    'dimension_note' => $item['dimension_note'] ?? null,
+                    'sort_order' => $index + 1,
+                ]);
+            }
+        });
 
         return redirect()->route('products.index')->with('success', "Product '{$product->name}' ({$product->code}) created successfully.");
     }
@@ -104,34 +107,43 @@ class ProductController extends Controller
     {
         $validated = $request->validated();
 
-        $product->update([
-            'code' => strtoupper($validated['code']),
-            'name' => $validated['name'],
-            'category' => $validated['category'],
-            'description' => $validated['description'],
-        ]);
-
-        $product->materials()->delete();
-        foreach ($validated['materials'] as $index => $item) {
-            $product->materials()->create([
-                'material_id' => $item['material_id'] ?? null,
-                'material_type' => $item['material_type'],
-                'label' => $item['label'],
-                'quantity_min' => $item['quantity_min'] ?? null,
-                'quantity_max' => $item['quantity_max'] ?? null,
-                'unit' => $item['unit'] ?? null,
-                'dimension_note' => $item['dimension_note'] ?? null,
-                'sort_order' => $index + 1,
+        DB::transaction(function () use ($validated, $product) {
+            $product->update([
+                'code' => strtoupper($validated['code']),
+                'name' => $validated['name'],
+                'category' => $validated['category'],
+                'description' => $validated['description'],
             ]);
-        }
+
+            $product->materials()->delete();
+            foreach ($validated['materials'] as $index => $item) {
+                $product->materials()->create([
+                    'material_id' => $item['material_id'] ?? null,
+                    'material_type' => $item['material_type'],
+                    'label' => $item['label'],
+                    'quantity_min' => $item['quantity_min'] ?? null,
+                    'quantity_max' => $item['quantity_max'] ?? null,
+                    'unit' => $item['unit'] ?? null,
+                    'dimension_note' => $item['dimension_note'] ?? null,
+                    'sort_order' => $index + 1,
+                ]);
+            }
+        });
 
         return redirect()->route('products.index')->with('success', "Product '{$product->name}' updated successfully.");
     }
 
     public function destroy(Product $product): RedirectResponse
     {
+        if ($product->assignments()->exists()) {
+            return back()->with('error', "Cannot delete product '{$product->name}' because it has active or historical work order assignments.");
+        }
+
         $name = $product->name;
-        $product->delete();
+        DB::transaction(function () use ($product) {
+            $product->materials()->delete();
+            $product->delete();
+        });
 
         return redirect()->route('products.index')->with('success', "Product '{$name}' removed.");
     }

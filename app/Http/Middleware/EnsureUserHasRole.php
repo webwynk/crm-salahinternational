@@ -6,6 +6,10 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Role authorization middleware enforcing user access roles (e.g. ADMIN).
+ * Operates on the primary 'role' column on the User model.
+ */
 class EnsureUserHasRole
 {
     /**
