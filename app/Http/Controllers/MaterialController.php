@@ -10,6 +10,7 @@ use App\Models\Material;
 use App\Models\StockTransaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -42,30 +43,32 @@ class MaterialController extends Controller
     {
         $validated = $request->validated();
 
-        $material = Material::create([
-            'name' => $validated['name'],
-            'category' => $validated['category'],
-            'base_unit' => $validated['base_unit'],
-            'reorder_level' => $validated['reorder_level'],
-            'is_active' => true,
-        ]);
-
-        $inventory = Inventory::create([
-            'material_id' => $material->id,
-            'quantity_on_hand' => $validated['initial_stock'],
-            'unit' => $validated['base_unit'],
-        ]);
-
-        if ($validated['initial_stock'] > 0) {
-            StockTransaction::create([
-                'material_id' => $material->id,
-                'change_qty' => $validated['initial_stock'],
-                'type' => 'RESTOCK',
-                'balance_after' => $validated['initial_stock'],
-                'note' => 'Initial inventory stock creation',
-                'created_by' => $request->user()->id,
+        DB::transaction(function () use ($validated, $request, &$material) {
+            $material = Material::create([
+                'name' => $validated['name'],
+                'category' => $validated['category'],
+                'base_unit' => $validated['base_unit'],
+                'reorder_level' => $validated['reorder_level'],
+                'is_active' => true,
             ]);
-        }
+
+            Inventory::create([
+                'material_id' => $material->id,
+                'quantity_on_hand' => $validated['initial_stock'],
+                'unit' => $validated['base_unit'],
+            ]);
+
+            if ($validated['initial_stock'] > 0) {
+                StockTransaction::create([
+                    'material_id' => $material->id,
+                    'change_qty' => $validated['initial_stock'],
+                    'type' => 'RESTOCK',
+                    'balance_after' => $validated['initial_stock'],
+                    'note' => 'Initial inventory stock creation',
+                    'created_by' => $request->user()->id,
+                ]);
+            }
+        });
 
         return redirect()->route('materials.index')->with('success', "Material '{$material->name}' added with {$validated['initial_stock']} {$material->base_unit} stock.");
     }

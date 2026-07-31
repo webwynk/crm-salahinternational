@@ -118,4 +118,18 @@ class AssignmentController extends Controller
         $fullPath = Storage::disk('public')->path($pdf->file_path);
         return response()->download($fullPath, "Work_Order_{$assignment->assignment_no}.pdf");
     }
+
+    public function updateStatus(Request $request, Assignment $assignment): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'string', \Illuminate\Validation\Rule::in(['ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'])],
+        ]);
+
+        $assignment->update([
+            'status' => $validated['status'],
+            'completed_at' => $validated['status'] === 'COMPLETED' ? now() : ($validated['status'] === 'CANCELLED' ? $assignment->completed_at : null),
+        ]);
+
+        return back()->with('success', "Work Order #{$assignment->assignment_no} status updated to {$validated['status']}.");
+    }
 }

@@ -91,8 +91,22 @@ class AssignmentService
                 ];
             }
 
+            // Lock & fetch max sequence for assignment_no to prevent race conditions
+            $year = now()->year;
+            $prefix = sprintf('WO-%d-', $year);
+            $maxAssignmentNo = Assignment::where('assignment_no', 'like', "{$prefix}%")
+                ->lockForUpdate()
+                ->max('assignment_no');
+
+            $seq = 1;
+            if ($maxAssignmentNo) {
+                $lastSeq = (int) substr($maxAssignmentNo, strlen($prefix));
+                $seq = $lastSeq + 1;
+            }
+            $assignmentNo = sprintf('WO-%d-%04d', $year, $seq);
+
             $assignment = Assignment::create([
-                'assignment_no' => $this->nextAssignmentNo(),
+                'assignment_no' => $assignmentNo,
                 'product_id'    => $productId,
                 'labour_id'     => $labourId,
                 'quantity'      => $quantity,
@@ -124,15 +138,7 @@ class AssignmentService
                     'created_by'    => $assignedByUserId,
                 ]);
             }
-
             return $assignment;
         });
-    }
-
-    private function nextAssignmentNo(): string
-    {
-        $year = now()->year;
-        $count = Assignment::whereYear('created_at', $year)->count() + 1;
-        return sprintf('WO-%d-%04d', $year, $count);
     }
 }

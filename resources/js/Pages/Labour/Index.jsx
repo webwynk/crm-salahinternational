@@ -52,17 +52,20 @@ export default function Index({ labour, filters = {} }) {
             ? data.skill_tags_str.split(',').map((s) => s.trim()).filter(Boolean)
             : [];
 
-        const payload = {
-            ...data,
-            skill_tags: skillTagsArray,
-        };
-
         if (editingWorker) {
             put(route('labour.update', editingWorker.id), {
+                data: {
+                    ...data,
+                    skill_tags: skillTagsArray,
+                },
                 onSuccess: () => setIsDrawerOpen(false),
             });
         } else {
             post(route('labour.store'), {
+                data: {
+                    ...data,
+                    skill_tags: skillTagsArray,
+                },
                 onSuccess: () => {
                     reset();
                     setIsDrawerOpen(false);
