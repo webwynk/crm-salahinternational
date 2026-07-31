@@ -29,11 +29,5 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $admin->assignRole($adminRole);
-
-        $this->call([
-            MaterialSeeder::class,
-            ProductSeeder::class,
-            LabourSeeder::class,
-        ]);
     }
 }
