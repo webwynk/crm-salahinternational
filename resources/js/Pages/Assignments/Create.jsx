@@ -63,7 +63,8 @@ export default function Create({ products = [], labour = [] }) {
             })
             .catch((err) => {
                 console.error('Pre-check stock error:', err);
-                setPreCheckError('Failed to validate inventory stock. Please try again.');
+                const msg = err.response?.data?.message || err.message || 'Failed to validate inventory stock. Please try again.';
+                setPreCheckError(msg);
                 setIsPreChecking(false);
             });
         }, 200);
