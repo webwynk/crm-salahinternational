@@ -80,7 +80,16 @@ export default function Edit({ product, materials = [] }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('products.update', product.id));
+        put(route('products.update', product.id), {
+            onError: (errs) => {
+                const firstErr = Object.values(errs)[0] || 'Please fix the form validation errors.';
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('show-toast', {
+                        detail: { message: firstErr, type: 'danger' }
+                    }));
+                }
+            }
+        });
     };
 
     return (
