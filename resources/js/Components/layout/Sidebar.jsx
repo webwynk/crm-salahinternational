@@ -95,10 +95,10 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
                                 href={item.href}
                                 onClick={onCloseMobile}
                                 title={isCollapsed ? item.label : undefined}
-                                className={`flex items-center gap-3 px-3 h-11 rounded-md text-sm font-medium transition-all group ${
+                                className={`flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium transition-all group ${
                                     item.active
-                                        ? 'border-l-4 border-brand-500 bg-brand-500/10 text-brand-300 font-semibold pl-2.5'
-                                        : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'
+                                        ? 'bg-brand-500/15 text-brand-400 font-bold border border-brand-500/20 shadow-xs'
+                                        : 'text-neutral-400 hover:bg-neutral-800/80 hover:text-white'
                                 }`}
                             >
                                 <Icon
