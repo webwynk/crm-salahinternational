@@ -54,7 +54,7 @@ export default function Toast({ toast, onClose, duration = 4000 }) {
     const config = toast ? (configs[toast.type] || configs.info) : null;
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 pointer-events-none">
+        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 z-50 pointer-events-none flex flex-col items-center md:items-end gap-2 pb-safe">
             <AnimatePresence mode="wait">
                 {toast && config && (
                     <motion.div
