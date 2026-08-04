@@ -111,51 +111,74 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
                     })}
                 </nav>
 
-                {/* Bottom Pinned User Section */}
-                <div className="px-2 pb-3 pt-2 border-t border-neutral-800 space-y-1 shrink-0">
-                    <Link
-                        href={route('profile.edit')}
-                        onClick={onCloseMobile}
-                        title={isCollapsed ? `Profile: ${user?.name}` : undefined}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${
-                            url.startsWith('/profile')
-                                ? 'bg-neutral-800 text-white'
-                                : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'
-                        }`}
-                    >
-                        <div className="w-7 h-7 rounded-full bg-brand-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-                            {user?.name?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                        {!isCollapsed && user && (
-                            <div className="truncate min-w-0 flex-1">
-                                <p className="text-xs font-semibold text-white truncate leading-tight">{user.name}</p>
-                                <span className="text-[10px] text-brand-400 font-bold uppercase tracking-wider">
-                                    {user.role}
-                                </span>
+                {/* Bottom Pinned User Card & Collapse Control */}
+                <div className="p-2 border-t border-neutral-800/90 space-y-2 shrink-0 bg-neutral-900/95">
+                    {/* Unified User Card Container */}
+                    <div className="relative group p-2 rounded-xl bg-neutral-800/70 hover:bg-neutral-800 border border-neutral-700/60 transition-all shadow-xs flex items-center justify-between gap-2">
+                        <Link
+                            href={route('profile.edit')}
+                            onClick={onCloseMobile}
+                            title={isCollapsed ? `Profile: ${user?.name}` : undefined}
+                            className="flex items-center gap-2.5 min-w-0 flex-1 group/user"
+                        >
+                            {/* Avatar Badge */}
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs border border-brand-400/30 group-hover/user:scale-105 transition-transform">
+                                {user?.name?.charAt(0).toUpperCase() || 'U'}
                             </div>
+
+                            {!isCollapsed && user && (
+                                <div className="truncate min-w-0 flex-1">
+                                    <p className="text-xs font-bold text-neutral-100 truncate leading-snug group-hover/user:text-white transition-colors">
+                                        {user.name}
+                                    </p>
+                                    <span className="inline-block mt-0.5 px-1.5 py-0.2 text-[9px] font-mono font-bold tracking-wider uppercase rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">
+                                        {user.role}
+                                    </span>
+                                </div>
+                            )}
+                        </Link>
+
+                        {/* Quick Sign Out Action Button */}
+                        {!isCollapsed && (
+                            <Link
+                                href={route('logout')}
+                                method="post"
+                                as="button"
+                                title="Sign out"
+                                className="p-1.5 rounded-lg text-neutral-400 hover:text-danger-400 hover:bg-danger-500/15 transition-all shrink-0 touch-manipulation"
+                            >
+                                <LogOut className="w-4 h-4" strokeWidth={2} />
+                            </Link>
                         )}
-                    </Link>
+                    </div>
 
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        title="Sign out"
-                        className="flex items-center gap-3 px-3 py-2 rounded-md w-full text-neutral-400 hover:bg-neutral-800 hover:text-danger-400 transition-colors text-sm"
-                    >
-                        <LogOut className="w-4.5 h-4.5 shrink-0" strokeWidth={1.75} />
-                        {!isCollapsed && <span className="text-xs font-medium">Sign out</span>}
-                    </Link>
+                    {/* Collapsed Rail Signout Link fallback */}
+                    {isCollapsed && (
+                        <Link
+                            href={route('logout')}
+                            method="post"
+                            as="button"
+                            title="Sign out"
+                            className="flex items-center justify-center w-full py-2 rounded-xl text-neutral-400 hover:text-danger-400 hover:bg-danger-500/15 transition-all"
+                        >
+                            <LogOut className="w-4 h-4" strokeWidth={2} />
+                        </Link>
+                    )}
 
+                    {/* Desktop Collapse / Expand Toggle Bar */}
                     <button
                         onClick={onToggleCollapse}
-                        className="hidden lg:flex w-full items-center justify-center py-2 text-neutral-500 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"
+                        className="hidden lg:flex w-full items-center justify-between px-3 py-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800/80 transition-all text-[11px] font-medium group"
                         title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
                     >
-                        {isCollapsed
-                            ? <ChevronRight className="w-4 h-4" strokeWidth={1.75} />
-                            : <ChevronLeft className="w-4 h-4" strokeWidth={1.75} />
-                        }
+                        {!isCollapsed && <span className="text-neutral-400 group-hover:text-neutral-200">Collapse rail</span>}
+                        <div className={`p-1 rounded-md bg-neutral-800 group-hover:bg-neutral-700 transition-colors ${isCollapsed ? 'mx-auto' : ''}`}>
+                            {isCollapsed ? (
+                                <ChevronRight className="w-3.5 h-3.5 text-neutral-300" strokeWidth={2} />
+                            ) : (
+                                <ChevronLeft className="w-3.5 h-3.5 text-neutral-300" strokeWidth={2} />
+                            )}
+                        </div>
                     </button>
                 </div>
             </aside>
