@@ -11,6 +11,7 @@ import Alert from '@/Components/ui/Alert';
 import Badge from '@/Components/ui/Badge';
 import Modal from '@/Components/ui/Modal';
 import Stepper from '@/Components/ui/Stepper';
+import FilterChips from '@/Components/ui/FilterChips';
 import {
     Search,
     CheckCircle2,
@@ -37,6 +38,9 @@ export default function Create({ products = [], labour = [] }) {
     const [preCheckError, setPreCheckError] = useState(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
+    const safeProducts = Array.isArray(products) ? products : (products?.data || []);
+    const safeLabour = Array.isArray(labour) ? labour : (labour?.data || []);
+
     const { data, setData, post, processing, errors } = useForm({
         product_id: '',
         labour_id: '',
@@ -50,27 +54,33 @@ export default function Create({ products = [], labour = [] }) {
         { title: '3. Stock Validation', description: 'Live stock pre-check' },
     ];
 
-    // Filter products by search & category chip
-    const filteredProducts = products.filter((p) => {
-        const matchesSearch =
-            p.code.toLowerCase().includes(productSearch.toLowerCase()) ||
-            p.name.toLowerCase().includes(productSearch.toLowerCase());
+    // Filter products safely with null guards
+    const filteredProducts = safeProducts.filter((p) => {
+        if (!p) return false;
+        const codeStr = (p.code || '').toLowerCase();
+        const nameStr = (p.name || '').toLowerCase();
+        const searchStr = (productSearch || '').toLowerCase();
+        const matchesSearch = codeStr.includes(searchStr) || nameStr.includes(searchStr);
         const matchesCategory =
             selectedCategory === 'ALL' ||
+            !selectedCategory ||
             (p.category && p.category.toUpperCase() === selectedCategory.toUpperCase());
         return matchesSearch && matchesCategory;
     });
 
     const handleSelectProduct = (p) => {
+        if (!p) return;
         setSelectedProduct(p);
         setData('product_id', p.id);
         setPreCheckResult(null);
         setPreCheckError(null);
         setCurrentStep(2);
         
-        window.dispatchEvent(new CustomEvent('show-toast', {
-            detail: { message: `Selected Product: ${p.name} (${p.code})`, type: 'info' }
-        }));
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('show-toast', {
+                detail: { message: `Selected Product: ${p.name || ''} (${p.code || ''})`, type: 'info' }
+            }));
+        }
     };
 
     // Fast Quantity Adjusters
@@ -108,9 +118,11 @@ export default function Create({ products = [], labour = [] }) {
                 const msg = err.response?.data?.message || err.message || 'Failed to validate inventory stock.';
                 setPreCheckError(msg);
                 setIsPreChecking(false);
-                window.dispatchEvent(new CustomEvent('show-toast', {
-                    detail: { message: msg, type: 'danger' }
-                }));
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('show-toast', {
+                        detail: { message: msg, type: 'danger' }
+                    }));
+                }
             });
         }, 250);
 
@@ -122,14 +134,16 @@ export default function Create({ products = [], labour = [] }) {
         post(route('assignments.store'), {
             onError: (errs) => {
                 const firstErr = Object.values(errs)[0] || 'Please fix the form errors.';
-                window.dispatchEvent(new CustomEvent('show-toast', {
-                    detail: { message: firstErr, type: 'danger' }
-                }));
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('show-toast', {
+                        detail: { message: firstErr, type: 'danger' }
+                    }));
+                }
             }
         });
     };
 
-    const selectedArtisan = labour.find((l) => String(l.id) === String(data.labour_id));
+    const selectedArtisan = safeLabour.find((l) => l && String(l.id) === String(data.labour_id));
 
     return (
         <AppLayout>
@@ -177,7 +191,7 @@ export default function Create({ products = [], labour = [] }) {
 
                             {selectedProduct && (
                                 <Badge variant="warning" className="self-start sm:self-center font-mono">
-                                    Selected: {selectedProduct.code}
+                                    Selected: {selectedProduct.code || ''}
                                 </Badge>
                             )}
                         </div>
@@ -225,6 +239,7 @@ export default function Create({ products = [], labour = [] }) {
                             ) : (
                                 filteredProducts.map((p) => {
                                     const isSelected = selectedProduct?.id === p.id;
+                                    const codePrefix = (p.code || 'PRD').slice(0, 3).toUpperCase();
                                     return (
                                         <div
                                             key={p.id}
@@ -239,18 +254,18 @@ export default function Create({ products = [], labour = [] }) {
                                                 {p.image_url ? (
                                                     <img
                                                         src={p.image_url}
-                                                        alt={p.name}
+                                                        alt={p.name || ''}
                                                         className="w-12 h-12 rounded-lg object-cover border border-neutral-200 shrink-0"
                                                     />
                                                 ) : (
                                                     <div className="w-12 h-12 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-mono text-xs font-bold shrink-0">
-                                                        {p.code.slice(0, 3)}
+                                                        {codePrefix}
                                                     </div>
                                                 )}
                                                 <div className="min-w-0">
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-semibold text-xs sm:text-sm text-neutral-900 truncate">
-                                                            {p.name}
+                                                            {p.name || 'Unnamed Product'}
                                                         </span>
                                                         {p.category && (
                                                             <span className="text-2xs bg-neutral-100 text-neutral-600 px-1.5 py-0.5 rounded font-medium shrink-0">
@@ -260,9 +275,9 @@ export default function Create({ products = [], labour = [] }) {
                                                     </div>
                                                     <div className="flex items-center gap-3 mt-1 text-2xs">
                                                         <span className="font-mono font-bold text-brand-700">
-                                                            {p.code}
+                                                            {p.code || 'NO-CODE'}
                                                         </span>
-                                                        {p.materials && (
+                                                        {Array.isArray(p.materials) && (
                                                             <span className="text-neutral-500">
                                                                 BOM: {p.materials.length} materials
                                                             </span>
@@ -325,9 +340,9 @@ export default function Create({ products = [], labour = [] }) {
                                 helperText="Artisan responsible for assembly, stitching, edge paint, and quality sign-off"
                             >
                                 <option value="">— Choose Artisan Craftsman —</option>
-                                {labour.map((w) => (
+                                {safeLabour.map((w) => (
                                     <option key={w.id} value={w.id}>
-                                        {w.name} ({w.phone}) — Skill: {Array.isArray(w.skill_tags) ? w.skill_tags.join(', ') : 'Leather Artisan'} — Rate: ₹{w.piece_rate || 0}/pc
+                                        {w.name || 'Worker'} ({w.phone || 'N/A'}) — Skill: {Array.isArray(w.skill_tags) ? w.skill_tags.join(', ') : 'Leather Artisan'} — Rate: ₹{w.piece_rate || 0}/pc
                                     </option>
                                 ))}
                             </Select>
@@ -337,11 +352,11 @@ export default function Create({ products = [], labour = [] }) {
                                 <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 flex items-center justify-between text-xs">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-brand-100 border border-brand-300 flex items-center justify-center text-brand-800 font-bold text-sm shrink-0">
-                                            {selectedArtisan.name.slice(0, 2).toUpperCase()}
+                                            {(selectedArtisan.name || 'ART').slice(0, 2).toUpperCase()}
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-neutral-900 text-sm">{selectedArtisan.name}</p>
-                                            <p className="text-2xs text-neutral-500">{selectedArtisan.phone}</p>
+                                            <p className="font-semibold text-neutral-900 text-sm">{selectedArtisan.name || 'Artisan'}</p>
+                                            <p className="text-2xs text-neutral-500">{selectedArtisan.phone || ''}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -514,14 +529,14 @@ export default function Create({ products = [], labour = [] }) {
                                         Material Consumption Breakdown:
                                     </h4>
 
-                                    {preCheckResult.items.length === 0 ? (
+                                    {!Array.isArray(preCheckResult?.items) || preCheckResult.items.length === 0 ? (
                                         <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 text-center text-xs text-neutral-500">
                                             This product has no BOM materials configured.
                                         </div>
                                     ) : (
                                         <div className="space-y-2.5">
                                             {preCheckResult.items.map((item, idx) => {
-                                                const pct = Math.min(100, Math.round((item.available / (item.needed || 1)) * 100));
+                                                const pct = Math.min(100, Math.round(((item.available || 0) / (item.needed || 1)) * 100));
                                                 return (
                                                     <div
                                                         key={idx}
@@ -573,7 +588,7 @@ export default function Create({ products = [], labour = [] }) {
                                     <Button
                                         variant="primary"
                                         size="lg"
-                                        disabled={!preCheckResult.can_assign || !data.labour_id || processing}
+                                        disabled={!preCheckResult?.can_assign || !data.labour_id || processing}
                                         onClick={() => setIsConfirmModalOpen(true)}
                                         className="min-h-touch shadow-md"
                                     >
@@ -601,7 +616,7 @@ export default function Create({ products = [], labour = [] }) {
                         <div className="flex justify-between items-center">
                             <span className="text-neutral-500">Product Specification:</span>
                             <strong className="text-neutral-900 font-mono">
-                                {selectedProduct?.name} ({selectedProduct?.code})
+                                {selectedProduct?.name || ''} ({selectedProduct?.code || ''})
                             </strong>
                         </div>
                         <div className="flex justify-between items-center">
@@ -613,7 +628,7 @@ export default function Create({ products = [], labour = [] }) {
                         <div className="flex justify-between items-center">
                             <span className="text-neutral-500">Assigned Artisan:</span>
                             <strong className="text-neutral-900">
-                                {selectedArtisan?.name}
+                                {selectedArtisan?.name || ''}
                             </strong>
                         </div>
                         {data.notes && (
@@ -626,7 +641,7 @@ export default function Create({ products = [], labour = [] }) {
                     <div className="space-y-1.5">
                         <p className="font-bold text-neutral-700">Stock Deductions Breakdown:</p>
                         <ul className="list-disc pl-5 text-neutral-600 space-y-1">
-                            {preCheckResult?.items.map((it, i) => (
+                            {Array.isArray(preCheckResult?.items) && preCheckResult.items.map((it, i) => (
                                 <li key={i}>
                                     <strong className="tabular-nums text-neutral-900">{it.needed} {it.unit}</strong> of {it.label}
                                 </li>
