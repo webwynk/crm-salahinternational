@@ -14,7 +14,23 @@ export default function AppLayout({ children }) {
     const [isOffline, setIsOffline] = useState(
         typeof navigator !== 'undefined' ? !navigator.onLine : false
     );
-    const [toast, setToast] = useState(null);
+    const [toasts, setToasts] = useState([]);
+
+    const addToast = (toastDetail) => {
+        if (!toastDetail?.message) return;
+        const newToast = {
+            id: Date.now() + Math.random(),
+            message: toastDetail.message,
+            type: toastDetail.type || 'info',
+            actionText: toastDetail.actionText,
+            onAction: toastDetail.onAction,
+        };
+        setToasts((prev) => [...prev.slice(-2), newToast]);
+    };
+
+    const removeToast = (id) => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+    };
 
     useEffect(() => {
         const handleOnline  = () => setIsOffline(false);
@@ -28,15 +44,15 @@ export default function AppLayout({ children }) {
     }, []);
 
     useEffect(() => {
-        if (flash?.success)      setToast({ message: flash.success, type: 'success' });
-        else if (flash?.error)   setToast({ message: flash.error,   type: 'danger'  });
-        else if (flash?.warning) setToast({ message: flash.warning, type: 'warning' });
+        if (flash?.success)      addToast({ message: flash.success, type: 'success' });
+        else if (flash?.error)   addToast({ message: flash.error,   type: 'danger'  });
+        else if (flash?.warning) addToast({ message: flash.warning, type: 'warning' });
     }, [flash]);
 
     useEffect(() => {
         const handleCustomToast = (e) => {
             if (e.detail) {
-                setToast(e.detail);
+                addToast(e.detail);
             }
         };
         window.addEventListener('show-toast', handleCustomToast);
@@ -84,7 +100,7 @@ export default function AppLayout({ children }) {
             <MobileBottomNav />
 
             {/* Global Toast Stack */}
-            <Toast toast={toast} onClose={() => setToast(null)} />
+            <Toast toasts={toasts} onClose={removeToast} />
         </div>
     );
 }
