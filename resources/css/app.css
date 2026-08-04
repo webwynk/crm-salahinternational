@@ -81,3 +81,13 @@
   background-color: theme('colors.neutral.300');
   border-radius: 9999px;
 }
+
+/* Mobile Safe Area Insets & Touch Targets */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.min-h-touch {
+  min-height: 44px;
+}
+

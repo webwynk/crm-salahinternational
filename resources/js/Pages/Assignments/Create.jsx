@@ -11,14 +11,27 @@ import Alert from '@/Components/ui/Alert';
 import Badge from '@/Components/ui/Badge';
 import Modal from '@/Components/ui/Modal';
 import Stepper from '@/Components/ui/Stepper';
-import { Search, CheckCircle2, ArrowLeft, ClipboardCheck, Package } from 'lucide-react';
-
+import {
+    Search,
+    CheckCircle2,
+    ArrowLeft,
+    ClipboardCheck,
+    Package,
+    User,
+    Layers,
+    AlertTriangle,
+    Plus,
+    Minus,
+    ArrowRight,
+    ShieldCheck
+} from 'lucide-react';
 import axios from 'axios';
 
 export default function Create({ products = [], labour = [] }) {
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [productSearch, setProductSearch] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('ALL');
     const [preCheckResult, setPreCheckResult] = useState(null);
     const [isPreChecking, setIsPreChecking] = useState(false);
     const [preCheckError, setPreCheckError] = useState(null);
@@ -32,16 +45,21 @@ export default function Create({ products = [], labour = [] }) {
     });
 
     const wizardSteps = [
-        { title: '1. Product', description: 'Select spec code' },
-        { title: '2. Artisan & Qty', description: 'Assign worker' },
-        { title: '3. Validation', description: 'Check stock on hand' },
+        { title: '1. Product Spec', description: 'Select product code' },
+        { title: '2. Artisan & Quantity', description: 'Assign worker & units' },
+        { title: '3. Stock Validation', description: 'Live stock pre-check' },
     ];
 
-    const filteredProducts = products.filter(
-        (p) =>
+    // Filter products by search & category chip
+    const filteredProducts = products.filter((p) => {
+        const matchesSearch =
             p.code.toLowerCase().includes(productSearch.toLowerCase()) ||
-            p.name.toLowerCase().includes(productSearch.toLowerCase())
-    );
+            p.name.toLowerCase().includes(productSearch.toLowerCase());
+        const matchesCategory =
+            selectedCategory === 'ALL' ||
+            (p.category && p.category.toUpperCase() === selectedCategory.toUpperCase());
+        return matchesSearch && matchesCategory;
+    });
 
     const handleSelectProduct = (p) => {
         setSelectedProduct(p);
@@ -49,9 +67,23 @@ export default function Create({ products = [], labour = [] }) {
         setPreCheckResult(null);
         setPreCheckError(null);
         setCurrentStep(2);
+        
+        window.dispatchEvent(new CustomEvent('show-toast', {
+            detail: { message: `Selected Product: ${p.name} (${p.code})`, type: 'info' }
+        }));
     };
 
-    // Run Dry-Run Pre-Check Stock Validation
+    // Fast Quantity Adjusters
+    const adjustQuantity = (delta) => {
+        const nextVal = Math.max(1, (parseInt(data.quantity) || 0) + delta);
+        setData('quantity', nextVal);
+    };
+
+    const setQuickQuantity = (amount) => {
+        setData('quantity', amount);
+    };
+
+    // Dry-Run Stock Validation
     useEffect(() => {
         if (!data.product_id || !data.quantity || data.quantity < 1) {
             setPreCheckResult(null);
@@ -73,9 +105,12 @@ export default function Create({ products = [], labour = [] }) {
                 setIsPreChecking(false);
             })
             .catch((err) => {
-                const msg = err.response?.data?.message || err.message || 'Failed to validate inventory stock. Please try again.';
+                const msg = err.response?.data?.message || err.message || 'Failed to validate inventory stock.';
                 setPreCheckError(msg);
                 setIsPreChecking(false);
+                window.dispatchEvent(new CustomEvent('show-toast', {
+                    detail: { message: msg, type: 'danger' }
+                }));
             });
         }, 250);
 
@@ -84,171 +119,364 @@ export default function Create({ products = [], labour = [] }) {
 
     const handleFinalSubmit = () => {
         setIsConfirmModalOpen(false);
-        post(route('assignments.store'));
+        post(route('assignments.store'), {
+            onError: (errs) => {
+                const firstErr = Object.values(errs)[0] || 'Please fix the form errors.';
+                window.dispatchEvent(new CustomEvent('show-toast', {
+                    detail: { message: firstErr, type: 'danger' }
+                }));
+            }
+        });
     };
+
+    const selectedArtisan = labour.find((l) => String(l.id) === String(data.labour_id));
 
     return (
         <AppLayout>
-            <Head title="Assign Work Order — Leather CRM" />
+            <Head title="Create Work Order Assignment — Leather CRM" />
 
             <PageHeader
                 title="Create Work Order Assignment"
-                description="3-step wizard: select product definition, assign artisan worker, validate inventory stock, and auto-generate PDF"
+                description="Assign artisan worker, set quantity, dry-run inventory stock deduction, and generate official PDF Work Order"
                 action={
                     <Link href={route('assignments.index')}>
-                        <Button variant="outline" size="sm">
-                            <ArrowLeft className="w-4 h-4" /> Back to Assignments
+                        <Button variant="outline" size="sm" className="min-h-touch">
+                            <ArrowLeft className="w-4 h-4" /> Back to Ledger
                         </Button>
                     </Link>
                 }
             />
 
-            <div className="max-w-4xl space-y-6">
-                {/* Visual Wizard Stepper */}
-                <Card>
+            <div className="max-w-4xl mx-auto space-y-6 pb-12">
+                {/* Stepper Card */}
+                <Card className="shadow-xs border-neutral-200">
                     <Stepper
                         steps={wizardSteps}
                         currentStep={currentStep}
-                        onStepClick={(step) => setCurrentStep(step)}
+                        onStepClick={(step) => {
+                            if (step === 2 && !selectedProduct) return;
+                            if (step === 3 && (!selectedProduct || !data.labour_id)) return;
+                            setCurrentStep(step);
+                        }}
                     />
                 </Card>
 
-                {/* Step 1: Select Product */}
+                {/* STEP 1: Select Product */}
                 {currentStep === 1 && (
-                    <Card>
-                        <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-neutral-200">
-                            Step 1: Select Product Definition
-                        </h3>
+                    <Card className="shadow-xs border-neutral-200 space-y-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-200">
+                            <div>
+                                <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
+                                    <Package className="w-5 h-5 text-brand-600" />
+                                    Step 1: Select Product Specification
+                                </h3>
+                                <p className="text-xs text-neutral-500 mt-0.5">
+                                    Choose product code to load Bill of Materials (BOM) consumption rates
+                                </p>
+                            </div>
 
-                        <div className="relative mb-4">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                            <input
-                                type="text"
-                                value={productSearch}
-                                onChange={(e) => setProductSearch(e.target.value)}
-                                placeholder="Search product by code (e.g. WAL-BF-001) or name…"
-                                className="w-full text-sm pl-9 pr-3.5 py-2.5 border border-neutral-300 rounded-md bg-neutral-0 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                            {selectedProduct && (
+                                <Badge variant="warning" className="self-start sm:self-center font-mono">
+                                    Selected: {selectedProduct.code}
+                                </Badge>
+                            )}
+                        </div>
+
+                        {/* Search Bar & Category Filter Chips */}
+                        <div className="space-y-3">
+                            <div className="relative">
+                                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                                <input
+                                    type="text"
+                                    value={productSearch}
+                                    onChange={(e) => setProductSearch(e.target.value)}
+                                    placeholder="Search product code (e.g. WAL-BF-001) or product name..."
+                                    className="w-full text-sm min-h-touch pl-10 pr-4 py-2.5 border border-neutral-300 rounded-xl bg-neutral-0 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all placeholder:text-neutral-400"
+                                />
+                            </div>
+
+                            <FilterChips
+                                options={[
+                                    { label: 'Wallets', value: 'WALLETS' },
+                                    { label: 'Bags & Folios', value: 'BAGS' },
+                                    { label: 'Belts & Straps', value: 'BELTS' },
+                                    { label: 'Accessories', value: 'ACCESSORIES' },
+                                ]}
+                                value={selectedCategory === 'ALL' ? '' : selectedCategory}
+                                onChange={(val) => setSelectedCategory(val || 'ALL')}
+                                allLabel="All Products"
                             />
                         </div>
 
                         {errors.product_id && (
-                            <Alert variant="danger" className="mb-4">
+                            <Alert variant="danger" title="Selection Error">
                                 {errors.product_id}
                             </Alert>
                         )}
 
-                        <div className="max-h-72 overflow-y-auto space-y-2 border border-neutral-200 rounded-md p-2 bg-neutral-50/50">
+                        {/* Products Grid */}
+                        <div className="max-h-[420px] overflow-y-auto space-y-2.5 pr-1 scrollbar-thin">
                             {filteredProducts.length === 0 ? (
-                                <p className="text-xs text-neutral-500 py-6 text-center">No matching products found.</p>
+                                <div className="py-12 text-center bg-neutral-50 rounded-xl border border-dashed border-neutral-300">
+                                    <Package className="w-8 h-8 text-neutral-400 mx-auto mb-2 opacity-60" />
+                                    <p className="text-xs font-semibold text-neutral-700">No products found</p>
+                                    <p className="text-2xs text-neutral-500 mt-1">Try adjusting your search code or category filter</p>
+                                </div>
                             ) : (
-                                filteredProducts.map((p) => (
-                                    <div
-                                        key={p.id}
-                                        onClick={() => handleSelectProduct(p)}
-                                        className={`p-3 rounded-md border cursor-pointer transition-all flex items-center justify-between ${
-                                            selectedProduct?.id === p.id
-                                                ? 'bg-brand-50 border-brand-500 shadow-xs'
-                                                : 'bg-neutral-0 border-neutral-200 hover:border-brand-300'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-mono text-xs font-bold shrink-0">
-                                                {p.code.slice(0, 3)}
+                                filteredProducts.map((p) => {
+                                    const isSelected = selectedProduct?.id === p.id;
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            onClick={() => handleSelectProduct(p)}
+                                            className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                                                isSelected
+                                                    ? 'bg-brand-50/70 border-brand-500 shadow-sm ring-1 ring-brand-500'
+                                                    : 'bg-neutral-0 border-neutral-200/90 hover:border-brand-300 hover:bg-neutral-50/60'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                {p.image_url ? (
+                                                    <img
+                                                        src={p.image_url}
+                                                        alt={p.name}
+                                                        className="w-12 h-12 rounded-lg object-cover border border-neutral-200 shrink-0"
+                                                    />
+                                                ) : (
+                                                    <div className="w-12 h-12 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-mono text-xs font-bold shrink-0">
+                                                        {p.code.slice(0, 3)}
+                                                    </div>
+                                                )}
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold text-xs sm:text-sm text-neutral-900 truncate">
+                                                            {p.name}
+                                                        </span>
+                                                        {p.category && (
+                                                            <span className="text-2xs bg-neutral-100 text-neutral-600 px-1.5 py-0.5 rounded font-medium shrink-0">
+                                                                {p.category}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-3 mt-1 text-2xs">
+                                                        <span className="font-mono font-bold text-brand-700">
+                                                            {p.code}
+                                                        </span>
+                                                        {p.materials && (
+                                                            <span className="text-neutral-500">
+                                                                BOM: {p.materials.length} materials
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <span className="font-semibold text-sm text-neutral-900 block">{p.name}</span>
-                                                <span className="font-mono text-xs text-brand-700 font-bold">{p.code}</span>
+
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                {isSelected ? (
+                                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-700 bg-brand-100 px-2.5 py-1 rounded-lg">
+                                                        <CheckCircle2 className="w-4 h-4 text-brand-600" /> Selected
+                                                    </span>
+                                                ) : (
+                                                    <Button variant="ghost" size="sm" className="text-xs text-neutral-600">
+                                                        Select →
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
-                                        {selectedProduct?.id === p.id && (
-                                            <CheckCircle2 className="w-5 h-5 text-brand-600 shrink-0" />
-                                        )}
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     </Card>
                 )}
 
-                {/* Step 2: Assign Artisan & Qty */}
+                {/* STEP 2: Assign Artisan & Qty */}
                 {currentStep === 2 && (
-                    <Card>
-                        <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200">
-                            <h3 className="text-md font-bold text-neutral-900">
-                                Step 2: Assign Artisan Worker & Order Quantity
-                            </h3>
+                    <Card className="shadow-xs border-neutral-200 space-y-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-200">
+                            <div>
+                                <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
+                                    <User className="w-5 h-5 text-brand-600" />
+                                    Step 2: Assign Artisan Worker & Order Quantity
+                                </h3>
+                                <p className="text-xs text-neutral-500 mt-0.5">
+                                    Assign skilled leather craftsman and set batch production targets
+                                </p>
+                            </div>
+
                             {selectedProduct && (
-                                <span className="text-xs font-mono font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
-                                    Selected: {selectedProduct.name} ({selectedProduct.code})
-                                </span>
+                                <div className="flex items-center gap-2 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-200 self-start sm:self-center">
+                                    <Package className="w-4 h-4 text-brand-600 shrink-0" />
+                                    <span className="text-xs font-mono font-bold text-brand-900">
+                                        {selectedProduct.name} ({selectedProduct.code})
+                                    </span>
+                                </div>
                             )}
                         </div>
 
-                        <div className="space-y-5">
+                        <div className="space-y-6">
+                            {/* Artisan Worker Selector */}
                             <Select
                                 label="Select Artisan Worker"
                                 required
                                 value={data.labour_id}
                                 onChange={(e) => setData('labour_id', e.target.value)}
                                 error={errors.labour_id}
+                                helperText="Artisan responsible for assembly, stitching, edge paint, and quality sign-off"
                             >
-                                <option value="">— Choose Artisan Worker —</option>
+                                <option value="">— Choose Artisan Craftsman —</option>
                                 {labour.map((w) => (
                                     <option key={w.id} value={w.id}>
-                                        {w.name} ({w.phone}) — {Array.isArray(w.skill_tags) ? w.skill_tags.join(', ') : 'Craftsman'}
+                                        {w.name} ({w.phone}) — Skill: {Array.isArray(w.skill_tags) ? w.skill_tags.join(', ') : 'Leather Artisan'} — Rate: ₹{w.piece_rate || 0}/pc
                                     </option>
                                 ))}
                             </Select>
 
-                            <Input
-                                label="Target Order Quantity (Pcs)"
-                                type="number"
-                                required
-                                min="1"
-                                value={data.quantity}
-                                onChange={(e) => setData('quantity', parseInt(e.target.value) || '')}
-                                error={errors.quantity}
-                                helperText="Material deduction quantity auto-scales by this number of pcs"
-                            />
+                            {/* Artisan Details Card Preview */}
+                            {selectedArtisan && (
+                                <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 flex items-center justify-between text-xs">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-brand-100 border border-brand-300 flex items-center justify-center text-brand-800 font-bold text-sm shrink-0">
+                                            {selectedArtisan.name.slice(0, 2).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-neutral-900 text-sm">{selectedArtisan.name}</p>
+                                            <p className="text-2xs text-neutral-500">{selectedArtisan.phone}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <Badge variant="info">
+                                            Rate: ₹{selectedArtisan.piece_rate || 0}/pc
+                                        </Badge>
+                                    </div>
+                                </div>
+                            )}
 
+                            {/* Quantity Controls & Quick Preset Chips */}
+                            <div className="space-y-2.5">
+                                <label className="block text-xs font-semibold text-neutral-700">
+                                    Production Order Quantity (Pcs) <span className="text-danger-500">*</span>
+                                </label>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => adjustQuantity(-5)}
+                                        className="min-h-touch px-3 rounded-xl border border-neutral-300 bg-neutral-0 text-neutral-700 hover:bg-neutral-100 active:scale-95 font-bold transition-all"
+                                    >
+                                        -5
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => adjustQuantity(-1)}
+                                        className="min-h-touch p-3 rounded-xl border border-neutral-300 bg-neutral-0 text-neutral-700 hover:bg-neutral-100 active:scale-95 transition-all"
+                                    >
+                                        <Minus className="w-4 h-4" />
+                                    </button>
+
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        value={data.quantity}
+                                        onChange={(e) => setData('quantity', parseInt(e.target.value) || '')}
+                                        error={errors.quantity}
+                                        className="text-center font-mono font-bold text-base min-h-touch"
+                                    />
+
+                                    <button
+                                        type="button"
+                                        onClick={() => adjustQuantity(1)}
+                                        className="min-h-touch p-3 rounded-xl border border-neutral-300 bg-neutral-0 text-neutral-700 hover:bg-neutral-100 active:scale-95 transition-all"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => adjustQuantity(5)}
+                                        className="min-h-touch px-3 rounded-xl border border-neutral-300 bg-neutral-0 text-neutral-700 hover:bg-neutral-100 active:scale-95 font-bold transition-all"
+                                    >
+                                        +5
+                                    </button>
+                                </div>
+
+                                {/* Quick Presets */}
+                                <div className="flex items-center gap-2 pt-1 overflow-x-auto">
+                                    <span className="text-2xs font-semibold text-neutral-500 shrink-0">Presets:</span>
+                                    {[10, 25, 50, 100, 250].map((preset) => (
+                                        <button
+                                            key={preset}
+                                            type="button"
+                                            onClick={() => setQuickQuantity(preset)}
+                                            className={`px-2.5 py-1 rounded-lg text-2xs font-mono font-semibold transition-all shrink-0 ${
+                                                data.quantity === preset
+                                                    ? 'bg-brand-600 text-white shadow-xs'
+                                                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                                            }`}
+                                        >
+                                            {preset} pcs
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Production Notes */}
                             <Textarea
-                                label="Special Production Notes (Optional)"
+                                label="Production & Finishing Instructions (Optional)"
                                 rows={2}
                                 value={data.notes}
                                 onChange={(e) => setData('notes', e.target.value)}
-                                placeholder="e.g. Priority dispatch by Friday, custom edge finish..."
+                                placeholder="e.g. Priority dispatch by Friday, custom contrast edge paint finish..."
                                 error={errors.notes}
                             />
 
-                            <div className="flex items-center justify-between pt-3 border-t border-neutral-200">
-                                <Button variant="outline" onClick={() => setCurrentStep(1)}>
-                                    Back to Product Selection
+                            {/* Navigation Bar */}
+                            <div className="flex items-center justify-between pt-4 border-t border-neutral-200">
+                                <Button variant="outline" onClick={() => setCurrentStep(1)} className="min-h-touch">
+                                    <ArrowLeft className="w-4 h-4" /> Back to Product
                                 </Button>
                                 <Button
                                     variant="primary"
                                     disabled={!data.labour_id || !data.quantity}
                                     onClick={() => setCurrentStep(3)}
+                                    className="min-h-touch"
                                 >
-                                    Proceed to Stock Validation →
+                                    Proceed to Stock Validation <ArrowRight className="w-4 h-4" />
                                 </Button>
                             </div>
                         </div>
                     </Card>
                 )}
 
-                {/* Step 3: Stock Validation & Confirmation */}
+                {/* STEP 3: Stock Validation */}
                 {currentStep === 3 && (
-                    <Card>
-                        <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-neutral-200">
-                            Step 3: Inventory Stock Validation & Confirmation
-                        </h3>
+                    <Card className="shadow-xs border-neutral-200 space-y-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-200">
+                            <div>
+                                <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
+                                    <Layers className="w-5 h-5 text-brand-600" />
+                                    Step 3: Inventory Stock Validation & Pre-Check
+                                </h3>
+                                <p className="text-xs text-neutral-500 mt-0.5">
+                                    Dry-run calculation against current warehouse raw materials stock
+                                </p>
+                            </div>
+
+                            {selectedProduct && (
+                                <Badge variant="warning" className="font-mono">
+                                    Target: {data.quantity} Pcs
+                                </Badge>
+                            )}
+                        </div>
 
                         {!selectedProduct ? (
                             <Alert variant="warning">Please select a product in Step 1 first.</Alert>
                         ) : isPreChecking ? (
-                            <p className="text-sm text-neutral-500 py-8 text-center animate-pulse">
-                                Validating stock requirements for {data.quantity} pcs of {selectedProduct.name}…
-                            </p>
+                            <div className="py-12 text-center space-y-3">
+                                <div className="w-8 h-8 border-3 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                                <p className="text-xs text-neutral-600 font-semibold animate-pulse">
+                                    Calculating stock requirement for {data.quantity} pcs of {selectedProduct.name}…
+                                </p>
+                            </div>
                         ) : preCheckError ? (
                             <Alert variant="danger" title="Validation Error">
                                 {preCheckError}
@@ -256,64 +484,98 @@ export default function Create({ products = [], labour = [] }) {
                         ) : !preCheckResult ? (
                             <p className="text-xs text-neutral-500 py-6 text-center">Checking stock availability…</p>
                         ) : (
-                            <div className="space-y-5">
+                            <div className="space-y-6">
+                                {/* Overall Status Banner */}
                                 {preCheckResult.can_assign ? (
-                                    <Alert variant="success" title="Stock Sufficient">
-                                        All required raw materials are in stock for {data.quantity} pcs of {selectedProduct.name}.
-                                    </Alert>
+                                    <div className="p-4 bg-success-50 border border-success-200 rounded-xl flex items-start gap-3">
+                                        <ShieldCheck className="w-5 h-5 text-success-600 shrink-0 mt-0.5" />
+                                        <div>
+                                            <h4 className="text-xs font-bold text-success-900">Stock Availability Verified</h4>
+                                            <p className="text-2xs text-success-700 mt-0.5">
+                                                All raw material items required for {data.quantity} pcs of {selectedProduct.name} are available in stock.
+                                            </p>
+                                        </div>
+                                    </div>
                                 ) : (
-                                    <Alert variant="danger" title="Stock Insufficient">
-                                        One or more raw materials fall short in stock. Order submission disabled until stock is replenished.
-                                    </Alert>
+                                    <div className="p-4 bg-danger-50 border border-danger-200 rounded-xl flex items-start gap-3">
+                                        <AlertTriangle className="w-5 h-5 text-danger-600 shrink-0 mt-0.5" />
+                                        <div>
+                                            <h4 className="text-xs font-bold text-danger-900">Insufficient Warehouse Stock</h4>
+                                            <p className="text-2xs text-danger-700 mt-0.5">
+                                                One or more raw materials fall short. Please restock materials or reduce order quantity before confirming.
+                                            </p>
+                                        </div>
+                                    </div>
                                 )}
 
-                                <div className="space-y-2">
-                                    <h4 className="text-xs font-bold text-neutral-600 uppercase tracking-wider">
-                                        Required Raw Materials Breakdown:
+                                {/* Material Breakdown Grid */}
+                                <div className="space-y-3">
+                                    <h4 className="text-2xs font-bold text-neutral-600 uppercase tracking-wider">
+                                        Material Consumption Breakdown:
                                     </h4>
+
                                     {preCheckResult.items.length === 0 ? (
-                                        <p className="text-xs text-neutral-500 italic p-3 bg-neutral-50 rounded border border-neutral-200">
-                                            This product has no physical raw materials linked in its specification.
-                                        </p>
+                                        <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 text-center text-xs text-neutral-500">
+                                            This product has no BOM materials configured.
+                                        </div>
                                     ) : (
-                                        preCheckResult.items.map((item, idx) => (
-                                            <div
-                                                key={idx}
-                                                className={`p-3 rounded-md border text-xs flex items-center justify-between ${
-                                                    item.is_sufficient
-                                                        ? 'bg-neutral-50 border-neutral-200'
-                                                        : 'bg-danger-50 border-danger-500/40 text-danger-900 font-semibold'
-                                                }`}
-                                            >
-                                                <div>
-                                                    <span className="font-semibold text-neutral-900 block">{item.label}</span>
-                                                    <span className="text-neutral-500 tabular-nums">
-                                                        Needed: {item.needed} {item.unit} | Available: {item.available} {item.unit}
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    {item.is_sufficient ? (
-                                                        <Badge variant="success">OK</Badge>
-                                                    ) : (
-                                                        <Badge variant="danger">
-                                                            Short by {item.shortage} {item.unit}
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))
+                                        <div className="space-y-2.5">
+                                            {preCheckResult.items.map((item, idx) => {
+                                                const pct = Math.min(100, Math.round((item.available / (item.needed || 1)) * 100));
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        className={`p-3.5 rounded-xl border transition-all ${
+                                                            item.is_sufficient
+                                                                ? 'bg-neutral-0 border-neutral-200'
+                                                                : 'bg-danger-50/50 border-danger-300'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center justify-between text-xs mb-2">
+                                                            <div>
+                                                                <span className="font-semibold text-neutral-900 block">{item.label}</span>
+                                                                <span className="text-2xs text-neutral-500 tabular-nums">
+                                                                    Needed: <strong className="text-neutral-800">{item.needed} {item.unit}</strong> | Stock: {item.available} {item.unit}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                {item.is_sufficient ? (
+                                                                    <Badge variant="success">OK in Stock</Badge>
+                                                                ) : (
+                                                                    <Badge variant="danger">
+                                                                        Short by {item.shortage} {item.unit}
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Progress Meter Bar */}
+                                                        <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full transition-all duration-300 ${
+                                                                    item.is_sufficient ? 'bg-success-500' : 'bg-danger-500'
+                                                                }`}
+                                                                style={{ width: `${pct}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     )}
                                 </div>
 
+                                {/* Action Buttons */}
                                 <div className="flex items-center justify-between pt-4 border-t border-neutral-200">
-                                    <Button variant="outline" onClick={() => setCurrentStep(2)}>
-                                        Back to Artisan Assignment
+                                    <Button variant="outline" onClick={() => setCurrentStep(2)} className="min-h-touch">
+                                        <ArrowLeft className="w-4 h-4" /> Back to Artisan
                                     </Button>
                                     <Button
                                         variant="primary"
                                         size="lg"
                                         disabled={!preCheckResult.can_assign || !data.labour_id || processing}
                                         onClick={() => setIsConfirmModalOpen(true)}
+                                        className="min-h-touch shadow-md"
                                     >
                                         <ClipboardCheck className="w-5 h-5" /> Review & Confirm Work Order
                                     </Button>
@@ -324,50 +586,59 @@ export default function Create({ products = [], labour = [] }) {
                 )}
             </div>
 
-            {/* Final Transaction Confirmation Modal */}
+            {/* Transactional Confirmation Modal */}
             <Modal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
                 title="Confirm Work Order & Auto-Deduct Inventory"
             >
-                <div className="space-y-4">
-                    <Alert variant="warning" title="Transactional Action">
-                        Submitting this work order will immediately deduct inventory stock in a safe database transaction and auto-generate the Work Order PDF.
+                <div className="space-y-4 text-xs">
+                    <Alert variant="warning" title="Transactional Database Execution">
+                        Submitting will create assignment ledger record, deduct raw materials stock with row-level locks, and generate PDF Work Order.
                     </Alert>
 
-                    <div className="p-4 bg-neutral-50 rounded-md border border-neutral-200 text-xs space-y-2">
-                        <div className="flex justify-between">
-                            <span className="text-neutral-500">Product:</span>
-                            <strong className="text-neutral-900">{selectedProduct?.name} ({selectedProduct?.code})</strong>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-neutral-500">Target Quantity:</span>
-                            <strong className="text-neutral-900 tabular-nums">{data.quantity} Pcs</strong>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-neutral-500">Artisan Worker:</span>
-                            <strong className="text-neutral-900">
-                                {labour.find((l) => l.id == data.labour_id)?.name}
+                    <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2.5">
+                        <div className="flex justify-between items-center">
+                            <span className="text-neutral-500">Product Specification:</span>
+                            <strong className="text-neutral-900 font-mono">
+                                {selectedProduct?.name} ({selectedProduct?.code})
                             </strong>
                         </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-neutral-500">Target Quantity:</span>
+                            <strong className="text-neutral-900 tabular-nums font-bold text-sm">
+                                {data.quantity} Pcs
+                            </strong>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-neutral-500">Assigned Artisan:</span>
+                            <strong className="text-neutral-900">
+                                {selectedArtisan?.name}
+                            </strong>
+                        </div>
+                        {data.notes && (
+                            <div className="pt-2 border-t border-neutral-200 text-neutral-600 italic">
+                                "{data.notes}"
+                            </div>
+                        )}
                     </div>
 
-                    <div className="space-y-1 text-xs">
-                        <p className="font-bold text-neutral-700">Stock to be deducted:</p>
+                    <div className="space-y-1.5">
+                        <p className="font-bold text-neutral-700">Stock Deductions Breakdown:</p>
                         <ul className="list-disc pl-5 text-neutral-600 space-y-1">
                             {preCheckResult?.items.map((it, i) => (
                                 <li key={i}>
-                                    <strong className="tabular-nums">{it.needed} {it.unit}</strong> of {it.label}
+                                    <strong className="tabular-nums text-neutral-900">{it.needed} {it.unit}</strong> of {it.label}
                                 </li>
                             ))}
                         </ul>
                     </div>
 
                     <div className="pt-4 flex justify-end gap-3 border-t border-neutral-200">
-                        <Button variant="outline" onClick={() => setIsConfirmModalOpen(false)}>
+                        <Button variant="outline" onClick={() => setIsConfirmModalOpen(false)} className="min-h-touch">
                             Cancel
                         </Button>
-                        <Button variant="primary" isLoading={processing} onClick={handleFinalSubmit}>
+                        <Button variant="primary" isLoading={processing} onClick={handleFinalSubmit} className="min-h-touch">
                             Confirm & Deduct Stock
                         </Button>
                     </div>

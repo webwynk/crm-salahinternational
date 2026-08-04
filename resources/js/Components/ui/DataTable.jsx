@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/react';
 import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '@/Components/ui/Button';
 import EmptyState from '@/Components/ui/EmptyState';
-import { SkeletonTable } from '@/Components/ui/SkeletonTable';
+import { SkeletonTable } from '@/Components/ui/Skeleton';
 
 export default function DataTable({
     columns = [],

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Menu, Bell } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import Badge from '@/Components/ui/Badge';
 
 /**

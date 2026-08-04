@@ -33,6 +33,17 @@ export default function AppLayout({ children }) {
         else if (flash?.warning) setToast({ message: flash.warning, type: 'warning' });
     }, [flash]);
 
+    useEffect(() => {
+        const handleCustomToast = (e) => {
+            if (e.detail) {
+                setToast(e.detail);
+            }
+        };
+        window.addEventListener('show-toast', handleCustomToast);
+        return () => window.removeEventListener('show-toast', handleCustomToast);
+    }, []);
+
+
     return (
         <div className="min-h-screen bg-neutral-50 flex flex-col">
             {/* Offline top banner */}

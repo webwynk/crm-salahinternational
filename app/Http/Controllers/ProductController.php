@@ -67,18 +67,7 @@ class ProductController extends Controller
                 'created_by' => $request->user()->id,
             ]);
 
-            foreach ($validated['materials'] as $index => $item) {
-                $product->materials()->create([
-                    'material_id' => $item['material_id'] ?? null,
-                    'material_type' => $item['material_type'],
-                    'label' => $item['label'],
-                    'quantity_min' => $item['quantity_min'] ?? null,
-                    'quantity_max' => $item['quantity_max'] ?? null,
-                    'unit' => $item['unit'] ?? null,
-                    'dimension_note' => $item['dimension_note'] ?? null,
-                    'sort_order' => $index + 1,
-                ]);
-            }
+            $this->syncProductMaterials($product, $validated['materials']);
         });
 
         return redirect()->route('products.index')->with('success', "Product '{$product->name}' ({$product->code}) created successfully.");
@@ -118,21 +107,26 @@ class ProductController extends Controller
             ]);
 
             $product->materials()->delete();
-            foreach ($validated['materials'] as $index => $item) {
-                $product->materials()->create([
-                    'material_id' => $item['material_id'] ?? null,
-                    'material_type' => $item['material_type'],
-                    'label' => $item['label'],
-                    'quantity_min' => $item['quantity_min'] ?? null,
-                    'quantity_max' => $item['quantity_max'] ?? null,
-                    'unit' => $item['unit'] ?? null,
-                    'dimension_note' => $item['dimension_note'] ?? null,
-                    'sort_order' => $index + 1,
-                ]);
-            }
+            $this->syncProductMaterials($product, $validated['materials']);
         });
 
         return redirect()->route('products.index')->with('success', "Product '{$product->name}' updated successfully.");
+    }
+
+    protected function syncProductMaterials(Product $product, array $materials): void
+    {
+        foreach ($materials as $index => $item) {
+            $product->materials()->create([
+                'material_id' => $item['material_id'] ?? null,
+                'material_type' => $item['material_type'],
+                'label' => $item['label'],
+                'quantity_min' => $item['quantity_min'] ?? null,
+                'quantity_max' => $item['quantity_max'] ?? null,
+                'unit' => $item['unit'] ?? null,
+                'dimension_note' => $item['dimension_note'] ?? null,
+                'sort_order' => $index + 1,
+            ]);
+        }
     }
 
     public function destroy(Product $product): RedirectResponse

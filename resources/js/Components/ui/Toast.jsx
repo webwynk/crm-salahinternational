@@ -3,30 +3,35 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 /**
- * Toast — bottom-right stack notification with framer-motion slide.
- * Auto-dismisses after `duration` ms. Pauses on hover.
- *
- * Usage (in AppLayout):
- *   <Toast toast={toast} onClose={() => setToast(null)} />
- *
- * Props:
- *   toast    — { message: string, type: 'success' | 'danger' | 'warning' | 'info' } | null
- *   onClose  — () => void
- *   duration — auto-dismiss ms (default 4000)
+ * Toast — Modern bottom notification system optimized for mobile and desktop.
+ * Floats at bottom-center on mobile (above MobileBottomNav) and bottom-right on desktop.
+ * Includes auto-dismiss progress bar, action trigger support, and touch dismiss.
  */
 export default function Toast({ toast, onClose, duration = 4000 }) {
     const timerRef = React.useRef(null);
+    const [progress, setProgress] = React.useState(100);
 
     const startTimer = React.useCallback(() => {
-        timerRef.current = setTimeout(onClose, duration);
+        const startTime = Date.now();
+        const interval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+            setProgress(remaining);
+            if (remaining <= 0) {
+                clearInterval(interval);
+                onClose();
+            }
+        }, 30);
+        timerRef.current = interval;
     }, [onClose, duration]);
 
     const clearTimer = React.useCallback(() => {
-        if (timerRef.current) clearTimeout(timerRef.current);
+        if (timerRef.current) clearInterval(timerRef.current);
     }, []);
 
     React.useEffect(() => {
         if (toast) {
+            setProgress(100);
             startTimer();
         }
         return clearTimer;
@@ -34,20 +39,28 @@ export default function Toast({ toast, onClose, duration = 4000 }) {
 
     const configs = {
         success: {
-            icon: <CheckCircle2 className="w-5 h-5 shrink-0 text-success-700" />,
-            border: 'border-l-success-500',
+            icon: <CheckCircle2 className="w-5 h-5 shrink-0 text-success-500" />,
+            border: 'border-l-4 border-l-success-500',
+            barBg: 'bg-success-500',
+            bg: 'bg-neutral-900 text-neutral-0 shadow-lg border-neutral-800',
         },
         danger: {
-            icon: <AlertCircle className="w-5 h-5 shrink-0 text-danger-700" />,
-            border: 'border-l-danger-500',
+            icon: <AlertCircle className="w-5 h-5 shrink-0 text-danger-500" />,
+            border: 'border-l-4 border-l-danger-500',
+            barBg: 'bg-danger-500',
+            bg: 'bg-neutral-900 text-neutral-0 shadow-lg border-neutral-800',
         },
         warning: {
-            icon: <AlertTriangle className="w-5 h-5 shrink-0 text-warning-700" />,
-            border: 'border-l-warning-500',
+            icon: <AlertTriangle className="w-5 h-5 shrink-0 text-warning-500" />,
+            border: 'border-l-4 border-l-warning-500',
+            barBg: 'bg-warning-500',
+            bg: 'bg-neutral-900 text-neutral-0 shadow-lg border-neutral-800',
         },
         info: {
-            icon: <Info className="w-5 h-5 shrink-0 text-info-700" />,
-            border: 'border-l-info-500',
+            icon: <Info className="w-5 h-5 shrink-0 text-brand-400" />,
+            border: 'border-l-4 border-l-brand-500',
+            barBg: 'bg-brand-500',
+            bg: 'bg-neutral-900 text-neutral-0 shadow-lg border-neutral-800',
         },
     };
 
@@ -59,28 +72,50 @@ export default function Toast({ toast, onClose, duration = 4000 }) {
                 {toast && config && (
                     <motion.div
                         key={toast.message + toast.type}
-                        initial={{ opacity: 0, x: 64, scale: 0.95 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: 64, scale: 0.95 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        initial={{ opacity: 0, y: 40, scale: 0.94 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 30, scale: 0.94 }}
+                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                         onMouseEnter={clearTimer}
                         onMouseLeave={startTimer}
-                        className={`pointer-events-auto max-w-sm w-full bg-neutral-0 border border-neutral-200 border-l-4 ${config.border} rounded-md shadow-lg px-4 py-3 flex items-start gap-3`}
+                        className={`pointer-events-auto relative max-w-sm w-full border ${config.bg} ${config.border} rounded-xl overflow-hidden p-4 flex items-start gap-3.5 backdrop-blur-md`}
                     >
                         {config.icon}
-                        <p className="text-sm text-neutral-800 flex-1 leading-snug pt-0.5">
-                            {toast.message}
-                        </p>
+                        <div className="flex-1 min-w-0 pr-1">
+                            <p className="text-xs font-semibold text-neutral-100 leading-snug">
+                                {toast.message}
+                            </p>
+                            {toast.actionText && toast.onAction && (
+                                <button
+                                    onClick={() => {
+                                        toast.onAction();
+                                        onClose();
+                                    }}
+                                    className="mt-2 text-2xs font-bold uppercase tracking-wider text-brand-400 hover:text-brand-300 transition-colors"
+                                >
+                                    {toast.actionText} →
+                                </button>
+                            )}
+                        </div>
                         <button
                             onClick={onClose}
-                            className="text-neutral-400 hover:text-neutral-600 p-0.5 rounded transition-colors shrink-0 mt-0.5"
-                            aria-label="Dismiss"
+                            className="text-neutral-400 hover:text-neutral-200 p-1 rounded-lg transition-colors shrink-0 -mr-1 -mt-1 touch-manipulation"
+                            aria-label="Dismiss notification"
                         >
                             <X className="w-4 h-4" />
                         </button>
+
+                        {/* Animated countdown progress bar at bottom edge */}
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-neutral-800">
+                            <div
+                                className={`h-full ${config.barBg} transition-all duration-75 ease-linear`}
+                                style={{ width: `${progress}%` }}
+                            />
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
         </div>
     );
 }
+
