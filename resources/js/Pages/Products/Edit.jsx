@@ -7,6 +7,7 @@ import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
 import Textarea from '@/Components/ui/Textarea';
 import Select from '@/Components/ui/Select';
+import ImageUpload from '@/Components/ui/ImageUpload';
 import Alert from '@/Components/ui/Alert';
 import { Plus, Trash2, ArrowLeft, Layers } from 'lucide-react';
 
@@ -16,6 +17,7 @@ export default function Edit({ product, materials = [] }) {
         name: product.name || '',
         category: product.category || '',
         description: product.description || '',
+        image_url: product.image_url || '',
         materials: product.materials && product.materials.length > 0
             ? product.materials.map((m) => ({
                 material_id: m.material_id || '',
@@ -83,7 +85,7 @@ export default function Edit({ product, materials = [] }) {
 
     return (
         <AppLayout>
-            <Head title={`Edit ${product.name} - Leather CRM`} />
+            <Head title={`Edit ${product.name} — Leather CRM`} />
 
             <PageHeader
                 title={`Edit Product: ${product.name}`}
@@ -91,47 +93,63 @@ export default function Edit({ product, materials = [] }) {
                 action={
                     <Link href={route('products.index')}>
                         <Button variant="outline" size="sm">
-                            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Products
+                            <ArrowLeft className="w-4 h-4" /> Back to Products
                         </Button>
                     </Link>
                 }
             />
 
             <form onSubmit={submit} className="space-y-8 max-w-5xl">
-                {/* Basic Product Info */}
+                {/* Basic Product Info & Photo */}
                 <Card>
                     <h3 className="text-md font-bold text-neutral-900 mb-4 pb-2 border-b border-neutral-200">
                         1. Product General Information
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <Input
-                            label="Product Code"
-                            required
-                            value={data.code}
-                            onChange={(e) => setData('code', e.target.value.toUpperCase())}
-                            error={errors.code}
-                        />
-                        <Input
-                            label="Product Name"
-                            required
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            error={errors.name}
-                        />
-                        <Input
-                            label="Category"
-                            value={data.category}
-                            onChange={(e) => setData('category', e.target.value)}
-                            error={errors.category}
-                        />
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-4">
+                        <div className="md:col-span-8 space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <Input
+                                    label="Product Code"
+                                    required
+                                    value={data.code}
+                                    onChange={(e) => setData('code', e.target.value.toUpperCase())}
+                                    error={errors.code}
+                                />
+                                <Input
+                                    label="Product Name"
+                                    required
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    error={errors.name}
+                                />
+                                <Input
+                                    label="Category"
+                                    value={data.category}
+                                    onChange={(e) => setData('category', e.target.value)}
+                                    error={errors.category}
+                                />
+                            </div>
+
+                            <Textarea
+                                label="Description & Craft Notes"
+                                rows={3}
+                                value={data.description}
+                                onChange={(e) => setData('description', e.target.value)}
+                                placeholder="General overview, craftsmanship notes, or client specifications..."
+                            />
+                        </div>
+
+                        {/* Image Upload Box */}
+                        <div className="md:col-span-4">
+                            <ImageUpload
+                                label="Product Photo"
+                                value={data.image_url}
+                                onChange={(val) => setData('image_url', val)}
+                                error={errors.image_url}
+                            />
+                        </div>
                     </div>
-                    <Textarea
-                        label="Description & Craft Notes"
-                        rows={3}
-                        value={data.description}
-                        onChange={(e) => setData('description', e.target.value)}
-                        placeholder="General overview, craftsmanship notes, or client requirements..."
-                    />
                 </Card>
 
                 {/* Dynamic BOM Builder */}
@@ -139,12 +157,12 @@ export default function Edit({ product, materials = [] }) {
                     <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200">
                         <div>
                             <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
-                                <Layers className="w-5 h-5 text-brand-500" />
+                                <Layers className="w-5 h-5 text-brand-600" />
                                 2. Bill of Materials (BOM) & Process Specifications
                             </h3>
                         </div>
                         <Button type="button" variant="outline" size="sm" onClick={addBomRow}>
-                            <Plus className="w-4 h-4 mr-1" /> Add Row
+                            <Plus className="w-4 h-4" /> Add Row
                         </Button>
                     </div>
 
@@ -243,7 +261,7 @@ export default function Edit({ product, materials = [] }) {
                     </div>
                 </Card>
 
-                {/* Submit Controls */}
+                {/* Controls */}
                 <div className="flex items-center justify-end gap-3">
                     <Link href={route('products.index')}>
                         <Button type="button" variant="outline">

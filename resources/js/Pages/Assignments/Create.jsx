@@ -10,11 +10,13 @@ import Textarea from '@/Components/ui/Textarea';
 import Alert from '@/Components/ui/Alert';
 import Badge from '@/Components/ui/Badge';
 import Modal from '@/Components/ui/Modal';
-import { Search, CheckCircle2, AlertTriangle, ArrowLeft, Layers, ClipboardCheck } from 'lucide-react';
+import Stepper from '@/Components/ui/Stepper';
+import { Search, CheckCircle2, ArrowLeft, ClipboardCheck, Package } from 'lucide-react';
 
 import axios from 'axios';
 
 export default function Create({ products = [], labour = [] }) {
+    const [currentStep, setCurrentStep] = useState(1);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [productSearch, setProductSearch] = useState('');
     const [preCheckResult, setPreCheckResult] = useState(null);
@@ -29,6 +31,12 @@ export default function Create({ products = [], labour = [] }) {
         notes: '',
     });
 
+    const wizardSteps = [
+        { title: '1. Product', description: 'Select spec code' },
+        { title: '2. Artisan & Qty', description: 'Assign worker' },
+        { title: '3. Validation', description: 'Check stock on hand' },
+    ];
+
     const filteredProducts = products.filter(
         (p) =>
             p.code.toLowerCase().includes(productSearch.toLowerCase()) ||
@@ -40,9 +48,10 @@ export default function Create({ products = [], labour = [] }) {
         setData('product_id', p.id);
         setPreCheckResult(null);
         setPreCheckError(null);
+        setCurrentStep(2);
     };
 
-    // Run Dry-Run Pre-Check Stock Validation whenever product or quantity changes
+    // Run Dry-Run Pre-Check Stock Validation
     useEffect(() => {
         if (!data.product_id || !data.quantity || data.quantity < 1) {
             setPreCheckResult(null);
@@ -64,12 +73,11 @@ export default function Create({ products = [], labour = [] }) {
                 setIsPreChecking(false);
             })
             .catch((err) => {
-                console.error('Pre-check stock error:', err);
                 const msg = err.response?.data?.message || err.message || 'Failed to validate inventory stock. Please try again.';
                 setPreCheckError(msg);
                 setIsPreChecking(false);
             });
-        }, 200);
+        }, 250);
 
         return () => clearTimeout(timer);
     }, [data.product_id, data.quantity]);
@@ -81,84 +89,104 @@ export default function Create({ products = [], labour = [] }) {
 
     return (
         <AppLayout>
-            <Head title="Assign Work Order - Leather CRM" />
+            <Head title="Assign Work Order — Leather CRM" />
 
             <PageHeader
                 title="Create Work Order Assignment"
-                description="Select a product, assign to a artisan, validate inventory stock, and auto-generate PDF work order"
+                description="3-step wizard: select product definition, assign artisan worker, validate inventory stock, and auto-generate PDF"
                 action={
                     <Link href={route('assignments.index')}>
                         <Button variant="outline" size="sm">
-                            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Assignments
+                            <ArrowLeft className="w-4 h-4" /> Back to Assignments
                         </Button>
                     </Link>
                 }
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Form Controls (7 cols) */}
-                <div className="lg:col-span-7 space-y-6">
-                    {/* 1. Select Product by Code or Name */}
+            <div className="max-w-4xl space-y-6">
+                {/* Visual Wizard Stepper */}
+                <Card>
+                    <Stepper
+                        steps={wizardSteps}
+                        currentStep={currentStep}
+                        onStepClick={(step) => setCurrentStep(step)}
+                    />
+                </Card>
+
+                {/* Step 1: Select Product */}
+                {currentStep === 1 && (
                     <Card>
                         <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-neutral-200">
-                            1. Select Product Definition (by Code or Name)
+                            Step 1: Select Product Definition
                         </h3>
 
-                        <div className="relative mb-3">
+                        <div className="relative mb-4">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                             <input
                                 type="text"
                                 value={productSearch}
                                 onChange={(e) => setProductSearch(e.target.value)}
-                                placeholder="Search product code e.g. WAL-BF-001 or name..."
-                                className="w-full text-sm pl-9 pr-3 py-2 border border-neutral-300 rounded bg-white"
+                                placeholder="Search product by code (e.g. WAL-BF-001) or name…"
+                                className="w-full text-sm pl-9 pr-3.5 py-2.5 border border-neutral-300 rounded-md bg-neutral-0 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                             />
                         </div>
 
                         {errors.product_id && (
-                            <Alert variant="danger" className="mb-3">
+                            <Alert variant="danger" className="mb-4">
                                 {errors.product_id}
                             </Alert>
                         )}
 
-                        <div className="max-h-56 overflow-y-auto space-y-2 border border-neutral-200 rounded p-2 bg-neutral-50/50">
+                        <div className="max-h-72 overflow-y-auto space-y-2 border border-neutral-200 rounded-md p-2 bg-neutral-50/50">
                             {filteredProducts.length === 0 ? (
-                                <p className="text-xs text-neutral-500 py-3 text-center">No products matching search.</p>
+                                <p className="text-xs text-neutral-500 py-6 text-center">No matching products found.</p>
                             ) : (
                                 filteredProducts.map((p) => (
                                     <div
                                         key={p.id}
                                         onClick={() => handleSelectProduct(p)}
-                                        className={`p-3 rounded border cursor-pointer transition-all flex items-center justify-between ${
+                                        className={`p-3 rounded-md border cursor-pointer transition-all flex items-center justify-between ${
                                             selectedProduct?.id === p.id
                                                 ? 'bg-brand-50 border-brand-500 shadow-xs'
-                                                : 'bg-white border-neutral-200 hover:border-neutral-300'
+                                                : 'bg-neutral-0 border-neutral-200 hover:border-brand-300'
                                         }`}
                                     >
-                                        <div>
-                                            <span className="font-bold text-xs text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200 mr-2">
-                                                {p.code}
-                                            </span>
-                                            <span className="font-semibold text-sm text-neutral-900">{p.name}</span>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-mono text-xs font-bold shrink-0">
+                                                {p.code.slice(0, 3)}
+                                            </div>
+                                            <div>
+                                                <span className="font-semibold text-sm text-neutral-900 block">{p.name}</span>
+                                                <span className="font-mono text-xs text-brand-700 font-bold">{p.code}</span>
+                                            </div>
                                         </div>
                                         {selectedProduct?.id === p.id && (
-                                            <CheckCircle2 className="w-5 h-5 text-brand-500 shrink-0" />
+                                            <CheckCircle2 className="w-5 h-5 text-brand-600 shrink-0" />
                                         )}
                                     </div>
                                 ))
                             )}
                         </div>
                     </Card>
+                )}
 
-                    {/* 2. Select Labour Artisan & Target Quantity */}
+                {/* Step 2: Assign Artisan & Qty */}
+                {currentStep === 2 && (
                     <Card>
-                        <h3 className="text-md font-bold text-neutral-900 mb-4 pb-2 border-b border-neutral-200">
-                            2. Assign Artisan Worker & Target Quantity
-                        </h3>
+                        <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200">
+                            <h3 className="text-md font-bold text-neutral-900">
+                                Step 2: Assign Artisan Worker & Order Quantity
+                            </h3>
+                            {selectedProduct && (
+                                <span className="text-xs font-mono font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+                                    Selected: {selectedProduct.name} ({selectedProduct.code})
+                                </span>
+                            )}
+                        </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                             <Select
-                                label="Select Artisan / Worker"
+                                label="Select Artisan Worker"
                                 required
                                 value={data.labour_id}
                                 onChange={(e) => setData('labour_id', e.target.value)}
@@ -167,7 +195,7 @@ export default function Create({ products = [], labour = [] }) {
                                 <option value="">— Choose Artisan Worker —</option>
                                 {labour.map((w) => (
                                     <option key={w.id} value={w.id}>
-                                        {w.name} ({w.phone}) - {Array.isArray(w.skill_tags) ? w.skill_tags.join(', ') : 'Craftsman'}
+                                        {w.name} ({w.phone}) — {Array.isArray(w.skill_tags) ? w.skill_tags.join(', ') : 'Craftsman'}
                                     </option>
                                 ))}
                             </Select>
@@ -180,7 +208,7 @@ export default function Create({ products = [], labour = [] }) {
                                 value={data.quantity}
                                 onChange={(e) => setData('quantity', parseInt(e.target.value) || '')}
                                 error={errors.quantity}
-                                helperText="Material requirements auto-scale by this quantity"
+                                helperText="Material deduction quantity auto-scales by this number of pcs"
                             />
 
                             <Textarea
@@ -188,46 +216,54 @@ export default function Create({ products = [], labour = [] }) {
                                 rows={2}
                                 value={data.notes}
                                 onChange={(e) => setData('notes', e.target.value)}
-                                placeholder="e.g. Priority dispatch by Friday..."
+                                placeholder="e.g. Priority dispatch by Friday, custom edge finish..."
                                 error={errors.notes}
                             />
+
+                            <div className="flex items-center justify-between pt-3 border-t border-neutral-200">
+                                <Button variant="outline" onClick={() => setCurrentStep(1)}>
+                                    Back to Product Selection
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    disabled={!data.labour_id || !data.quantity}
+                                    onClick={() => setCurrentStep(3)}
+                                >
+                                    Proceed to Stock Validation →
+                                </Button>
+                            </div>
                         </div>
                     </Card>
-                </div>
+                )}
 
-                {/* Live Stock Validation Panel (5 cols) */}
-                <div className="lg:col-span-5 space-y-6">
-                    <Card className="sticky top-20">
-                        <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-neutral-200 flex items-center justify-between">
-                            <span>3. Inventory Stock Validation</span>
-                            {isPreChecking && <span className="text-xs text-neutral-400 font-normal">Checking...</span>}
+                {/* Step 3: Stock Validation & Confirmation */}
+                {currentStep === 3 && (
+                    <Card>
+                        <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-neutral-200">
+                            Step 3: Inventory Stock Validation & Confirmation
                         </h3>
 
                         {!selectedProduct ? (
-                            <p className="text-xs text-neutral-500 py-8 text-center bg-neutral-50 rounded border border-neutral-200">
-                                Select a product from step 1 to run live inventory stock validation.
-                            </p>
+                            <Alert variant="warning">Please select a product in Step 1 first.</Alert>
                         ) : isPreChecking ? (
-                            <p className="text-xs text-neutral-500 py-8 text-center animate-pulse">
-                                Validating stock requirements...
+                            <p className="text-sm text-neutral-500 py-8 text-center animate-pulse">
+                                Validating stock requirements for {data.quantity} pcs of {selectedProduct.name}…
                             </p>
                         ) : preCheckError ? (
-                            <Alert variant="danger" title="Validation Failed">
+                            <Alert variant="danger" title="Validation Error">
                                 {preCheckError}
                             </Alert>
                         ) : !preCheckResult ? (
-                            <p className="text-xs text-neutral-500 py-8 text-center">
-                                Select product and quantity to check stock.
-                            </p>
+                            <p className="text-xs text-neutral-500 py-6 text-center">Checking stock availability…</p>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 {preCheckResult.can_assign ? (
                                     <Alert variant="success" title="Stock Sufficient">
-                                        All required raw materials are available in inventory stock for {data.quantity} pcs of {selectedProduct.name}.
+                                        All required raw materials are in stock for {data.quantity} pcs of {selectedProduct.name}.
                                     </Alert>
                                 ) : (
                                     <Alert variant="danger" title="Stock Insufficient">
-                                        One or more raw materials fall short in stock. Production assignment disabled.
+                                        One or more raw materials fall short in stock. Order submission disabled until stock is replenished.
                                     </Alert>
                                 )}
 
@@ -237,13 +273,13 @@ export default function Create({ products = [], labour = [] }) {
                                     </h4>
                                     {preCheckResult.items.length === 0 ? (
                                         <p className="text-xs text-neutral-500 italic p-3 bg-neutral-50 rounded border border-neutral-200">
-                                            This product has no physical raw materials linked in its specification (process notes only).
+                                            This product has no physical raw materials linked in its specification.
                                         </p>
                                     ) : (
                                         preCheckResult.items.map((item, idx) => (
                                             <div
                                                 key={idx}
-                                                className={`p-3 rounded border text-xs flex items-center justify-between ${
+                                                className={`p-3 rounded-md border text-xs flex items-center justify-between ${
                                                     item.is_sufficient
                                                         ? 'bg-neutral-50 border-neutral-200'
                                                         : 'bg-danger-50 border-danger-500/40 text-danger-900 font-semibold'
@@ -251,7 +287,7 @@ export default function Create({ products = [], labour = [] }) {
                                             >
                                                 <div>
                                                     <span className="font-semibold text-neutral-900 block">{item.label}</span>
-                                                    <span className="text-neutral-500">
+                                                    <span className="text-neutral-500 tabular-nums">
                                                         Needed: {item.needed} {item.unit} | Available: {item.available} {item.unit}
                                                     </span>
                                                 </div>
@@ -269,43 +305,44 @@ export default function Create({ products = [], labour = [] }) {
                                     )}
                                 </div>
 
-                                <div className="pt-4 border-t border-neutral-200">
+                                <div className="flex items-center justify-between pt-4 border-t border-neutral-200">
+                                    <Button variant="outline" onClick={() => setCurrentStep(2)}>
+                                        Back to Artisan Assignment
+                                    </Button>
                                     <Button
-                                        type="button"
                                         variant="primary"
                                         size="lg"
-                                        className="w-full"
                                         disabled={!preCheckResult.can_assign || !data.labour_id || processing}
                                         onClick={() => setIsConfirmModalOpen(true)}
                                     >
-                                        <ClipboardCheck className="w-5 h-5 mr-2" /> Review & Confirm Assignment
+                                        <ClipboardCheck className="w-5 h-5" /> Review & Confirm Work Order
                                     </Button>
                                 </div>
                             </div>
                         )}
                     </Card>
-                </div>
+                )}
             </div>
 
-            {/* Final Confirmation Review Modal */}
+            {/* Final Transaction Confirmation Modal */}
             <Modal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
-                title="Confirm Work Order & Auto-Deduct Inventory Stock"
+                title="Confirm Work Order & Auto-Deduct Inventory"
             >
                 <div className="space-y-4">
                     <Alert variant="warning" title="Transactional Action">
                         Submitting this work order will immediately deduct inventory stock in a safe database transaction and auto-generate the Work Order PDF.
                     </Alert>
 
-                    <div className="p-4 bg-neutral-50 rounded border border-neutral-200 text-xs space-y-2">
+                    <div className="p-4 bg-neutral-50 rounded-md border border-neutral-200 text-xs space-y-2">
                         <div className="flex justify-between">
                             <span className="text-neutral-500">Product:</span>
                             <strong className="text-neutral-900">{selectedProduct?.name} ({selectedProduct?.code})</strong>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-neutral-500">Target Quantity:</span>
-                            <strong className="text-neutral-900">{data.quantity} Pcs</strong>
+                            <strong className="text-neutral-900 tabular-nums">{data.quantity} Pcs</strong>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-neutral-500">Artisan Worker:</span>
@@ -320,7 +357,7 @@ export default function Create({ products = [], labour = [] }) {
                         <ul className="list-disc pl-5 text-neutral-600 space-y-1">
                             {preCheckResult?.items.map((it, i) => (
                                 <li key={i}>
-                                    <strong>{it.needed} {it.unit}</strong> of {it.label}
+                                    <strong className="tabular-nums">{it.needed} {it.unit}</strong> of {it.label}
                                 </li>
                             ))}
                         </ul>

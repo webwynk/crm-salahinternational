@@ -5,8 +5,9 @@ import PageHeader from '@/Components/layout/PageHeader';
 import DataTable from '@/Components/ui/DataTable';
 import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
-import Badge from '@/Components/ui/Badge';
-import { Plus, Eye, Edit3 } from 'lucide-react';
+import StatusPill from '@/Components/ui/StatusPill';
+import MobileFAB from '@/Components/ui/MobileFAB';
+import { Plus, Eye, Edit3, Image as ImageIcon } from 'lucide-react';
 
 export default function Index({ products, categories = [], filters = {} }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -33,26 +34,28 @@ export default function Index({ products, categories = [], filters = {} }) {
 
     const columns = [
         {
-            header: 'Code',
-            accessor: 'code',
-            sortable: true,
-            numeric: true,
-            render: (row) => (
-                <span className="font-mono font-bold text-xs text-brand-700 bg-brand-50 px-2 py-1 rounded border border-brand-200/80 tabular-nums">
-                    {row.code}
-                </span>
-            ),
-        },
-        {
-            header: 'Product Name',
+            header: 'Product',
             accessor: 'name',
             sortable: true,
             render: (row) => (
-                <div>
-                    <span className="font-semibold text-neutral-900 block">{row.name}</span>
-                    {row.description && (
-                        <span className="text-xs text-neutral-500 truncate max-w-xs block">{row.description}</span>
+                <div className="flex items-center gap-3">
+                    {row.image_url ? (
+                        <img
+                            src={row.image_url}
+                            alt={row.name}
+                            className="w-12 h-12 rounded-md object-cover border border-neutral-200 shrink-0 bg-neutral-0"
+                        />
+                    ) : (
+                        <div className="w-12 h-12 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center shrink-0 text-neutral-400">
+                            <ImageIcon className="w-6 h-6" strokeWidth={1.5} />
+                        </div>
                     )}
+                    <div className="min-w-0">
+                        <span className="font-semibold text-neutral-900 block truncate">{row.name}</span>
+                        <span className="font-mono font-bold text-xs text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200/80 inline-block mt-0.5">
+                            {row.code}
+                        </span>
+                    </div>
                 </div>
             ),
         },
@@ -60,26 +63,26 @@ export default function Index({ products, categories = [], filters = {} }) {
             header: 'Category',
             accessor: 'category',
             sortable: true,
-            render: (row) => <Badge variant="neutral">{row.category || 'General'}</Badge>,
+            render: (row) => (
+                <span className="text-xs font-medium text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200">
+                    {row.category || 'General'}
+                </span>
+            ),
         },
         {
-            header: 'BOM',
+            header: 'BOM Items',
             accessor: 'materials',
             numeric: true,
             render: (row) => (
-                <span className="text-xs font-semibold text-neutral-600 tabular-nums">
-                    {row.materials?.length ?? 0} <span className="font-normal text-neutral-400">items</span>
+                <span className="text-xs font-semibold text-neutral-700 tabular-nums">
+                    {row.materials?.length ?? 0} <span className="font-normal text-neutral-400">specs</span>
                 </span>
             ),
         },
         {
             header: 'Status',
             accessor: 'is_active',
-            render: (row) => (
-                <Badge variant={row.is_active ? 'success' : 'danger'}>
-                    {row.is_active ? 'Active' : 'Inactive'}
-                </Badge>
-            ),
+            render: (row) => <StatusPill status={row.is_active ? 'ACTIVE' : 'INACTIVE'} />,
         },
     ];
 
@@ -100,7 +103,7 @@ export default function Index({ products, categories = [], filters = {} }) {
                 }
             />
 
-            {/* Category filter chips — shared component, replaces inline duplication */}
+            {/* Category filter chips */}
             {categories.length > 0 && (
                 <FilterChips
                     options={categories.map((c) => ({ label: c, value: c }))}
@@ -129,18 +132,21 @@ export default function Index({ products, categories = [], filters = {} }) {
                 renderRowActions={(row) => (
                     <div className="flex items-center justify-end gap-1">
                         <Link href={route('products.show', row.id)}>
-                            <button className="p-1.5 text-neutral-400 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="View">
+                            <button className="p-1.5 text-neutral-400 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="View details">
                                 <Eye className="w-4 h-4" strokeWidth={1.75} />
                             </button>
                         </Link>
                         <Link href={route('products.edit', row.id)}>
-                            <button className="p-1.5 text-neutral-400 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="Edit">
+                            <button className="p-1.5 text-neutral-400 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="Edit specifications">
                                 <Edit3 className="w-4 h-4" strokeWidth={1.75} />
                             </button>
                         </Link>
                     </div>
                 )}
             />
+
+            {/* Mobile Quick Action FAB */}
+            <MobileFAB href={route('products.create')} label="Add Product" />
         </AppLayout>
     );
 }

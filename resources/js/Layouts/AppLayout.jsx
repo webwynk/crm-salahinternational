@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
 import Sidebar from '@/Components/layout/Sidebar';
 import Topbar from '@/Components/layout/Topbar';
+import MobileBottomNav from '@/Components/layout/MobileBottomNav';
 import Toast from '@/Components/ui/Toast';
 import { WifiOff } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -33,16 +34,16 @@ export default function AppLayout({ children }) {
     }, [flash]);
 
     return (
-        <div className="min-h-screen bg-neutral-50 flex">
-            {/* Offline banner — UI State #4 */}
+        <div className="min-h-screen bg-neutral-50 flex flex-col">
+            {/* Offline top banner */}
             {isOffline && (
                 <div className="fixed top-0 left-0 right-0 z-50 bg-danger-700 text-white text-xs font-semibold px-4 py-2.5 text-center flex items-center justify-center gap-2 shadow-md">
                     <WifiOff className="w-4 h-4" />
-                    <span>You are offline — changes will not be saved until your connection is restored.</span>
+                    <span>You are offline — changes will not be saved until connection is restored.</span>
                 </div>
             )}
 
-            {/* Sidebar */}
+            {/* Sidebar Shell */}
             <Sidebar
                 isCollapsed={isCollapsed}
                 onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
@@ -50,25 +51,28 @@ export default function AppLayout({ children }) {
                 onCloseMobile={() => setIsMobileOpen(false)}
             />
 
-            {/* Main content */}
+            {/* Main Content Area */}
             <div
                 className={`flex-1 flex flex-col min-w-0 transition-all duration-200 ${
-                    isCollapsed ? 'lg:pl-18' : 'lg:pl-60'
-                } ${isOffline ? 'pt-9' : ''}`}
+                    isCollapsed ? 'lg:pl-[72px]' : 'lg:pl-60'
+                } ${isOffline ? 'pt-9' : ''} pb-16 md:pb-0`}
             >
                 <Topbar onOpenMobile={() => setIsMobileOpen(true)} />
 
                 <motion.main
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    transition={{ duration: 0.18, ease: 'easeOut' }}
                     className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1440px] w-full mx-auto"
                 >
                     {children}
                 </motion.main>
             </div>
 
-            {/* Toast — UI State #10 (success / error feedback) */}
+            {/* Mobile Viewport (<768px) Bottom Tab Bar */}
+            <MobileBottomNav />
+
+            {/* Global Toast Stack */}
             <Toast toast={toast} onClose={() => setToast(null)} />
         </div>
     );

@@ -63,6 +63,7 @@ class ProductController extends Controller
                 'name' => $validated['name'],
                 'category' => $validated['category'] ?? null,
                 'description' => $validated['description'] ?? null,
+                'image_url' => $validated['image_url'] ?? null,
                 'created_by' => $request->user()->id,
             ]);
 
@@ -111,8 +112,9 @@ class ProductController extends Controller
             $product->update([
                 'code' => strtoupper($validated['code']),
                 'name' => $validated['name'],
-                'category' => $validated['category'],
-                'description' => $validated['description'],
+                'category' => $validated['category'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'image_url' => $validated['image_url'] ?? null,
             ]);
 
             $product->materials()->delete();

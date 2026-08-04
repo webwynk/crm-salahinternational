@@ -7,6 +7,7 @@ import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
 import Textarea from '@/Components/ui/Textarea';
 import Select from '@/Components/ui/Select';
+import ImageUpload from '@/Components/ui/ImageUpload';
 import Alert from '@/Components/ui/Alert';
 import { Plus, Trash2, ArrowLeft, Layers } from 'lucide-react';
 
@@ -16,6 +17,7 @@ export default function Create({ materials = [] }) {
         name: '',
         category: 'Wallet',
         description: '',
+        image_url: '',
         materials: [
             {
                 material_id: '',
@@ -55,7 +57,6 @@ export default function Create({ materials = [] }) {
         const updated = [...data.materials];
         updated[index][field] = value;
 
-        // Auto-fill unit & label if material_id selected
         if (field === 'material_id' && value) {
             const selectedMat = materials.find((m) => m.id === parseInt(value) || m.id === value);
             if (selectedMat) {
@@ -74,59 +75,75 @@ export default function Create({ materials = [] }) {
 
     return (
         <AppLayout>
-            <Head title="Create Product & BOM - Leather CRM" />
+            <Head title="Create Product & BOM — Leather CRM" />
 
             <PageHeader
                 title="Create New Product"
-                description="Define product details and build the Bill of Materials (BOM) specification"
+                description="Define product details, upload craft photo, and build Bill of Materials (BOM)"
                 action={
                     <Link href={route('products.index')}>
                         <Button variant="outline" size="sm">
-                            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Products
+                            <ArrowLeft className="w-4 h-4" /> Back to Products
                         </Button>
                     </Link>
                 }
             />
 
             <form onSubmit={submit} className="space-y-8 max-w-5xl">
-                {/* Basic Product Info */}
+                {/* Basic Product Info & Photo */}
                 <Card>
                     <h3 className="text-md font-bold text-neutral-900 mb-4 pb-2 border-b border-neutral-200">
                         1. Product General Information
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <Input
-                            label="Product Code"
-                            required
-                            placeholder="e.g. WAL-BF-001"
-                            value={data.code}
-                            onChange={(e) => setData('code', e.target.value.toUpperCase())}
-                            error={errors.code}
-                            helperText="Must be unique (e.g. WAL-BF-001)"
-                        />
-                        <Input
-                            label="Product Name"
-                            required
-                            placeholder="e.g. Leather Bi-Fold Wallet"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            error={errors.name}
-                        />
-                        <Input
-                            label="Category"
-                            placeholder="e.g. Wallet, Bag, Belt"
-                            value={data.category}
-                            onChange={(e) => setData('category', e.target.value)}
-                            error={errors.category}
-                        />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-4">
+                        <div className="md:col-span-8 space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <Input
+                                    label="Product Code"
+                                    required
+                                    placeholder="e.g. WAL-BF-001"
+                                    value={data.code}
+                                    onChange={(e) => setData('code', e.target.value.toUpperCase())}
+                                    error={errors.code}
+                                    helperText="Unique code (e.g. WAL-BF-001)"
+                                />
+                                <Input
+                                    label="Product Name"
+                                    required
+                                    placeholder="e.g. Leather Bi-Fold Wallet"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    error={errors.name}
+                                />
+                                <Input
+                                    label="Category"
+                                    placeholder="e.g. Wallet, Bag, Belt"
+                                    value={data.category}
+                                    onChange={(e) => setData('category', e.target.value)}
+                                    error={errors.category}
+                                />
+                            </div>
+
+                            <Textarea
+                                label="Description & Craft Notes"
+                                rows={3}
+                                value={data.description}
+                                onChange={(e) => setData('description', e.target.value)}
+                                placeholder="General overview, craftsmanship notes, or client specifications..."
+                            />
+                        </div>
+
+                        {/* Image Upload Box */}
+                        <div className="md:col-span-4">
+                            <ImageUpload
+                                label="Product Photo"
+                                value={data.image_url}
+                                onChange={(val) => setData('image_url', val)}
+                                error={errors.image_url}
+                            />
+                        </div>
                     </div>
-                    <Textarea
-                        label="Description & Craft Notes"
-                        rows={3}
-                        value={data.description}
-                        onChange={(e) => setData('description', e.target.value)}
-                        placeholder="General overview, craftsmanship notes, or client requirements..."
-                    />
                 </Card>
 
                 {/* Dynamic BOM Builder */}
@@ -134,7 +151,7 @@ export default function Create({ materials = [] }) {
                     <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200">
                         <div>
                             <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
-                                <Layers className="w-5 h-5 text-brand-500" />
+                                <Layers className="w-5 h-5 text-brand-600" />
                                 2. Bill of Materials (BOM) & Process Specifications
                             </h3>
                             <p className="text-xs text-neutral-500 mt-0.5">
@@ -142,7 +159,7 @@ export default function Create({ materials = [] }) {
                             </p>
                         </div>
                         <Button type="button" variant="outline" size="sm" onClick={addBomRow}>
-                            <Plus className="w-4 h-4 mr-1" /> Add Row
+                            <Plus className="w-4 h-4" /> Add Row
                         </Button>
                     </div>
 
@@ -173,7 +190,6 @@ export default function Create({ materials = [] }) {
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                                    {/* Type */}
                                     <div className="sm:col-span-3">
                                         <Select
                                             label="Type"
@@ -186,7 +202,6 @@ export default function Create({ materials = [] }) {
                                         </Select>
                                     </div>
 
-                                    {/* Material Master Link */}
                                     <div className="sm:col-span-4">
                                         <Select
                                             label="Material Master"
@@ -202,7 +217,6 @@ export default function Create({ materials = [] }) {
                                         </Select>
                                     </div>
 
-                                    {/* Label */}
                                     <div className="sm:col-span-5">
                                         <Input
                                             label="Label / Component Name"
@@ -214,7 +228,6 @@ export default function Create({ materials = [] }) {
                                     </div>
                                 </div>
 
-                                {/* Quantities & Notes */}
                                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-neutral-200">
                                     <div className="sm:col-span-3">
                                         <Input
@@ -258,7 +271,7 @@ export default function Create({ materials = [] }) {
                     </div>
                 </Card>
 
-                {/* Submit Controls */}
+                {/* Controls */}
                 <div className="flex items-center justify-end gap-3">
                     <Link href={route('products.index')}>
                         <Button type="button" variant="outline">

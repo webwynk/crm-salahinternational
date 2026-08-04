@@ -25,6 +25,7 @@ class Product extends Model
         'name',
         'category',
         'description',
+        'image_url',
         'is_active',
         'created_by',
     ];
