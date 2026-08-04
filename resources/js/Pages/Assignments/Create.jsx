@@ -5,10 +5,12 @@ import PageHeader from '@/Components/layout/PageHeader';
 import Card from '@/Components/ui/Card';
 import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
+import Select from '@/Components/ui/Select';
+import Textarea from '@/Components/ui/Textarea';
 import Alert from '@/Components/ui/Alert';
 import Badge from '@/Components/ui/Badge';
 import Modal from '@/Components/ui/Modal';
-import { Search, CheckCircle2, AlertTriangle, ArrowLeft, Layers, ShieldCheck } from 'lucide-react';
+import { Search, CheckCircle2, AlertTriangle, ArrowLeft, Layers, ClipboardCheck } from 'lucide-react';
 
 import axios from 'axios';
 
@@ -155,24 +157,20 @@ export default function Create({ products = [], labour = [] }) {
                         </h3>
 
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                                    Select Artisan / Worker *
-                                </label>
-                                <select
-                                    value={data.labour_id}
-                                    onChange={(e) => setData('labour_id', e.target.value)}
-                                    className="w-full text-base px-3.5 py-2.5 rounded-sm border border-neutral-300 bg-white"
-                                >
-                                    <option value="">-- Choose Artisan Worker --</option>
-                                    {labour.map((w) => (
-                                        <option key={w.id} value={w.id}>
-                                            {w.name} ({w.phone}) - {Array.isArray(w.skill_tags) ? w.skill_tags.join(', ') : 'Craftsman'}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.labour_id && <p className="text-xs text-danger-700 mt-1">{errors.labour_id}</p>}
-                            </div>
+                            <Select
+                                label="Select Artisan / Worker"
+                                required
+                                value={data.labour_id}
+                                onChange={(e) => setData('labour_id', e.target.value)}
+                                error={errors.labour_id}
+                            >
+                                <option value="">— Choose Artisan Worker —</option>
+                                {labour.map((w) => (
+                                    <option key={w.id} value={w.id}>
+                                        {w.name} ({w.phone}) - {Array.isArray(w.skill_tags) ? w.skill_tags.join(', ') : 'Craftsman'}
+                                    </option>
+                                ))}
+                            </Select>
 
                             <Input
                                 label="Target Order Quantity (Pcs)"
@@ -185,18 +183,14 @@ export default function Create({ products = [], labour = [] }) {
                                 helperText="Material requirements auto-scale by this quantity"
                             />
 
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                                    Special Production Notes (Optional)
-                                </label>
-                                <textarea
-                                    rows={2}
-                                    value={data.notes}
-                                    onChange={(e) => setData('notes', e.target.value)}
-                                    placeholder="e.g. Priority dispatch by Friday..."
-                                    className="w-full text-base px-3.5 py-2.5 rounded-sm border border-neutral-300"
-                                />
-                            </div>
+                            <Textarea
+                                label="Special Production Notes (Optional)"
+                                rows={2}
+                                value={data.notes}
+                                onChange={(e) => setData('notes', e.target.value)}
+                                placeholder="e.g. Priority dispatch by Friday..."
+                                error={errors.notes}
+                            />
                         </div>
                     </Card>
                 </div>
@@ -284,7 +278,7 @@ export default function Create({ products = [], labour = [] }) {
                                         disabled={!preCheckResult.can_assign || !data.labour_id || processing}
                                         onClick={() => setIsConfirmModalOpen(true)}
                                     >
-                                        <ShieldCheck className="w-5 h-5 mr-2" /> Review & Confirm Assignment
+                                        <ClipboardCheck className="w-5 h-5 mr-2" /> Review & Confirm Assignment
                                     </Button>
                                 </div>
                             </div>

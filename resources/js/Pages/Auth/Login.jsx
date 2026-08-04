@@ -1,71 +1,72 @@
 import React, { useEffect } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
 import Alert from '@/Components/ui/Alert';
-import { Lock, Mail, ShieldCheck } from 'lucide-react';
+import Checkbox from '@/Components/ui/Checkbox';
+import { Gem, Lock, Mail } from 'lucide-react';
 
 export default function Login({ status, canResetPassword }) {
     const { url } = usePage();
     const isSessionExpired = url.includes('session=expired');
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
+        email:    '',
         password: '',
         remember: false,
     });
 
-    useEffect(() => {
-        return () => {
-            reset('password');
-        };
-    }, []);
+    useEffect(() => () => reset('password'), []);
 
     const submit = (e) => {
         e.preventDefault();
         post(route('login'));
     };
 
+    const isLocked = errors.email && errors.email.includes('locked');
+
     return (
         <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <Head title="Sign In - Leather CRM" />
+            <Head title="Sign In — Leather CRM" />
 
-            <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-brand-500 text-white shadow-md mb-4">
-                    <ShieldCheck className="w-8 h-8" />
+            {/* Brand header */}
+            <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-500 text-white shadow-sm mb-4">
+                    <Gem className="w-6 h-6" strokeWidth={1.75} />
                 </div>
-                <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">
-                    Leather CRM System
-                </h2>
-                <p className="mt-2 text-sm text-neutral-600">
+                <h1 className="text-xl font-bold text-neutral-900 tracking-tight">
+                    Salah International CRM
+                </h1>
+                <p className="mt-1.5 text-sm text-neutral-500">
                     Sign in to your manufacturing workspace
                 </p>
             </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-                <div className="bg-white py-8 px-6 sm:px-10 shadow-sm border border-neutral-200 rounded-md">
-                    {/* Session Expired Banner */}
+            {/* Card */}
+            <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
+                <div className="bg-neutral-0 border border-neutral-200 rounded-md shadow-sm px-8 py-8">
+                    {/* UI State #8 — Session Expired */}
                     {isSessionExpired && (
                         <Alert variant="warning" className="mb-6">
                             Your session expired due to inactivity. Please sign in again.
                         </Alert>
                     )}
 
-                    {/* Status Message */}
+                    {/* UI State #10 — Status message (e.g. password reset sent) */}
                     {status && (
                         <Alert variant="success" className="mb-6">
                             {status}
                         </Alert>
                     )}
 
-                    {/* Generic Validation/Lockout Error Alert */}
-                    {errors.email && errors.email.includes('locked') && (
-                        <Alert variant="danger" className="mb-6" title="Account Locked">
+                    {/* UI State #8 — Account locked */}
+                    {isLocked && (
+                        <Alert variant="danger" title="Account Locked" className="mb-6">
                             {errors.email}
                         </Alert>
                     )}
 
-                    <form onSubmit={submit} className="space-y-6">
+                    <form onSubmit={submit} className="space-y-5">
                         <Input
                             label="Work Email"
                             id="email"
@@ -76,7 +77,7 @@ export default function Login({ status, canResetPassword }) {
                             required
                             placeholder="admin@salahinternational.com"
                             onChange={(e) => setData('email', e.target.value)}
-                            error={errors.email && !errors.email.includes('locked') ? errors.email : null}
+                            error={!isLocked ? errors.email : null}
                         />
 
                         <Input
@@ -93,41 +94,37 @@ export default function Login({ status, canResetPassword }) {
                         />
 
                         <div className="flex items-center justify-between">
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    name="remember"
-                                    checked={data.remember}
-                                    onChange={(e) => setData('remember', e.target.checked)}
-                                    className="w-4 h-4 rounded border-neutral-300 text-brand-500 focus:ring-brand-500"
-                                />
-                                <span className="text-sm text-neutral-700">Remember me</span>
-                            </label>
-
+                            <Checkbox
+                                id="remember"
+                                label="Remember me"
+                                checked={data.remember}
+                                onChange={(e) => setData('remember', e.target.checked)}
+                            />
                             {canResetPassword && (
-                                <a
+                                <Link
                                     href={route('password.request')}
-                                    className="text-sm font-medium text-brand-500 hover:text-brand-600 hover:underline"
+                                    className="text-sm font-medium text-brand-600 hover:text-brand-700 hover:underline"
                                 >
                                     Forgot password?
-                                </a>
+                                </Link>
                             )}
                         </div>
 
-                        <div>
-                            <Button
-                                type="submit"
-                                variant="primary"
-                                size="lg"
-                                className="w-full"
-                                isLoading={processing}
-                            >
-                                Sign in to Dashboard
-                            </Button>
-                        </div>
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            size="lg"
+                            className="w-full mt-2"
+                            isLoading={processing}
+                        >
+                            Sign in
+                        </Button>
                     </form>
-
                 </div>
+
+                <p className="mt-6 text-center text-xs text-neutral-400">
+                    Leather Goods Manufacturing System · Internal Access Only
+                </p>
             </div>
         </div>
     );

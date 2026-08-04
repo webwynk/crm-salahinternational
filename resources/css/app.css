@@ -1,13 +1,83 @@
+/* ─────────────────────────────────────────────────────────────
+   Self-hosted Inter Variable — font-display: swap
+   File placed at: public/fonts/InterVariable.woff2
+   Download from: https://github.com/rsms/inter/releases
+   ───────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Inter var';
+  font-style:  normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/InterVariable.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+                 U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ── Base resets ───────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-800;
+  }
+
+  /* Tabular figures for any numeric data in tables */
+  .tabular-nums,
+  td.numeric {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ── Animations ────────────────────────────────────────────── */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-4px); }
-  40%, 80% { transform: translateX(4px); }
+  20%, 60%  { transform: translateX(-4px); }
+  40%, 80%  { transform: translateX(4px); }
 }
 
 .animate-shake {
   animation: shake 150ms ease-in-out;
+}
+
+/* ── Sidebar width utility (w-18 = 72px) ──────────────────── */
+.w-sidebar-collapsed { width: 72px; }
+.w-sidebar-expanded  { width: 240px; }
+
+/* ── Scrollbar thin styling ────────────────────────────────── */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.neutral.300') transparent;
+}
+.scrollbar-thin::-webkit-scrollbar       { width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: theme('colors.neutral.300');
+  border-radius: 9999px;
 }

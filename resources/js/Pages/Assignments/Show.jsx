@@ -41,7 +41,7 @@ export default function Show({ assignment }) {
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between py-1 border-b border-neutral-200">
                                 <span className="text-neutral-500">Work Order No:</span>
-                                <strong className="text-neutral-900 font-mono">{assignment.assignment_no}</strong>
+                                <strong className="text-neutral-900 font-mono tabular-nums">{assignment.assignment_no}</strong>
                             </div>
                             <div className="flex justify-between py-1 border-b border-neutral-200">
                                 <span className="text-neutral-500">Product Name:</span>
@@ -49,11 +49,11 @@ export default function Show({ assignment }) {
                             </div>
                             <div className="flex justify-between py-1 border-b border-neutral-200">
                                 <span className="text-neutral-500">Target Quantity:</span>
-                                <strong className="text-brand-700 text-base">{assignment.quantity} Pcs</strong>
+                                <strong className="text-brand-700 text-base tabular-nums">{assignment.quantity} Pcs</strong>
                             </div>
                             <div className="flex justify-between py-1">
                                 <span className="text-neutral-500">Assigned Date:</span>
-                                <strong className="text-neutral-900">
+                                <strong className="text-neutral-900 tabular-nums">
                                     {new Date(assignment.created_at).toLocaleString('en-GB')}
                                 </strong>
                             </div>
@@ -99,9 +99,9 @@ export default function Show({ assignment }) {
                             <tbody className="divide-y divide-neutral-200">
                                 {assignment.materials?.map((mat, idx) => (
                                     <tr key={mat.id} className="hover:bg-neutral-50">
-                                        <td className="px-3 py-2.5 text-neutral-400">{idx + 1}</td>
+                                        <td className="px-3 py-2.5 text-neutral-400 tabular-nums">{idx + 1}</td>
                                         <td className="px-3 py-2.5 font-semibold text-neutral-900">{mat.label}</td>
-                                        <td className="px-3 py-2.5 font-bold text-danger-700">
+                                        <td className="px-3 py-2.5 font-bold text-danger-700 tabular-nums">
                                             -{parseFloat(mat.quantity_used).toLocaleString()}
                                         </td>
                                         <td className="px-3 py-2.5 text-neutral-500">{mat.unit}</td>

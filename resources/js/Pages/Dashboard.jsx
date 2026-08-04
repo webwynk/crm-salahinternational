@@ -13,7 +13,7 @@ export default function Dashboard({ stats, low_stock_materials = [], recent_assi
             title: 'Active Products',
             value: stats.total_products,
             icon: Package,
-            color: 'text-brand-500 bg-brand-50 border-brand-200',
+            color: 'text-brand-600 bg-brand-50 border-brand-200',
             href: route('products.index'),
         },
         {
@@ -24,17 +24,17 @@ export default function Dashboard({ stats, low_stock_materials = [], recent_assi
             href: route('materials.index'),
         },
         {
-            title: 'Artisans / Labour',
+            title: 'Labour Artisans',
             value: stats.total_labour,
             icon: Users,
-            color: 'text-success-500 bg-success-50 border-success-200',
+            color: 'text-success-700 bg-success-50 border-success-500/20',
             href: route('labour.index'),
         },
         {
             title: 'Active Work Orders',
             value: stats.active_assignments,
             icon: ClipboardList,
-            color: 'text-warning-500 bg-warning-50 border-warning-200',
+            color: 'text-warning-700 bg-warning-50 border-warning-500/20',
             href: route('assignments.index'),
         },
     ];
@@ -67,10 +67,10 @@ export default function Dashboard({ stats, low_stock_materials = [], recent_assi
                                         <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                                             {card.title}
                                         </p>
-                                        <p className="text-2xl font-bold text-neutral-900 mt-1">{card.value}</p>
+                                        <p className="text-2xl font-bold text-neutral-900 mt-1 tabular-nums">{card.value}</p>
                                     </div>
                                     <div className={`w-12 h-12 rounded-lg border flex items-center justify-center ${card.color}`}>
-                                        <Icon className="w-6 h-6" />
+                                        <Icon className="w-6 h-6" strokeWidth={1.75} />
                                     </div>
                                 </div>
                             </Card>

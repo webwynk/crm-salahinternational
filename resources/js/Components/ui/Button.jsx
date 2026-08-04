@@ -11,15 +11,15 @@ export default function Button({
     type = 'button',
     ...props
 }) {
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none';
+    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none';
 
     const variants = {
-        primary: 'bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white shadow-xs focus:ring-brand-500',
+        primary:   'bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white shadow-xs focus:ring-brand-500',
         secondary: 'bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 text-neutral-800 focus:ring-neutral-400',
-        outline: 'border border-neutral-300 bg-white hover:bg-neutral-50 active:bg-neutral-100 text-neutral-700 shadow-xs focus:ring-brand-500',
-        ghost: 'bg-transparent hover:bg-neutral-100 active:bg-neutral-200 text-neutral-700 focus:ring-neutral-400',
-        danger: 'bg-danger-500 hover:bg-danger-700 active:bg-danger-700 text-white shadow-xs focus:ring-danger-500',
-        link: 'bg-transparent text-brand-500 hover:underline p-0 focus:ring-0',
+        outline:   'border border-neutral-300 bg-neutral-0 hover:bg-neutral-50 active:bg-neutral-100 text-neutral-700 shadow-xs focus:ring-brand-500',
+        ghost:     'bg-transparent hover:bg-neutral-100 active:bg-neutral-200 text-neutral-700 focus:ring-neutral-400',
+        danger:    'bg-danger-500 hover:bg-danger-600 active:bg-danger-700 text-white shadow-xs focus:ring-danger-500',
+        link:      'bg-transparent text-brand-600 hover:text-brand-700 hover:underline p-0 focus:ring-0 shadow-none',
     };
 
     const sizes = {

@@ -25,7 +25,7 @@ export default function Input({
             <input
                 id={inputId}
                 type={type}
-                className={`w-full text-base px-3.5 py-2.5 rounded-sm border bg-white text-neutral-900 placeholder:text-neutral-400 transition-colors focus:outline-none focus:ring-2 ${
+                className={`w-full text-base px-3.5 py-2.5 rounded-sm border bg-neutral-0 text-neutral-900 placeholder:text-neutral-400 transition-colors focus:outline-none focus:ring-2 ${
                     error
                         ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500 animate-shake'
                         : 'border-neutral-300 focus:ring-brand-500 focus:border-brand-500'

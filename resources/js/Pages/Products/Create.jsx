@@ -5,6 +5,8 @@ import PageHeader from '@/Components/layout/PageHeader';
 import Card from '@/Components/ui/Card';
 import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
+import Textarea from '@/Components/ui/Textarea';
+import Select from '@/Components/ui/Select';
 import Alert from '@/Components/ui/Alert';
 import { Plus, Trash2, ArrowLeft, Layers } from 'lucide-react';
 
@@ -118,18 +120,13 @@ export default function Create({ materials = [] }) {
                             error={errors.category}
                         />
                     </div>
-                    <div className="mt-4">
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Description & Craft Notes
-                        </label>
-                        <textarea
-                            rows={3}
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            className="w-full text-base px-3.5 py-2.5 rounded-sm border border-neutral-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                            placeholder="General overview, craftsmanship notes, or client requirements..."
-                        />
-                    </div>
+                    <Textarea
+                        label="Description & Craft Notes"
+                        rows={3}
+                        value={data.description}
+                        onChange={(e) => setData('description', e.target.value)}
+                        placeholder="General overview, craftsmanship notes, or client requirements..."
+                    />
                 </Card>
 
                 {/* Dynamic BOM Builder */}
@@ -178,44 +175,41 @@ export default function Create({ materials = [] }) {
                                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                                     {/* Type */}
                                     <div className="sm:col-span-3">
-                                        <label className="block text-xs font-medium text-neutral-700 mb-1">Type</label>
-                                        <select
+                                        <Select
+                                            label="Type"
                                             value={row.material_type}
                                             onChange={(e) => updateBomRow(idx, 'material_type', e.target.value)}
-                                            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded bg-white"
                                         >
                                             <option value="CONSUMABLE">CONSUMABLE (Deducted)</option>
                                             <option value="HARDWARE">HARDWARE</option>
                                             <option value="PROCESS_NOTE">PROCESS NOTE</option>
-                                        </select>
+                                        </Select>
                                     </div>
 
                                     {/* Material Master Link */}
                                     <div className="sm:col-span-4">
-                                        <label className="block text-xs font-medium text-neutral-700 mb-1">Material Master Item</label>
-                                        <select
+                                        <Select
+                                            label="Material Master"
                                             value={row.material_id}
                                             onChange={(e) => updateBomRow(idx, 'material_id', e.target.value)}
-                                            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded bg-white"
                                         >
-                                            <option value="">-- None (Custom Note) --</option>
+                                            <option value="">— None (Custom Note) —</option>
                                             {materials.map((m) => (
                                                 <option key={m.id} value={m.id}>
-                                                    {m.name} ({m.category} - {m.base_unit})
+                                                    {m.name} ({m.category} — {m.base_unit})
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
 
                                     {/* Label */}
                                     <div className="sm:col-span-5">
-                                        <label className="block text-xs font-medium text-neutral-700 mb-1">Label / Component Name *</label>
-                                        <input
-                                            type="text"
+                                        <Input
+                                            label="Label / Component Name"
+                                            required
                                             value={row.label}
                                             onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
                                             placeholder="e.g. Leather Exterior Panel"
-                                            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded bg-white"
                                         />
                                     </div>
                                 </div>
@@ -223,45 +217,39 @@ export default function Create({ materials = [] }) {
                                 {/* Quantities & Notes */}
                                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-neutral-200">
                                     <div className="sm:col-span-3">
-                                        <label className="block text-xs font-medium text-neutral-700 mb-1">Qty Min / Fixed</label>
-                                        <input
+                                        <Input
+                                            label="Qty Min / Fixed"
                                             type="number"
                                             step="0.001"
                                             value={row.quantity_min}
                                             onChange={(e) => updateBomRow(idx, 'quantity_min', e.target.value)}
                                             placeholder="e.g. 5"
-                                            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded bg-white"
                                         />
                                     </div>
                                     <div className="sm:col-span-3">
-                                        <label className="block text-xs font-medium text-neutral-700 mb-1">Qty Max (Optional Range)</label>
-                                        <input
+                                        <Input
+                                            label="Qty Max (Range)"
                                             type="number"
                                             step="0.001"
                                             value={row.quantity_max}
                                             onChange={(e) => updateBomRow(idx, 'quantity_max', e.target.value)}
                                             placeholder="e.g. 8"
-                                            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded bg-white"
                                         />
                                     </div>
                                     <div className="sm:col-span-2">
-                                        <label className="block text-xs font-medium text-neutral-700 mb-1">Unit</label>
-                                        <input
-                                            type="text"
+                                        <Input
+                                            label="Unit"
                                             value={row.unit}
                                             onChange={(e) => updateBomRow(idx, 'unit', e.target.value)}
-                                            placeholder="cm2, m, g"
-                                            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded bg-white"
+                                            placeholder="cm2, g, pcs"
                                         />
                                     </div>
                                     <div className="sm:col-span-4">
-                                        <label className="block text-xs font-medium text-neutral-700 mb-1">Dimension / Process Note</label>
-                                        <input
-                                            type="text"
+                                        <Input
+                                            label="Dimension / Process Note"
                                             value={row.dimension_note}
                                             onChange={(e) => updateBomRow(idx, 'dimension_note', e.target.value)}
                                             placeholder="e.g. 23 × 9.5 cm outer shell"
-                                            className="w-full text-sm px-3 py-2 border border-neutral-300 rounded bg-white"
                                         />
                                     </div>
                                 </div>

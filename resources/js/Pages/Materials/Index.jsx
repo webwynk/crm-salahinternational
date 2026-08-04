@@ -3,11 +3,13 @@ import { Head, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
 import DataTable from '@/Components/ui/DataTable';
+import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
 import Badge from '@/Components/ui/Badge';
 import Drawer from '@/Components/ui/Drawer';
 import Modal from '@/Components/ui/Modal';
 import Input from '@/Components/ui/Input';
+import Select from '@/Components/ui/Select';
 import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
 
 export default function Index({ materials, categories = [], filters = {} }) {
@@ -133,34 +135,15 @@ export default function Index({ materials, categories = [], filters = {} }) {
             />
 
 
-
-            {/* Category Chips Bar */}
+            {/* Category filter chips */}
             {categories.length > 0 && (
-                <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-                    <button
-                        onClick={() => handleCategoryFilter('')}
-                        className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                            !selectedCategory
-                                ? 'bg-neutral-900 text-white'
-                                : 'bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-                        }`}
-                    >
-                        All Categories
-                    </button>
-                    {categories.map((cat) => (
-                        <button
-                            key={cat}
-                            onClick={() => handleCategoryFilter(cat)}
-                            className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                                selectedCategory === cat
-                                    ? 'bg-brand-500 text-white'
-                                    : 'bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-                            }`}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
+                <FilterChips
+                    options={categories.map((c) => ({ label: c, value: c }))}
+                    value={selectedCategory}
+                    onChange={handleCategoryFilter}
+                    allLabel="All Categories"
+                    className="mb-4"
+                />
             )}
 
             {/* Datatable */}
@@ -203,21 +186,20 @@ export default function Index({ materials, categories = [], filters = {} }) {
                         error={addForm.errors.name}
                     />
 
-                    <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Category *</label>
-                        <select
-                            value={addForm.data.category}
-                            onChange={(e) => addForm.setData('category', e.target.value)}
-                            className="w-full text-base px-3.5 py-2.5 rounded-sm border border-neutral-300 bg-white"
-                        >
-                            <option value="LEATHER">LEATHER</option>
-                            <option value="THREAD">THREAD</option>
-                            <option value="GLUE">GLUE</option>
-                            <option value="HARDWARE">HARDWARE</option>
-                            <option value="LINING">LINING</option>
-                            <option value="OTHER">OTHER</option>
-                        </select>
-                    </div>
+                    <Select
+                        label="Category"
+                        required
+                        value={addForm.data.category}
+                        onChange={(e) => addForm.setData('category', e.target.value)}
+                        error={addForm.errors.category}
+                    >
+                        <option value="LEATHER">LEATHER</option>
+                        <option value="THREAD">THREAD</option>
+                        <option value="GLUE">GLUE</option>
+                        <option value="HARDWARE">HARDWARE</option>
+                        <option value="LINING">LINING</option>
+                        <option value="OTHER">OTHER</option>
+                    </Select>
 
                     <div className="grid grid-cols-2 gap-3">
                         <Input

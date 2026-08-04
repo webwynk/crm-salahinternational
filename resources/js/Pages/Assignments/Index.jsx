@@ -3,9 +3,10 @@ import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
 import DataTable from '@/Components/ui/DataTable';
+import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
 import Badge from '@/Components/ui/Badge';
-import { Plus, Eye, FileText, Download, UserCheck, Package } from 'lucide-react';
+import { Plus, Eye, FileText } from 'lucide-react';
 
 export default function Index({ assignments, filters = {} }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -99,32 +100,14 @@ export default function Index({ assignments, filters = {} }) {
                 }
             />
 
-            {/* Status Filter Chips */}
-            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-                <button
-                    onClick={() => handleStatusFilter('')}
-                    className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                        !selectedStatus
-                            ? 'bg-neutral-900 text-white'
-                            : 'bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-                    }`}
-                >
-                    All Statuses
-                </button>
-                {statuses.map((st) => (
-                    <button
-                        key={st}
-                        onClick={() => handleStatusFilter(st)}
-                        className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                            selectedStatus === st
-                                ? 'bg-brand-500 text-white'
-                                : 'bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-                        }`}
-                    >
-                        {st}
-                    </button>
-                ))}
-            </div>
+            {/* Status filter chips */}
+            <FilterChips
+                options={statuses.map((st) => ({ label: st.replace('_', ' '), value: st }))}
+                value={selectedStatus}
+                onChange={handleStatusFilter}
+                allLabel="All Statuses"
+                className="mb-4"
+            />
 
             <DataTable
                 columns={columns}

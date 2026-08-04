@@ -7,7 +7,9 @@ import Button from '@/Components/ui/Button';
 import Badge from '@/Components/ui/Badge';
 import Drawer from '@/Components/ui/Drawer';
 import Input from '@/Components/ui/Input';
-import { Plus, Edit3, UserCheck, Phone, MapPin } from 'lucide-react';
+import Textarea from '@/Components/ui/Textarea';
+import Checkbox from '@/Components/ui/Checkbox';
+import { Plus, Edit3, Phone } from 'lucide-react';
 
 export default function Index({ labour, filters = {} }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -190,16 +192,14 @@ export default function Index({ labour, filters = {} }) {
                         error={errors.phone}
                     />
 
-                    <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Workshop Address</label>
-                        <textarea
-                            rows={2}
-                            placeholder="Shop / Unit location details..."
-                            value={data.address}
-                            onChange={(e) => setData('address', e.target.value)}
-                            className="w-full text-base px-3.5 py-2.5 rounded-sm border border-neutral-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                        />
-                    </div>
+                    <Textarea
+                        label="Workshop Address"
+                        rows={2}
+                        placeholder="Shop / Unit location details..."
+                        value={data.address}
+                        onChange={(e) => setData('address', e.target.value)}
+                        error={errors.address}
+                    />
 
                     <Input
                         label="Skill Tags (Comma separated)"
@@ -211,18 +211,12 @@ export default function Index({ labour, filters = {} }) {
                     />
 
                     {editingWorker && (
-                        <div className="flex items-center gap-2 pt-2">
-                            <input
-                                type="checkbox"
-                                id="is_active"
-                                checked={data.is_active}
-                                onChange={(e) => setData('is_active', e.target.checked)}
-                                className="w-4 h-4 rounded text-brand-500 border-neutral-300"
-                            />
-                            <label htmlFor="is_active" className="text-sm font-medium text-neutral-700">
-                                Worker account active
-                            </label>
-                        </div>
+                        <Checkbox
+                            id="is_active"
+                            label="Worker account active"
+                            checked={data.is_active}
+                            onChange={(e) => setData('is_active', e.target.checked)}
+                        />
                     )}
 
                     <div className="pt-4 flex justify-end gap-3 border-t border-neutral-200">

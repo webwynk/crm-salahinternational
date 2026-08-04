@@ -1,55 +1,66 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
+import React, { useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
+import Button from '@/Components/ui/Button';
+import Input from '@/Components/ui/Input';
+import { Gem } from 'lucide-react';
 
 export default function ConfirmPassword() {
     const { data, setData, post, processing, errors, reset } = useForm({
         password: '',
     });
 
+    useEffect(() => () => reset('password'), []);
+
     const submit = (e) => {
         e.preventDefault();
-
         post(route('password.confirm'), {
             onFinish: () => reset('password'),
         });
     };
 
     return (
-        <GuestLayout>
-            <Head title="Confirm Password" />
+        <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+            <Head title="Confirm Password — Leather CRM" />
 
-            <div className="mb-4 text-sm text-gray-600">
-                This is a secure area of the application. Please confirm your
-                password before continuing.
+            <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-500 text-white shadow-sm mb-4">
+                    <Gem className="w-6 h-6" strokeWidth={1.75} />
+                </div>
+                <h1 className="text-xl font-bold text-neutral-900 tracking-tight">Confirm Password</h1>
+                <p className="mt-1.5 text-sm text-neutral-500">
+                    This is a secure area. Please confirm your password to continue.
+                </p>
             </div>
 
-            <form onSubmit={submit}>
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+            <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
+                <div className="bg-neutral-0 border border-neutral-200 rounded-md shadow-sm px-8 py-8">
+                    <form onSubmit={submit} className="space-y-5">
+                        <Input
+                            label="Password"
+                            id="password"
+                            type="password"
+                            name="password"
+                            value={data.password}
+                            autoComplete="current-password"
+                            required
+                            autoFocus
+                            placeholder="••••••••"
+                            onChange={(e) => setData('password', e.target.value)}
+                            error={errors.password}
+                        />
 
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        isFocused={true}
-                        onChange={(e) => setData('password', e.target.value)}
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            size="lg"
+                            className="w-full"
+                            isLoading={processing}
+                        >
+                            Confirm Password
+                        </Button>
+                    </form>
                 </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Confirm
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
+            </div>
+        </div>
     );
 }
