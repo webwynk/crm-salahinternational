@@ -7,7 +7,7 @@ export default function PageHeader({ title, description, action }) {
                 <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">{title}</h1>
                 {description && <p className="text-sm text-neutral-500 mt-1">{description}</p>}
             </div>
-            {action && <div className="shrink-0">{action}</div>}
+            {action && <div className="shrink-0 inline-flex items-center gap-2 whitespace-nowrap flex-nowrap">{action}</div>}
         </div>
     );
 }
