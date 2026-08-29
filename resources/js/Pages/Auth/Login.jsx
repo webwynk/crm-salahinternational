@@ -31,9 +31,13 @@ export default function Login({ status, canResetPassword }) {
 
             {/* Brand header */}
             <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-500 text-white shadow-sm mb-4">
-                    <Gem className="w-6 h-6" strokeWidth={1.75} />
-                </div>
+                <Link href="/" className="inline-block mb-3">
+                    <img
+                        src="/images/logo.png"
+                        alt="Salah International"
+                        className="h-12 w-auto max-w-[220px] mx-auto object-contain"
+                    />
+                </Link>
                 <h1 className="text-xl font-bold text-neutral-900 tracking-tight">
                     Salah International CRM
                 </h1>

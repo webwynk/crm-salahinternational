@@ -67,20 +67,25 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
                 }`}
             >
                 {/* Brand Header */}
-                <div className="h-16 flex items-center justify-between px-4 border-b border-neutral-800 shrink-0">
-                    <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden min-w-0" onClick={onCloseMobile}>
-                        <div className="w-9 h-9 rounded-md bg-brand-500 flex items-center justify-center text-white shrink-0 shadow-xs">
-                            <Gem className="w-5 h-5" strokeWidth={1.75} />
-                        </div>
-                        {!isCollapsed && (
-                            <div className="truncate min-w-0">
-                                <h1 className="font-bold text-sm text-white leading-tight tracking-tight truncate">
-                                    Salah Intl.
-                                </h1>
-                                <span className="text-[10px] text-neutral-400 block tracking-widest uppercase font-mono">
-                                    Manufacturing CRM
-                                </span>
-                            </div>
+                <div className="h-16 flex items-center justify-between px-3.5 border-b border-neutral-800 shrink-0">
+                    <Link
+                        href="/dashboard"
+                        className={`flex items-center gap-3 overflow-hidden min-w-0 ${isCollapsed ? 'justify-center w-full' : ''}`}
+                        onClick={onCloseMobile}
+                        title="Salah International CRM"
+                    >
+                        {isCollapsed ? (
+                            <img
+                                src="/images/favicon.png"
+                                alt="Salah International"
+                                className="w-8 h-8 object-contain shrink-0 transition-transform hover:scale-105"
+                            />
+                        ) : (
+                            <img
+                                src="/images/logo.png"
+                                alt="Salah International"
+                                className="h-8.5 w-auto max-w-[185px] object-contain shrink-0 transition-all"
+                            />
                         )}
                     </Link>
                 </div>
