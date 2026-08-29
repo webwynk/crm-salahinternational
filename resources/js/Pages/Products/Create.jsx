@@ -9,7 +9,7 @@ import Textarea from '@/Components/ui/Textarea';
 import Select from '@/Components/ui/Select';
 import ImageUpload from '@/Components/ui/ImageUpload';
 import Alert from '@/Components/ui/Alert';
-import { Plus, Trash2, ArrowLeft, Layers } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Layers, Tag } from 'lucide-react';
 import { BASE_UNITS } from '@/constants/units';
 
 export default function Create({ materials = [] }) {
@@ -24,6 +24,7 @@ export default function Create({ materials = [] }) {
         materials: [
             {
                 material_id: '',
+                material_variant_id: null,
                 material_type: 'CONSUMABLE',
                 label: '',
                 quantity_min: '',
@@ -37,6 +38,7 @@ export default function Create({ materials = [] }) {
             ...data.materials,
             {
                 material_id: '',
+                material_variant_id: null,
                 material_type: 'CONSUMABLE',
                 label: '',
                 quantity_min: '',
@@ -135,18 +137,13 @@ export default function Create({ materials = [] }) {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Select
+                            <Input
                                 label="Category"
+                                placeholder="e.g. Wallet, Bag, Belt, Footwear"
                                 value={data.category}
                                 onChange={(e) => setData('category', e.target.value)}
                                 error={errors.category}
-                            >
-                                {PRODUCT_CATEGORIES.map((cat) => (
-                                    <option key={cat.value} value={cat.value}>
-                                        {cat.label}
-                                    </option>
-                                ))}
-                            </Select>
+                            />
 
                             <ImageUpload
                                 label="Product Photo (Optional)"
