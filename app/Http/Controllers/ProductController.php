@@ -46,7 +46,7 @@ class ProductController extends Controller
 
     public function create(): Response
     {
-        $materials = Material::where('is_active', true)->orderBy('name')->get();
+        $materials = Material::with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
 
         return Inertia::render('Products/Create', [
             'materials' => $materials,
@@ -75,7 +75,7 @@ class ProductController extends Controller
 
     public function show(Product $product): Response
     {
-        $product->load('materials.material.inventory', 'assignments.labour');
+        $product->load('materials.material.variants.inventory', 'materials.variant.inventory', 'assignments.labour');
 
         return Inertia::render('Products/Show', [
             'product' => $product,
@@ -84,8 +84,8 @@ class ProductController extends Controller
 
     public function edit(Product $product): Response
     {
-        $product->load('materials');
-        $materials = Material::where('is_active', true)->orderBy('name')->get();
+        $product->load('materials.variant');
+        $materials = Material::with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
 
         return Inertia::render('Products/Edit', [
             'product' => $product,
@@ -118,6 +118,7 @@ class ProductController extends Controller
         foreach ($materials as $index => $item) {
             $product->materials()->create([
                 'material_id' => $item['material_id'] ?? null,
+                'material_variant_id' => $item['material_variant_id'] ?? null,
                 'material_type' => $item['material_type'],
                 'label' => $item['label'],
                 'quantity_min' => $item['quantity_min'] ?? null,

@@ -67,11 +67,20 @@ export default function Edit({ product, materials = [] }) {
         const updated = [...data.materials];
         updated[index][field] = value;
 
-        if (field === 'material_id' && value) {
-            const selectedMat = materials.find((m) => m.id === parseInt(value) || m.id === value);
-            if (selectedMat) {
-                updated[index].label = selectedMat.name;
-                updated[index].unit = selectedMat.base_unit;
+        if (field === 'material_id') {
+            if (value) {
+                const selectedMat = materials.find((m) => m.id === parseInt(value) || m.id === value);
+                if (selectedMat) {
+                    updated[index].label = selectedMat.name;
+                    updated[index].unit = selectedMat.base_unit;
+                    if (selectedMat.variants && selectedMat.variants.length > 0) {
+                        updated[index].material_variant_id = selectedMat.variants[0].id;
+                    } else {
+                        updated[index].material_variant_id = null;
+                    }
+                }
+            } else {
+                updated[index].material_variant_id = null;
             }
         }
 
@@ -164,82 +173,115 @@ export default function Edit({ product, materials = [] }) {
                     </div>
 
                     <div className="space-y-4">
-                        {data.materials.map((row, idx) => (
-                            <div
-                                key={idx}
-                                className="p-4 rounded-md border border-neutral-200 bg-neutral-50/60 relative space-y-3"
-                            >
-                                <div className="flex items-center justify-between text-xs font-bold text-neutral-500 uppercase">
-                                    <span>Item #{idx + 1}</span>
-                                    {data.materials.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeBomRow(idx)}
-                                            className="text-neutral-400 hover:text-danger-500 p-1"
-                                            title="Remove row"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    )}
+                        {data.materials.map((row, idx) => {
+                            const selectedMat = materials.find((m) => m.id === parseInt(row.material_id) || m.id === row.material_id);
+                            const variants = selectedMat?.variants || [];
+
+                            return (
+                                <div
+                                    key={idx}
+                                    className="p-4 rounded-md border border-neutral-200 bg-neutral-50/60 relative space-y-3"
+                                >
+                                    <div className="flex items-center justify-between text-xs font-bold text-neutral-500 uppercase">
+                                        <span>Item #{idx + 1}</span>
+                                        {data.materials.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeBomRow(idx)}
+                                                className="text-neutral-400 hover:text-danger-500 p-1"
+                                                title="Remove row"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                                        <div className="sm:col-span-4">
+                                            <Select
+                                                label="Material Master Item"
+                                                value={row.material_id}
+                                                onChange={(e) => updateBomRow(idx, 'material_id', e.target.value)}
+                                            >
+                                                <option value="">— Select Raw Material —</option>
+                                                {materials.map((m) => (
+                                                    <option key={m.id} value={m.id}>
+                                                        {m.name} ({m.category} — {m.base_unit})
+                                                    </option>
+                                                ))}
+                                            </Select>
+                                        </div>
+
+                                        {variants.length > 1 ? (
+                                            <div className="sm:col-span-3">
+                                                <Select
+                                                    label="Variation"
+                                                    value={row.material_variant_id || ''}
+                                                    onChange={(e) => updateBomRow(idx, 'material_variant_id', e.target.value)}
+                                                >
+                                                    {variants.map((v) => (
+                                                        <option key={v.id} value={v.id}>
+                                                            {v.name} {v.sku ? `(${v.sku})` : ''}
+                                                        </option>
+                                                    ))}
+                                                </Select>
+                                            </div>
+                                        ) : (
+                                            <div className="sm:col-span-3">
+                                                <Input
+                                                    label="Component / Part Label"
+                                                    required
+                                                    value={row.label}
+                                                    onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
+                                                    placeholder="e.g. Exterior Shell"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {variants.length > 1 && (
+                                            <div className="sm:col-span-2">
+                                                <Input
+                                                    label="Component"
+                                                    required
+                                                    value={row.label}
+                                                    onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
+                                                    placeholder="e.g. Shell"
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div className={variants.length > 1 ? "sm:col-span-1" : "sm:col-span-2"}>
+                                            <Input
+                                                label="Qty"
+                                                type="number"
+                                                step="0.001"
+                                                required
+                                                value={row.quantity_min}
+                                                onChange={(e) => updateBomRow(idx, 'quantity_min', e.target.value)}
+                                                placeholder="e.g. 1.5"
+                                            />
+                                        </div>
+
+                                        <div className="sm:col-span-2">
+                                            <Select
+                                                label="Unit"
+                                                value={row.unit || 'pcs'}
+                                                onChange={(e) => updateBomRow(idx, 'unit', e.target.value)}
+                                            >
+                                                {BASE_UNITS.map((u) => (
+                                                    <option key={u.value} value={u.value}>
+                                                        {u.label}
+                                                    </option>
+                                                ))}
+                                                {row.unit && !BASE_UNITS.some((u) => u.value === row.unit) && (
+                                                    <option value={row.unit}>{row.unit}</option>
+                                                )}
+                                            </Select>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                                    <div className="sm:col-span-4">
-                                        <Select
-                                            label="Material Master Item"
-                                            value={row.material_id}
-                                            onChange={(e) => updateBomRow(idx, 'material_id', e.target.value)}
-                                        >
-                                            <option value="">— Select Raw Material —</option>
-                                            {materials.map((m) => (
-                                                <option key={m.id} value={m.id}>
-                                                    {m.name} ({m.category} — {m.base_unit})
-                                                </option>
-                                            ))}
-                                        </Select>
-                                    </div>
-
-                                    <div className="sm:col-span-4">
-                                        <Input
-                                            label="Label / Component Name"
-                                            required
-                                            value={row.label}
-                                            onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
-                                            placeholder="e.g. Full-Grain Calfskin Leather"
-                                        />
-                                    </div>
-
-                                    <div className="sm:col-span-2">
-                                        <Input
-                                            label="Qty"
-                                            type="number"
-                                            step="0.001"
-                                            required
-                                            value={row.quantity_min}
-                                            onChange={(e) => updateBomRow(idx, 'quantity_min', e.target.value)}
-                                            placeholder="e.g. 1.5"
-                                        />
-                                    </div>
-
-                                    <div className="sm:col-span-2">
-                                        <Select
-                                            label="Unit"
-                                            value={row.unit || 'pcs'}
-                                            onChange={(e) => updateBomRow(idx, 'unit', e.target.value)}
-                                        >
-                                            {BASE_UNITS.map((u) => (
-                                                <option key={u.value} value={u.value}>
-                                                    {u.label}
-                                                </option>
-                                            ))}
-                                            {row.unit && !BASE_UNITS.some((u) => u.value === row.unit) && (
-                                                <option value={row.unit}>{row.unit}</option>
-                                            )}
-                                        </Select>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {/* Bottom Add Row Dashed Button */}

@@ -19,6 +19,7 @@ class StockTransaction extends Model
 
     protected $fillable = [
         'material_id',
+        'material_variant_id',
         'change_qty',
         'type',
         'reference_id',
@@ -40,6 +41,14 @@ class StockTransaction extends Model
     public function material(): BelongsTo
     {
         return $this->belongsTo(Material::class, 'material_id');
+    }
+
+    /**
+     * @return BelongsTo<MaterialVariant, $this>
+     */
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(MaterialVariant::class, 'material_variant_id');
     }
 
     /**

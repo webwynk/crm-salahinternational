@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Material;
+use App\Models\MaterialVariant;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -47,6 +49,123 @@ class MaterialCrudTest extends TestCase
                 'unit' => $unit,
             ]);
         }
+    }
+
+    public function test_admin_can_create_material_with_multiple_variations(): void
+    {
+        $this->actingAs($this->admin);
+
+        $response = $this->post('/materials', [
+            'name' => 'Full-Grain Calfskin Leather',
+            'category' => 'LEATHER',
+            'base_unit' => 'sq m',
+            'variants' => [
+                [
+                    'name' => 'Tan / Cognac',
+                    'sku' => 'LEA-TAN',
+                    'reorder_level' => 100,
+                    'initial_stock' => 500,
+                ],
+                [
+                    'name' => 'Midnight Black',
+                    'sku' => 'LEA-BLK',
+                    'reorder_level' => 80,
+                    'initial_stock' => 350,
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/materials');
+
+        $material = Material::where('name', 'Full-Grain Calfskin Leather')->firstOrFail();
+        $this->assertCount(2, $material->variants);
+
+        $this->assertDatabaseHas('material_variants', [
+            'material_id' => $material->id,
+            'name' => 'Tan / Cognac',
+            'sku' => 'LEA-TAN',
+        ]);
+
+        $this->assertDatabaseHas('material_variants', [
+            'material_id' => $material->id,
+            'name' => 'Midnight Black',
+            'sku' => 'LEA-BLK',
+        ]);
+    }
+
+    public function test_admin_can_add_variation_to_existing_material(): void
+    {
+        $this->actingAs($this->admin);
+
+        $material = Material::create([
+            'name' => 'Polyester Thread',
+            'category' => 'THREAD',
+            'base_unit' => 'm',
+            'reorder_level' => 50,
+        ]);
+
+        $response = $this->post("/materials/{$material->id}/variants", [
+            'name' => '0.8mm Brown',
+            'sku' => 'THR-BRN-08',
+            'reorder_level' => 20,
+            'initial_stock' => 100,
+        ]);
+
+        $response->assertRedirect('/materials');
+
+        $this->assertDatabaseHas('material_variants', [
+            'material_id' => $material->id,
+            'name' => '0.8mm Brown',
+        ]);
+
+        $variant = MaterialVariant::where('name', '0.8mm Brown')->firstOrFail();
+        $this->assertDatabaseHas('inventory', [
+            'material_variant_id' => $variant->id,
+            'quantity_on_hand' => 100,
+        ]);
+    }
+
+    public function test_admin_can_restock_specific_variant(): void
+    {
+        $this->actingAs($this->admin);
+
+        $material = Material::create([
+            'name' => 'Metal Zipper #5',
+            'category' => 'HARDWARE',
+            'base_unit' => 'pcs',
+            'reorder_level' => 100,
+        ]);
+
+        $variant = $material->variants()->create([
+            'name' => '20cm Antique Brass',
+            'reorder_level' => 50,
+            'is_active' => true,
+        ]);
+
+        $variant->inventory()->create([
+            'material_id' => $material->id,
+            'quantity_on_hand' => 200,
+            'unit' => 'pcs',
+        ]);
+
+        $response = $this->post("/materials/variants/{$variant->id}/restock", [
+            'add_quantity' => 150,
+            'note' => 'Supplier Batch #42',
+        ]);
+
+        $response->assertRedirect('/materials');
+
+        $this->assertDatabaseHas('inventory', [
+            'material_variant_id' => $variant->id,
+            'quantity_on_hand' => 350,
+        ]);
+
+        $this->assertDatabaseHas('stock_transactions', [
+            'material_variant_id' => $variant->id,
+            'change_qty' => 150,
+            'balance_after' => 350,
+            'type' => 'RESTOCK',
+        ]);
     }
 
     public function test_invalid_unit_validation_fails(): void
@@ -115,14 +234,12 @@ class MaterialCrudTest extends TestCase
 
         $response->assertRedirect('/materials');
 
-        // Verify that custom category is uppercased and saved
         $this->assertDatabaseHas('materials', [
             'name' => 'Heavy Duty Brass Zipper #5',
             'category' => 'ZIPPER',
             'base_unit' => 'm',
         ]);
 
-        // Verify distinct categories in index includes new custom category
         $indexResponse = $this->get('/materials');
         $indexResponse->assertOk();
         $categories = $indexResponse->inertiaProps('categories');
@@ -185,7 +302,7 @@ class MaterialCrudTest extends TestCase
             'unit' => 'sq m',
         ]);
 
-        $product = \App\Models\Product::create([
+        $product = Product::create([
             'code' => 'BAG-TEST-001',
             'name' => 'Leather Briefcase',
             'created_by' => $this->admin->id,

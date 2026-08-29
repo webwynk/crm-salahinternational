@@ -38,6 +38,7 @@ class StoreProductRequest extends FormRequest
             'image_url' => ['nullable', 'string'],
             'materials' => ['required', 'array', 'min:1'],
             'materials.*.material_id' => ['nullable', 'exists:materials,id'],
+            'materials.*.material_variant_id' => ['nullable', 'exists:material_variants,id'],
             'materials.*.material_type' => ['nullable', 'string', Rule::in(['CONSUMABLE', 'HARDWARE', 'PROCESS_NOTE'])],
             'materials.*.label' => ['required', 'string', 'max:150'],
             'materials.*.quantity_min' => ['nullable', 'numeric', 'min:0', 'max:999999'],

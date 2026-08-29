@@ -59,11 +59,20 @@ export default function Create({ materials = [] }) {
         const updated = [...data.materials];
         updated[index][field] = value;
 
-        if (field === 'material_id' && value) {
-            const selectedMat = materials.find((m) => m.id === parseInt(value) || m.id === value);
-            if (selectedMat) {
-                updated[index].label = selectedMat.name;
-                updated[index].unit = selectedMat.base_unit;
+        if (field === 'material_id') {
+            if (value) {
+                const selectedMat = materials.find((m) => m.id === parseInt(value) || m.id === value);
+                if (selectedMat) {
+                    updated[index].label = selectedMat.name;
+                    updated[index].unit = selectedMat.base_unit;
+                    if (selectedMat.variants && selectedMat.variants.length > 0) {
+                        updated[index].material_variant_id = selectedMat.variants[0].id;
+                    } else {
+                        updated[index].material_variant_id = null;
+                    }
+                }
+            } else {
+                updated[index].material_variant_id = null;
             }
         }
 
@@ -91,60 +100,70 @@ export default function Create({ materials = [] }) {
                 }
             />
 
-            <form onSubmit={submit} className="space-y-8 w-full">
-                {/* Basic Product Info & Photo */}
+            <form onSubmit={submit} className="w-full space-y-6">
+                {/* Product Basic Details */}
                 <Card>
-                    <h3 className="text-md font-bold text-neutral-900 mb-4 pb-2 border-b border-neutral-200">
-                        1. Product General Information
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-4">
-                        <div className="md:col-span-8 space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="mb-4 pb-2 border-b border-neutral-200">
+                        <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
+                            <Tag className="w-5 h-5 text-brand-600" />
+                            1. General Product Specifications
+                        </h3>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                            <div className="sm:col-span-4">
                                 <Input
-                                    label="Product Code"
+                                    label="Product Code / SKU *"
                                     required
-                                    placeholder="e.g. WAL-BF-001"
                                     value={data.code}
                                     onChange={(e) => setData('code', e.target.value.toUpperCase())}
+                                    placeholder="e.g. WAL-001, BAG-LUX-02"
                                     error={errors.code}
-                                    helperText="Unique code (e.g. WAL-BF-001)"
-                                />
-                                <Input
-                                    label="Product Name"
-                                    required
-                                    placeholder="e.g. Leather Bi-Fold Wallet"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    error={errors.name}
-                                />
-                                <Input
-                                    label="Category"
-                                    placeholder="e.g. Wallet, Bag, Belt"
-                                    value={data.category}
-                                    onChange={(e) => setData('category', e.target.value)}
-                                    error={errors.category}
                                 />
                             </div>
-
-                            <Textarea
-                                label="Description & Craft Notes"
-                                rows={3}
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
-                                placeholder="General overview, craftsmanship notes, or client specifications..."
-                            />
+                            <div className="sm:col-span-8">
+                                <Input
+                                    label="Product Name *"
+                                    required
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    placeholder="e.g. Minimalist Bifold Leather Wallet"
+                                    error={errors.name}
+                                />
+                            </div>
                         </div>
 
-                        {/* Image Upload Box */}
-                        <div className="md:col-span-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Select
+                                label="Category"
+                                value={data.category}
+                                onChange={(e) => setData('category', e.target.value)}
+                                error={errors.category}
+                            >
+                                {PRODUCT_CATEGORIES.map((cat) => (
+                                    <option key={cat.value} value={cat.value}>
+                                        {cat.label}
+                                    </option>
+                                ))}
+                            </Select>
+
                             <ImageUpload
-                                label="Product Photo"
+                                label="Product Photo (Optional)"
                                 value={data.image_url}
-                                onChange={(val) => setData('image_url', val)}
+                                onChange={(url) => setData('image_url', url)}
                                 error={errors.image_url}
                             />
                         </div>
+
+                        <Textarea
+                            label="Description / Craft Notes"
+                            rows={3}
+                            value={data.description}
+                            onChange={(e) => setData('description', e.target.value)}
+                            placeholder="Add dimensions, leather tanning specs, lining requirements, or stitching instructions..."
+                            error={errors.description}
+                        />
                     </div>
                 </Card>
 
@@ -167,82 +186,115 @@ export default function Create({ materials = [] }) {
                     )}
 
                     <div className="space-y-4">
-                        {data.materials.map((row, idx) => (
-                            <div
-                                key={idx}
-                                className="p-4 rounded-md border border-neutral-200 bg-neutral-50/60 relative space-y-3"
-                            >
-                                <div className="flex items-center justify-between text-xs font-bold text-neutral-500 uppercase">
-                                    <span>Item #{idx + 1}</span>
-                                    {data.materials.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeBomRow(idx)}
-                                            className="text-neutral-400 hover:text-danger-500 p-1"
-                                            title="Remove row"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    )}
+                        {data.materials.map((row, idx) => {
+                            const selectedMat = materials.find((m) => m.id === parseInt(row.material_id) || m.id === row.material_id);
+                            const variants = selectedMat?.variants || [];
+
+                            return (
+                                <div
+                                    key={idx}
+                                    className="p-4 rounded-md border border-neutral-200 bg-neutral-50/60 relative space-y-3"
+                                >
+                                    <div className="flex items-center justify-between text-xs font-bold text-neutral-500 uppercase">
+                                        <span>Item #{idx + 1}</span>
+                                        {data.materials.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeBomRow(idx)}
+                                                className="text-neutral-400 hover:text-danger-500 p-1"
+                                                title="Remove row"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                                        <div className="sm:col-span-4">
+                                            <Select
+                                                label="Material Master"
+                                                value={row.material_id}
+                                                onChange={(e) => updateBomRow(idx, 'material_id', e.target.value)}
+                                            >
+                                                <option value="">— Select Raw Material —</option>
+                                                {materials.map((m) => (
+                                                    <option key={m.id} value={m.id}>
+                                                        {m.name} ({m.category} — {m.base_unit})
+                                                    </option>
+                                                ))}
+                                            </Select>
+                                        </div>
+
+                                        {variants.length > 1 ? (
+                                            <div className="sm:col-span-3">
+                                                <Select
+                                                    label="Variation"
+                                                    value={row.material_variant_id || ''}
+                                                    onChange={(e) => updateBomRow(idx, 'material_variant_id', e.target.value)}
+                                                >
+                                                    {variants.map((v) => (
+                                                        <option key={v.id} value={v.id}>
+                                                            {v.name} {v.sku ? `(${v.sku})` : ''}
+                                                        </option>
+                                                    ))}
+                                                </Select>
+                                            </div>
+                                        ) : (
+                                            <div className="sm:col-span-3">
+                                                <Input
+                                                    label="Component / Part Label"
+                                                    required
+                                                    value={row.label}
+                                                    onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
+                                                    placeholder="e.g. Exterior Shell"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {variants.length > 1 && (
+                                            <div className="sm:col-span-2">
+                                                <Input
+                                                    label="Component"
+                                                    required
+                                                    value={row.label}
+                                                    onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
+                                                    placeholder="e.g. Shell"
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div className={variants.length > 1 ? "sm:col-span-1" : "sm:col-span-2"}>
+                                            <Input
+                                                label="Qty"
+                                                type="number"
+                                                step="0.001"
+                                                required
+                                                value={row.quantity_min}
+                                                onChange={(e) => updateBomRow(idx, 'quantity_min', e.target.value)}
+                                                placeholder="e.g. 1.5"
+                                            />
+                                        </div>
+
+                                        <div className="sm:col-span-2">
+                                            <Select
+                                                label="Unit"
+                                                value={row.unit || 'pcs'}
+                                                onChange={(e) => updateBomRow(idx, 'unit', e.target.value)}
+                                            >
+                                                {BASE_UNITS.map((u) => (
+                                                    <option key={u.value} value={u.value}>
+                                                        {u.label}
+                                                    </option>
+                                                ))}
+                                                {row.unit && !BASE_UNITS.some((u) => u.value === row.unit) && (
+                                                    <option value={row.unit}>{row.unit}</option>
+                                                )}
+                                            </Select>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                                    <div className="sm:col-span-4">
-                                        <Select
-                                            label="Material Master"
-                                            value={row.material_id}
-                                            onChange={(e) => updateBomRow(idx, 'material_id', e.target.value)}
-                                        >
-                                            <option value="">— Select Raw Material —</option>
-                                            {materials.map((m) => (
-                                                <option key={m.id} value={m.id}>
-                                                    {m.name} ({m.category} — {m.base_unit})
-                                                </option>
-                                            ))}
-                                        </Select>
-                                    </div>
-
-                                    <div className="sm:col-span-4">
-                                        <Input
-                                            label="Label / Component Name"
-                                            required
-                                            value={row.label}
-                                            onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
-                                            placeholder="e.g. Full-Grain Calfskin Leather"
-                                        />
-                                    </div>
-
-                                    <div className="sm:col-span-2">
-                                        <Input
-                                            label="Qty"
-                                            type="number"
-                                            step="0.001"
-                                            required
-                                            value={row.quantity_min}
-                                            onChange={(e) => updateBomRow(idx, 'quantity_min', e.target.value)}
-                                            placeholder="e.g. 1.5"
-                                        />
-                                    </div>
-
-                                    <div className="sm:col-span-2">
-                                        <Select
-                                            label="Unit"
-                                            value={row.unit || 'pcs'}
-                                            onChange={(e) => updateBomRow(idx, 'unit', e.target.value)}
-                                        >
-                                            {BASE_UNITS.map((u) => (
-                                                <option key={u.value} value={u.value}>
-                                                    {u.label}
-                                                </option>
-                                            ))}
-                                            {row.unit && !BASE_UNITS.some((u) => u.value === row.unit) && (
-                                                <option value={row.unit}>{row.unit}</option>
-                                            )}
-                                        </Select>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {/* Bottom Add Row Dashed Button */}

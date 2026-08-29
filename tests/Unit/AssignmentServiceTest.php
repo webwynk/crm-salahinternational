@@ -6,6 +6,7 @@ use App\Exceptions\InsufficientStockException;
 use App\Models\Inventory;
 use App\Models\Labour;
 use App\Models\Material;
+use App\Models\MaterialVariant;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\AssignmentService;
@@ -21,6 +22,7 @@ class AssignmentServiceTest extends TestCase
     protected Labour $labour;
     protected Product $product;
     protected Material $material;
+    protected MaterialVariant $variant;
 
     protected function setUp(): void
     {
@@ -47,8 +49,15 @@ class AssignmentServiceTest extends TestCase
             'reorder_level' => 100,
         ]);
 
+        $this->variant = $this->material->variants()->create([
+            'name' => 'Standard',
+            'reorder_level' => 100,
+            'is_active' => true,
+        ]);
+
         Inventory::create([
             'material_id' => $this->material->id,
+            'material_variant_id' => $this->variant->id,
             'quantity_on_hand' => 1000,
             'unit' => 'cm2',
         ]);
@@ -56,6 +65,7 @@ class AssignmentServiceTest extends TestCase
         // BOM item: min=10, max=15 (worst case deduction = 15)
         $this->product->materials()->create([
             'material_id' => $this->material->id,
+            'material_variant_id' => $this->variant->id,
             'material_type' => 'CONSUMABLE',
             'label' => 'Exterior Panel',
             'quantity_min' => 10,
@@ -103,6 +113,86 @@ class AssignmentServiceTest extends TestCase
         ]);
     }
 
+    public function test_create_assignment_with_variant_specific_deduction(): void
+    {
+        // Material with 2 variants: 'Tan' and 'Black'
+        $leather = Material::create([
+            'name' => 'Italian Buttero Leather',
+            'category' => 'LEATHER',
+            'base_unit' => 'sq m',
+            'reorder_level' => 10,
+        ]);
+
+        $tanVariant = $leather->variants()->create([
+            'name' => 'Tan',
+            'sku' => 'BUT-TAN',
+            'reorder_level' => 5,
+        ]);
+        $blackVariant = $leather->variants()->create([
+            'name' => 'Black',
+            'sku' => 'BUT-BLK',
+            'reorder_level' => 5,
+        ]);
+
+        $tanInventory = Inventory::create([
+            'material_id' => $leather->id,
+            'material_variant_id' => $tanVariant->id,
+            'quantity_on_hand' => 40.0,
+            'unit' => 'sq m',
+        ]);
+        $blackInventory = Inventory::create([
+            'material_id' => $leather->id,
+            'material_variant_id' => $blackVariant->id,
+            'quantity_on_hand' => 20.0,
+            'unit' => 'sq m',
+        ]);
+
+        $tanCardholder = Product::create([
+            'code' => 'CARD-TAN-01',
+            'name' => 'Tan Cardholder',
+            'created_by' => $this->admin->id,
+        ]);
+
+        $tanCardholder->materials()->create([
+            'material_id' => $leather->id,
+            'material_variant_id' => $tanVariant->id,
+            'material_type' => 'CONSUMABLE',
+            'label' => 'Tan Leather Shell',
+            'quantity_min' => 0.5,
+            'quantity_max' => 0.5,
+            'unit' => 'sq m',
+            'sort_order' => 1,
+        ]);
+
+        // Dry check for 10 units = 5 sq m needed
+        $check = $this->service->checkStockAvailability($tanCardholder->id, 10);
+        $this->assertTrue($check['can_assign']);
+        $this->assertEquals(5.0, $check['items'][0]['needed']);
+        $this->assertEquals(40.0, $check['items'][0]['available']);
+
+        // Execute assignment
+        $this->service->createAssignment(
+            $tanCardholder->id,
+            $this->labour->id,
+            10,
+            $this->admin->id
+        );
+
+        // Tan inventory should be 40 - 5 = 35 sq m
+        $this->assertEquals(35.0, (float) $tanInventory->fresh()->quantity_on_hand);
+
+        // Black inventory must remain untouched at 20 sq m
+        $this->assertEquals(20.0, (float) $blackInventory->fresh()->quantity_on_hand);
+
+        // Stock transaction must have material_variant_id linked to Tan variant
+        $this->assertDatabaseHas('stock_transactions', [
+            'material_id' => $leather->id,
+            'material_variant_id' => $tanVariant->id,
+            'change_qty' => -5.0,
+            'balance_after' => 35.0,
+        ]);
+    }
+
     public function test_create_assignment_throws_insufficient_stock_exception_when_stock_inadequate(): void
     {
         // 100 pcs * 15 cm2 = 1500 cm2 needed (only 1000 available)
@@ -125,8 +215,10 @@ class AssignmentServiceTest extends TestCase
             'base_unit' => 'yard',
             'reorder_level' => 10,
         ]);
+        $liningVar = $liningMat->variants()->create(['name' => 'Standard']);
         Inventory::create([
             'material_id' => $liningMat->id,
+            'material_variant_id' => $liningVar->id,
             'quantity_on_hand' => 50.000,
             'unit' => 'yard',
         ]);
@@ -138,8 +230,10 @@ class AssignmentServiceTest extends TestCase
             'base_unit' => 'm',
             'reorder_level' => 100,
         ]);
+        $threadVar = $threadMat->variants()->create(['name' => 'Standard']);
         Inventory::create([
             'material_id' => $threadMat->id,
+            'material_variant_id' => $threadVar->id,
             'quantity_on_hand' => 500.000,
             'unit' => 'm',
         ]);
@@ -154,6 +248,7 @@ class AssignmentServiceTest extends TestCase
         // BOM 1: 0.75 yard lining per bag
         $bagProduct->materials()->create([
             'material_id' => $liningMat->id,
+            'material_variant_id' => $liningVar->id,
             'material_type' => 'CONSUMABLE',
             'label' => 'Inner Lining Cut',
             'quantity_min' => 0.75,
@@ -165,6 +260,7 @@ class AssignmentServiceTest extends TestCase
         // BOM 2: 12.5 m thread per bag
         $bagProduct->materials()->create([
             'material_id' => $threadMat->id,
+            'material_variant_id' => $threadVar->id,
             'material_type' => 'CONSUMABLE',
             'label' => 'Perimeter Stitch Thread',
             'quantity_min' => 12.5,

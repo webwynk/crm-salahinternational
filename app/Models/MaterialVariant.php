@@ -2,31 +2,30 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
+ * @property int $material_id
  * @property string $name
- * @property string $category
- * @property string $base_unit
+ * @property string|null $sku
  * @property float $reorder_level
  * @property bool $is_active
+ * @property Material $material
  * @property Inventory|null $inventory
- * @property Collection<int, MaterialVariant> $variants
- * @property Collection<int, Inventory> $inventories
  */
-class Material extends Model
+class MaterialVariant extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'material_id',
         'name',
-        'category',
-        'base_unit',
+        'sku',
         'reorder_level',
         'is_active',
     ];
@@ -37,11 +36,11 @@ class Material extends Model
     ];
 
     /**
-     * @return HasMany<MaterialVariant, $this>
+     * @return BelongsTo<Material, $this>
      */
-    public function variants(): HasMany
+    public function material(): BelongsTo
     {
-        return $this->hasMany(MaterialVariant::class, 'material_id');
+        return $this->belongsTo(Material::class, 'material_id');
     }
 
     /**
@@ -49,15 +48,7 @@ class Material extends Model
      */
     public function inventory(): HasOne
     {
-        return $this->hasOne(Inventory::class, 'material_id');
-    }
-
-    /**
-     * @return HasMany<Inventory, $this>
-     */
-    public function inventories(): HasMany
-    {
-        return $this->hasMany(Inventory::class, 'material_id');
+        return $this->hasOne(Inventory::class, 'material_variant_id');
     }
 
     /**
@@ -65,7 +56,7 @@ class Material extends Model
      */
     public function stockTransactions(): HasMany
     {
-        return $this->hasMany(StockTransaction::class, 'material_id');
+        return $this->hasMany(StockTransaction::class, 'material_variant_id');
     }
 
     /**
@@ -73,7 +64,7 @@ class Material extends Model
      */
     public function productMaterials(): HasMany
     {
-        return $this->hasMany(ProductMaterial::class, 'material_id');
+        return $this->hasMany(ProductMaterial::class, 'material_variant_id');
     }
 
     /**
@@ -81,6 +72,6 @@ class Material extends Model
      */
     public function assignmentMaterials(): HasMany
     {
-        return $this->hasMany(AssignmentMaterial::class, 'material_id');
+        return $this->hasMany(AssignmentMaterial::class, 'material_variant_id');
     }
 }

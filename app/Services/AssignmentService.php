@@ -16,11 +16,11 @@ class AssignmentService
     /**
      * Dry-run check for material stock availability before assignment.
      *
-     * @return array{can_assign: bool, items: list<array{material_id: int|null, label: string, unit: string, needed: float, available: float, is_sufficient: bool, shortage: float}>}
+     * @return array{can_assign: bool, items: list<array{material_id: int|null, material_variant_id: int|null, label: string, unit: string, needed: float, available: float, is_sufficient: bool, shortage: float}>}
      */
     public function checkStockAvailability(int|string $productId, int $quantity): array
     {
-        $product = Product::with('materials.material.inventory')->findOrFail($productId);
+        $product = Product::with(['materials.material.variants.inventory', 'materials.variant.inventory'])->findOrFail($productId);
         /** @var \Illuminate\Database\Eloquent\Collection<int, ProductMaterial> $bom */
         $bom = $product->materials->filter(fn($m) => !is_null($m->material_id));
 
@@ -31,22 +31,32 @@ class AssignmentService
             if (!$item->material_id) continue;
 
             $mat = $item->material;
+            $variant = $item->variant ?: ($mat?->variants?->first());
             $needed = $item->deductionQty() * $quantity;
-            $available = ($mat && $mat->inventory) ? (float) $mat->inventory->quantity_on_hand : 0.0;
+
+            $inv = $variant?->inventory;
+            if (!$inv && $mat) {
+                $inv = $mat->inventory;
+            }
+
+            $available = $inv ? (float) $inv->quantity_on_hand : 0.0;
             $isShort = $available < $needed;
 
             if ($isShort) {
                 $hasInsufficient = true;
             }
 
+            $variantSuffix = ($variant && $variant->name !== 'Standard') ? " ({$variant->name})" : '';
+
             $items[] = [
-                'material_id'   => $item->material_id,
-                'label'         => $item->label,
-                'unit'          => $item->unit ?? ($mat ? $mat->base_unit : 'pcs'),
-                'needed'        => $needed,
-                'available'     => $available,
-                'is_sufficient' => !$isShort,
-                'shortage'      => $isShort ? ($needed - $available) : 0,
+                'material_id'         => $item->material_id,
+                'material_variant_id' => $variant?->id,
+                'label'               => $item->label . $variantSuffix,
+                'unit'                => $item->unit ?? ($mat ? $mat->base_unit : 'pcs'),
+                'needed'              => $needed,
+                'available'           => $available,
+                'is_sufficient'       => !$isShort,
+                'shortage'            => $isShort ? ($needed - $available) : 0,
             ];
         }
 
@@ -62,7 +72,7 @@ class AssignmentService
     public function createAssignment(int|string $productId, int|string $labourId, int $quantity, int|string $assignedByUserId, ?string $notes = null): Assignment
     {
         return DB::transaction(function () use ($productId, $labourId, $quantity, $assignedByUserId, $notes) {
-            $product = Product::with('materials')->findOrFail($productId);
+            $product = Product::with(['materials.material.variants', 'materials.variant'])->findOrFail($productId);
             /** @var \Illuminate\Database\Eloquent\Collection<int, ProductMaterial> $bom */
             $bom = $product->materials->filter(fn($m) => !is_null($m->material_id));
 
@@ -71,23 +81,40 @@ class AssignmentService
             foreach ($bom as $item) {
                 if (!$item->material_id) continue;
 
+                $mat = $item->material;
+                $variant = $item->variant ?: ($mat?->variants?->first());
+                $variantId = $variant?->id;
+
                 $needed = $item->deductionQty() * $quantity;
 
                 /** @var Inventory|null $inv */
-                $inv = Inventory::where('material_id', $item->material_id)->lockForUpdate()->first();
+                $query = Inventory::where('material_id', $item->material_id);
+                if ($variantId) {
+                    $query->where('material_variant_id', $variantId);
+                }
+                $inv = $query->lockForUpdate()->first();
+
+                // Fallback to any inventory row for this material if variant-specific is missing
+                if (!$inv) {
+                    $inv = Inventory::where('material_id', $item->material_id)->lockForUpdate()->first();
+                }
 
                 if (!$inv || (float)$inv->quantity_on_hand < $needed) {
                     $availableQty = $inv ? (float) $inv->quantity_on_hand : 0.0;
                     $unitStr = $item->unit ?? ($inv ? $inv->unit : 'pcs');
+                    $varLabel = ($variant && $variant->name !== 'Standard') ? " ({$variant->name})" : '';
                     throw new InsufficientStockException(
-                        "Not enough {$item->label} in stock ({$availableQty} {$unitStr} available, {$needed} {$unitStr} needed)."
+                        "Not enough {$item->label}{$varLabel} in stock ({$availableQty} {$unitStr} available, {$needed} {$unitStr} needed)."
                     );
                 }
 
-                $lockedInventory[$item->material_id] = [
-                    'needed' => $needed,
-                    'item'   => $item,
-                    'inv'    => $inv,
+                $key = $item->material_id . '_' . ($variantId ?? '0');
+                $lockedInventory[$key] = [
+                    'material_id'         => $item->material_id,
+                    'material_variant_id' => $variantId,
+                    'needed'              => $needed,
+                    'item'                => $item,
+                    'inv'                 => $inv,
                 ];
             }
 
@@ -115,13 +142,14 @@ class AssignmentService
                 'notes'         => $notes,
             ]);
 
-            foreach ($lockedInventory as $materialId => $data) {
+            foreach ($lockedInventory as $data) {
                 AssignmentMaterial::create([
-                    'assignment_id' => $assignment->id,
-                    'material_id'   => $materialId,
-                    'label'         => $data['item']->label,
-                    'quantity_used' => $data['needed'],
-                    'unit'          => $data['item']->unit ?? $data['inv']->unit,
+                    'assignment_id'       => $assignment->id,
+                    'material_id'         => $data['material_id'],
+                    'material_variant_id' => $data['material_variant_id'],
+                    'label'               => $data['item']->label,
+                    'quantity_used'       => $data['needed'],
+                    'unit'                => $data['item']->unit ?? $data['inv']->unit,
                 ]);
 
                 /** @var Inventory $inv */
@@ -129,13 +157,14 @@ class AssignmentService
                 $inv->decrement('quantity_on_hand', $data['needed']);
 
                 StockTransaction::create([
-                    'material_id'   => $materialId,
-                    'change_qty'    => -$data['needed'],
-                    'type'          => StockTransaction::TYPE_ASSIGNMENT_DEDUCTION,
-                    'reference_id'  => $assignment->id,
-                    'balance_after' => $inv->fresh()->quantity_on_hand,
-                    'note'          => "Auto-deducted for Work Order #{$assignment->assignment_no}",
-                    'created_by'    => $assignedByUserId,
+                    'material_id'         => $data['material_id'],
+                    'material_variant_id' => $data['material_variant_id'],
+                    'change_qty'          => -$data['needed'],
+                    'type'                => StockTransaction::TYPE_ASSIGNMENT_DEDUCTION,
+                    'reference_id'        => $assignment->id,
+                    'balance_after'       => $inv->fresh()->quantity_on_hand,
+                    'note'                => "Auto-deducted for Work Order #{$assignment->assignment_no}",
+                    'created_by'          => $assignedByUserId,
                 ]);
             }
             return $assignment;

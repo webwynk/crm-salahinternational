@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $product_id
  * @property int|null $material_id
+ * @property int|null $material_variant_id
  * @property string $material_type
  * @property string $label
  * @property float|null $quantity_min
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $dimension_note
  * @property int $sort_order
  * @property Material|null $material
+ * @property MaterialVariant|null $variant
  */
 class ProductMaterial extends Model
 {
@@ -26,6 +28,7 @@ class ProductMaterial extends Model
     protected $fillable = [
         'product_id',
         'material_id',
+        'material_variant_id',
         'material_type',
         'label',
         'quantity_min',
@@ -55,6 +58,14 @@ class ProductMaterial extends Model
     public function material(): BelongsTo
     {
         return $this->belongsTo(Material::class, 'material_id');
+    }
+
+    /**
+     * @return BelongsTo<MaterialVariant, $this>
+     */
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(MaterialVariant::class, 'material_variant_id');
     }
 
     /**
