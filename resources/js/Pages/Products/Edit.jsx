@@ -99,7 +99,7 @@ export default function Edit({ product, materials = [] }) {
                 }
             />
 
-            <form onSubmit={submit} className="space-y-8 max-w-5xl">
+            <form onSubmit={submit} className="space-y-8 w-full">
                 {/* Basic Product Info & Photo */}
                 <Card>
                     <h3 className="text-md font-bold text-neutral-900 mb-4 pb-2 border-b border-neutral-200">
