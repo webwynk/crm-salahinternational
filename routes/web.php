@@ -71,15 +71,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         try {
             \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
             
-            \Illuminate\Support\Facades\DB::table('assignment_materials')->truncate();
-            \Illuminate\Support\Facades\DB::table('assignments')->truncate();
-            \Illuminate\Support\Facades\DB::table('stock_transactions')->truncate();
-            \Illuminate\Support\Facades\DB::table('product_materials')->truncate();
-            \Illuminate\Support\Facades\DB::table('products')->truncate();
-            \Illuminate\Support\Facades\DB::table('inventories')->truncate();
-            \Illuminate\Support\Facades\DB::table('material_variants')->truncate();
-            \Illuminate\Support\Facades\DB::table('materials')->truncate();
-            \Illuminate\Support\Facades\DB::table('labours')->truncate();
+            \Illuminate\Support\Facades\DB::table('assignment_materials')->delete();
+            \Illuminate\Support\Facades\DB::table('assignments')->delete();
+            \Illuminate\Support\Facades\DB::table('stock_transactions')->delete();
+            \Illuminate\Support\Facades\DB::table('product_materials')->delete();
+            \Illuminate\Support\Facades\DB::table('products')->delete();
+            \Illuminate\Support\Facades\DB::table('inventory')->delete();
+            \Illuminate\Support\Facades\DB::table('material_variants')->delete();
+            \Illuminate\Support\Facades\DB::table('materials')->delete();
+            \Illuminate\Support\Facades\DB::table('labour')->delete();
             
             \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
 
