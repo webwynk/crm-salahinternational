@@ -67,7 +67,7 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
                 }`}
             >
                 {/* Brand Header */}
-                <div className="h-16 flex items-center justify-between px-3.5 pt-[10px] pb-1 border-b border-neutral-800 shrink-0">
+                <div className="h-[68px] flex items-center justify-between px-3.5 border-b border-neutral-800 shrink-0">
                     <Link
                         href="/dashboard"
                         className={`flex items-center gap-3 overflow-hidden min-w-0 ${isCollapsed ? 'justify-center w-full' : ''}`}
@@ -78,13 +78,13 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
                             <img
                                 src="/images/favicon.png"
                                 alt="Salah International"
-                                className="w-7 h-7 object-contain shrink-0 transition-transform hover:scale-105"
+                                className="w-8.5 h-8.5 object-contain shrink-0 transition-transform hover:scale-105"
                             />
                         ) : (
                             <img
                                 src="/images/logo.png"
                                 alt="Salah International"
-                                className="h-7 w-auto max-w-[160px] object-contain shrink-0 transition-all"
+                                className="h-10 w-auto max-w-[190px] object-contain shrink-0 transition-all"
                             />
                         )}
                     </Link>
