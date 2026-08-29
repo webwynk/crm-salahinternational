@@ -1,0 +1,1 @@
+const l=[{value:"pcs",label:"Pieces (pcs)"},{value:"m",label:"Meter (m)"},{value:"cm",label:"Centimeter (cm)"},{value:"in",label:"Inch (in)"},{value:"yard",label:"Yard (yard)"},{value:"feet",label:"Feet (feet)"},{value:"sq m",label:"Square Meter (sq m)"}];l.map(e=>e.value);export{l as B};

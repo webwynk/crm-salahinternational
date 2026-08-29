@@ -10,6 +10,7 @@ import Select from '@/Components/ui/Select';
 import ImageUpload from '@/Components/ui/ImageUpload';
 import Alert from '@/Components/ui/Alert';
 import { Plus, Trash2, ArrowLeft, Layers } from 'lucide-react';
+import { BASE_UNITS } from '@/constants/units';
 
 export default function Edit({ product, materials = [] }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -35,7 +36,7 @@ export default function Edit({ product, materials = [] }) {
                     label: '',
                     quantity_min: '',
                     quantity_max: '',
-                    unit: 'cm2',
+                    unit: 'pcs',
                     dimension_note: '',
                 },
             ],
@@ -50,7 +51,7 @@ export default function Edit({ product, materials = [] }) {
                 label: '',
                 quantity_min: '',
                 quantity_max: '',
-                unit: 'cm2',
+                unit: 'pcs',
                 dimension_note: '',
             },
         ]);
@@ -251,11 +252,20 @@ export default function Edit({ product, materials = [] }) {
                                         />
                                     </div>
                                     <div className="sm:col-span-2">
-                                        <Input
+                                        <Select
                                             label="Unit"
-                                            value={row.unit}
+                                            value={row.unit || 'pcs'}
                                             onChange={(e) => updateBomRow(idx, 'unit', e.target.value)}
-                                        />
+                                        >
+                                            {BASE_UNITS.map((u) => (
+                                                <option key={u.value} value={u.value}>
+                                                    {u.label}
+                                                </option>
+                                            ))}
+                                            {row.unit && !BASE_UNITS.some((u) => u.value === row.unit) && (
+                                                <option value={row.unit}>{row.unit}</option>
+                                            )}
+                                        </Select>
                                     </div>
                                     <div className="sm:col-span-4">
                                         <Input

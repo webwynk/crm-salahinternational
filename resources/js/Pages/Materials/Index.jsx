@@ -11,6 +11,7 @@ import Modal from '@/Components/ui/Modal';
 import Input from '@/Components/ui/Input';
 import Select from '@/Components/ui/Select';
 import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
+import { BASE_UNITS } from '@/constants/units';
 
 export default function Index({ materials, categories = [], filters = {} }) {
 
@@ -24,7 +25,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
     const addForm = useForm({
         name: '',
         category: 'LEATHER',
-        base_unit: 'cm2',
+        base_unit: 'pcs',
         reorder_level: '1000',
         initial_stock: '5000',
     });
@@ -202,14 +203,19 @@ export default function Index({ materials, categories = [], filters = {} }) {
                     </Select>
 
                     <div className="grid grid-cols-2 gap-3">
-                        <Input
+                        <Select
                             label="Base Unit"
                             required
-                            placeholder="cm2, m, g, pcs"
                             value={addForm.data.base_unit}
                             onChange={(e) => addForm.setData('base_unit', e.target.value)}
                             error={addForm.errors.base_unit}
-                        />
+                        >
+                            {BASE_UNITS.map((u) => (
+                                <option key={u.value} value={u.value}>
+                                    {u.label}
+                                </option>
+                            ))}
+                        </Select>
                         <Input
                             label="Reorder Threshold"
                             type="number"
