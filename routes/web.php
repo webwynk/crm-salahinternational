@@ -65,6 +65,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ], 500);
         }
     })->name('system.migrate');
+
+    // System Database Clean Web Route (Admin Only) - Wipes products, materials, variants, inventory, assignments, labours
+    Route::middleware('role:ADMIN')->get('/system/clean-db', function () {
+        try {
+            \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
+            
+            \Illuminate\Support\Facades\DB::table('assignment_materials')->truncate();
+            \Illuminate\Support\Facades\DB::table('assignments')->truncate();
+            \Illuminate\Support\Facades\DB::table('stock_transactions')->truncate();
+            \Illuminate\Support\Facades\DB::table('product_materials')->truncate();
+            \Illuminate\Support\Facades\DB::table('products')->truncate();
+            \Illuminate\Support\Facades\DB::table('inventories')->truncate();
+            \Illuminate\Support\Facades\DB::table('material_variants')->truncate();
+            \Illuminate\Support\Facades\DB::table('materials')->truncate();
+            \Illuminate\Support\Facades\DB::table('labours')->truncate();
+            
+            \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Manufacturing database cleaned successfully! All products, materials, variants, stock ledgers, and artisans have been wiped clean. Your admin user account is preserved.',
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database clean failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    })->name('system.clean-db');
 });
 
 require __DIR__.'/auth.php';
