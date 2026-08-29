@@ -534,7 +534,7 @@ export default function Create({ products = [], labour = [] }) {
                 maxWidth="max-w-xl"
                 title="Confirm Work Order & Allocate Stock"
             >
-                <div className="space-y-5 text-left">
+                <div className="space-y-5 text-left font-sans">
                     {/* HERO PRODUCT SHOWCASE CARD */}
                     <div className="p-4 bg-gradient-to-br from-brand-50/60 via-neutral-50 to-white rounded-xl border border-brand-200 shadow-xs space-y-3.5">
                         {/* Top: Thumbnail, DM Sans Product Name & Code */}
@@ -547,7 +547,7 @@ export default function Create({ products = [], labour = [] }) {
                                         className="w-12 h-12 rounded-lg object-cover border border-neutral-200 shrink-0 shadow-2xs"
                                     />
                                 ) : (
-                                    <div className="w-12 h-12 rounded-lg bg-brand-100 border border-brand-300 flex items-center justify-center text-brand-800 font-mono text-sm font-bold shrink-0 shadow-2xs">
+                                    <div className="w-12 h-12 rounded-lg bg-brand-100 border border-brand-300 flex items-center justify-center text-brand-800 font-sans text-sm font-bold shrink-0 shadow-2xs">
                                         {(selectedProduct?.code || 'PRD').slice(0, 3).toUpperCase()}
                                     </div>
                                 )}
@@ -562,7 +562,7 @@ export default function Create({ products = [], labour = [] }) {
                                             </span>
                                         )}
                                     </div>
-                                    <p className="font-mono text-xs font-bold text-brand-700 mt-0.5">
+                                    <p className="font-sans text-[15px] font-bold text-brand-700 mt-0.5">
                                         Code: {selectedProduct?.code || 'NO-CODE'}
                                     </p>
                                 </div>
@@ -632,7 +632,7 @@ export default function Create({ products = [], labour = [] }) {
                                                 Avail: {item.available} {item.unit}
                                             </p>
                                         </div>
-                                        <span className="font-mono font-bold text-xs text-danger-700 bg-danger-50 px-2 py-0.5 rounded border border-danger-200 shrink-0">
+                                        <span className="font-sans font-bold text-xs text-danger-700 bg-danger-50 px-2 py-0.5 rounded border border-danger-200 shrink-0">
                                             -{item.needed} {item.unit}
                                         </span>
                                     </div>
