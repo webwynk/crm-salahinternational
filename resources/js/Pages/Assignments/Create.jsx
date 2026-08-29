@@ -527,53 +527,144 @@ export default function Create({ products = [], labour = [] }) {
                 </div>
             </div>
 
-            {/* CONFIRMATION SUMMARY MODAL */}
+            {/* MODERN STUDIO CONFIRMATION MODAL */}
             <Modal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
-                title="Confirm Work Order & Auto-Deduct Stock"
+                maxWidth="max-w-xl"
+                title="Confirm Work Order & Allocate Stock"
             >
-                <div className="space-y-4 text-xs text-left">
-                    <Alert variant="warning" title="Transactional Database Execution">
-                        Submitting will create the assignment record, deduct raw materials stock with row-level locks, and generate the official PDF Work Order.
-                    </Alert>
+                <div className="space-y-5 text-left">
+                    {/* HERO PRODUCT SHOWCASE CARD */}
+                    <div className="p-4 bg-gradient-to-br from-brand-50/60 via-neutral-50 to-white rounded-xl border border-brand-200 shadow-xs space-y-3.5">
+                        {/* Top: Thumbnail, DM Sans Product Name & Code */}
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                                {selectedProduct?.image_url ? (
+                                    <img
+                                        src={selectedProduct.image_url}
+                                        alt={selectedProduct?.name || ''}
+                                        className="w-12 h-12 rounded-lg object-cover border border-neutral-200 shrink-0 shadow-2xs"
+                                    />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-lg bg-brand-100 border border-brand-300 flex items-center justify-center text-brand-800 font-mono text-sm font-bold shrink-0 shadow-2xs">
+                                        {(selectedProduct?.code || 'PRD').slice(0, 3).toUpperCase()}
+                                    </div>
+                                )}
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h3 className="font-display text-base sm:text-lg font-bold text-neutral-900 tracking-tight leading-snug">
+                                            {selectedProduct?.name || 'Product Specification'}
+                                        </h3>
+                                        {selectedProduct?.category && (
+                                            <span className="text-[10px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full font-medium shrink-0">
+                                                {selectedProduct.category}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="font-mono text-xs font-bold text-brand-700 mt-0.5">
+                                        Code: {selectedProduct?.code || 'NO-CODE'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div className="p-3.5 bg-neutral-50 rounded-lg border border-neutral-200 space-y-2">
-                        <div className="flex justify-between">
-                            <span className="text-neutral-500">Product:</span>
-                            <strong className="text-neutral-900 font-mono">{selectedProduct?.name} ({selectedProduct?.code})</strong>
+                        {/* Dual Metric Highlights */}
+                        <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-neutral-200/80 text-xs">
+                            <div className="p-2.5 bg-white rounded-lg border border-neutral-200 flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-md bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-bold shrink-0">
+                                    <Package className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[10px] text-neutral-500 font-medium">Batch Target</p>
+                                    <p className="font-display font-bold text-neutral-900 text-sm">{data.quantity} Pcs</p>
+                                </div>
+                            </div>
+
+                            <div className="p-2.5 bg-white rounded-lg border border-neutral-200 flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-700 font-bold shrink-0">
+                                    <User className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[10px] text-neutral-500 font-medium">Assigned Artisan</p>
+                                    <p className="font-semibold text-neutral-900 truncate">{selectedArtisan?.name || 'Not Selected'}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex justify-between">
-                            <span className="text-neutral-500">Target Quantity:</span>
-                            <strong className="text-neutral-900 font-bold">{data.quantity} Pcs</strong>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-neutral-500">Assigned Artisan:</span>
-                            <strong className="text-neutral-900">{selectedArtisan?.name}</strong>
-                        </div>
+
+                        {/* Notes Callout */}
                         {data.notes && (
-                            <div className="pt-2 border-t border-neutral-200 text-neutral-600 italic">
-                                "{data.notes}"
+                            <div className="p-2.5 bg-amber-50/60 rounded-lg border border-amber-200/70 text-xs text-amber-900 italic flex items-start gap-2">
+                                <span className="text-amber-600 not-italic font-bold text-xs">Note:</span>
+                                <span>"{data.notes}"</span>
                             </div>
                         )}
                     </div>
 
-                    <div className="space-y-1.5">
-                        <p className="font-bold text-neutral-700">Automatic Stock Deductions:</p>
-                        <ul className="list-disc pl-5 text-neutral-600 space-y-1">
-                            {Array.isArray(preCheckResult?.items) && preCheckResult.items.map((item, idx) => (
-                                <li key={idx}>
-                                    <strong className="text-neutral-900">{item.needed} {item.unit}</strong> of {item.label}
-                                </li>
-                            ))}
-                        </ul>
+                    {/* DEDUCTED RAW MATERIALS RECIPE GRID */}
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <Layers className="w-3.5 h-3.5 text-brand-600" />
+                                Automatic Stock Deductions
+                            </h4>
+                            <span className="text-[11px] text-success-700 font-semibold bg-success-50 px-2 py-0.5 rounded border border-success-200">
+                                ✓ All in stock
+                            </span>
+                        </div>
+
+                        {!Array.isArray(preCheckResult?.items) || preCheckResult.items.length === 0 ? (
+                            <div className="p-3 bg-neutral-50 rounded-lg text-center text-xs text-neutral-500 border border-neutral-200">
+                                No raw materials assigned in BOM recipe.
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[180px] overflow-y-auto pr-1 scrollbar-thin">
+                                {preCheckResult.items.map((item, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="p-2 bg-neutral-50/80 rounded-lg border border-neutral-200 flex items-center justify-between gap-2 text-xs"
+                                    >
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-neutral-900 truncate text-[11px]">
+                                                {item.label}
+                                            </p>
+                                            <p className="text-[10px] text-neutral-500 tabular-nums">
+                                                Avail: {item.available} {item.unit}
+                                            </p>
+                                        </div>
+                                        <span className="font-mono font-bold text-xs text-danger-700 bg-danger-50 px-2 py-0.5 rounded border border-danger-200 shrink-0">
+                                            -{item.needed} {item.unit}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    <div className="pt-4 flex justify-end gap-3 border-t border-neutral-200">
-                        <Button type="button" variant="outline" onClick={() => setIsConfirmModalOpen(false)}>
+                    {/* Micro Security Guarantee */}
+                    <div className="p-2.5 bg-neutral-50 rounded-lg border border-neutral-200 text-[11px] text-neutral-600 flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-brand-600 shrink-0" />
+                        <span>Row-level database locks ensure zero concurrency conflicts & auto-generates official Work Order PDF.</span>
+                    </div>
+
+                    {/* ACTION BUTTONS */}
+                    <div className="pt-3 flex items-center justify-end gap-3 border-t border-neutral-200">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsConfirmModalOpen(false)}
+                            className="text-xs px-4 py-2"
+                        >
                             Cancel
                         </Button>
-                        <Button type="button" variant="primary" isLoading={processing} onClick={handleFinalSubmit}>
+                        <Button
+                            type="button"
+                            variant="primary"
+                            isLoading={processing}
+                            onClick={handleFinalSubmit}
+                            className="text-xs px-5 py-2 font-semibold shadow-xs flex items-center gap-1.5"
+                        >
+                            <ClipboardCheck className="w-4 h-4" />
                             Confirm & Deduct Stock
                         </Button>
                     </div>

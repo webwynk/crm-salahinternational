@@ -97,7 +97,9 @@ export default {
                 },
             },
             fontFamily: {
-                sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', ...defaultTheme.fontFamily.sans],
+                sans: ['"DM Sans"', 'Inter var', 'Inter', 'ui-sans-serif', 'system-ui', ...defaultTheme.fontFamily.sans],
+                display: ['"DM Sans"', 'Inter', 'sans-serif'],
+                mono: ['"DM Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
             },
             fontVariantNumeric: {
                 tabular: 'tabular-nums',

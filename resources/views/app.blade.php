@@ -7,9 +7,9 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
+        <!-- Fonts: DM Sans, DM Mono, Inter -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700,800|dm-mono:400,500|inter:400,500,600,700&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @routes
