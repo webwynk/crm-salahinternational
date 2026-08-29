@@ -9,7 +9,7 @@ import Textarea from '@/Components/ui/Textarea';
 import Select from '@/Components/ui/Select';
 import ImageUpload from '@/Components/ui/ImageUpload';
 import Alert from '@/Components/ui/Alert';
-import { Plus, Trash2, ArrowLeft, Layers } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Layers, Tag } from 'lucide-react';
 import { BASE_UNITS } from '@/constants/units';
 
 export default function Edit({ product, materials = [] }) {
@@ -24,6 +24,7 @@ export default function Edit({ product, materials = [] }) {
         materials: product.materials && product.materials.length > 0
             ? product.materials.map((m) => ({
                 material_id: m.material_id || '',
+                material_variant_id: m.material_variant_id || null,
                 material_type: m.material_type || 'CONSUMABLE',
                 label: m.label || '',
                 quantity_min: m.quantity_min || '',
@@ -32,6 +33,7 @@ export default function Edit({ product, materials = [] }) {
             : [
                 {
                     material_id: '',
+                    material_variant_id: null,
                     material_type: 'CONSUMABLE',
                     label: '',
                     quantity_min: '',
@@ -45,6 +47,7 @@ export default function Edit({ product, materials = [] }) {
             ...data.materials,
             {
                 material_id: '',
+                material_variant_id: null,
                 material_type: 'CONSUMABLE',
                 label: '',
                 quantity_min: '',
@@ -108,48 +111,57 @@ export default function Edit({ product, materials = [] }) {
                 }
             />
 
-            <form onSubmit={submit} className="space-y-8 w-full">
-                {/* Basic Product Info & Photo */}
+            <form onSubmit={submit} className="w-full space-y-6">
+                {/* 1. General Product Specifications */}
                 <Card>
-                    <h3 className="text-md font-bold text-neutral-900 mb-4 pb-2 border-b border-neutral-200">
-                        1. Product General Information
-                    </h3>
+                    <div className="mb-5 pb-3 border-b border-neutral-200">
+                        <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
+                            <Tag className="w-5 h-5 text-brand-600" />
+                            1. General Product Specifications
+                        </h3>
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                            Modify product code, category, craft notes, or replace product craft photo.
+                        </p>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-4">
-                        <div className="md:col-span-8 space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        {/* Left Specifications (8 cols) */}
+                        <div className="lg:col-span-8 space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Input
-                                    label="Product Code"
+                                    label="Product Code / SKU"
                                     required
                                     value={data.code}
                                     onChange={(e) => setData('code', e.target.value.toUpperCase())}
                                     error={errors.code}
                                 />
                                 <Input
-                                    label="Product Name"
-                                    required
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    error={errors.name}
-                                />
-                                <Input
                                     label="Category"
+                                    placeholder="e.g. Wallet, Bag, Belt, Cardholder"
                                     value={data.category}
                                     onChange={(e) => setData('category', e.target.value)}
                                     error={errors.category}
                                 />
                             </div>
 
+                            <Input
+                                label="Product Name"
+                                required
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                error={errors.name}
+                            />
+
                             <Textarea
-                                label="Description & Craft Notes"
-                                rows={3}
+                                label="Description / Craft Notes"
+                                rows={4}
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
                             />
                         </div>
 
-                        {/* Image Upload Box */}
-                        <div className="md:col-span-4">
+                        {/* Right Photo Upload Box (4 cols) */}
+                        <div className="lg:col-span-4 flex flex-col">
                             <ImageUpload
                                 label="Product Photo"
                                 value={data.image_url}
@@ -160,7 +172,7 @@ export default function Edit({ product, materials = [] }) {
                     </div>
                 </Card>
 
-                {/* Dynamic BOM Builder */}
+                {/* 2. Dynamic BOM Builder */}
                 <Card>
                     <div className="mb-4 pb-2 border-b border-neutral-200">
                         <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">

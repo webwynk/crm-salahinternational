@@ -92,7 +92,7 @@ export default function Create({ materials = [] }) {
 
             <PageHeader
                 title="Create New Product"
-                description="Define product details, upload craft photo, and build Bill of Materials (BOM)"
+                description="Define product specifications, upload craft photo, and build Bill of Materials (BOM)"
                 action={
                     <Link href={route('products.index')}>
                         <Button variant="outline" size="sm">
@@ -103,48 +103,60 @@ export default function Create({ materials = [] }) {
             />
 
             <form onSubmit={submit} className="w-full space-y-6">
-                {/* Product Basic Details */}
+                {/* 1. General Product Specifications */}
                 <Card>
-                    <div className="mb-4 pb-2 border-b border-neutral-200">
+                    <div className="mb-5 pb-3 border-b border-neutral-200">
                         <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
                             <Tag className="w-5 h-5 text-brand-600" />
                             1. General Product Specifications
                         </h3>
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                            Enter the product code, category, craft specifications, and upload an article photo.
+                        </p>
                     </div>
 
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                            <div className="sm:col-span-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        {/* Left Specifications (8 cols) */}
+                        <div className="lg:col-span-8 space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Input
-                                    label="Product Code / SKU *"
+                                    label="Product Code / SKU"
                                     required
                                     value={data.code}
                                     onChange={(e) => setData('code', e.target.value.toUpperCase())}
                                     placeholder="e.g. WAL-001, BAG-LUX-02"
                                     error={errors.code}
                                 />
-                            </div>
-                            <div className="sm:col-span-8">
                                 <Input
-                                    label="Product Name *"
-                                    required
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    placeholder="e.g. Minimalist Bifold Leather Wallet"
-                                    error={errors.name}
+                                    label="Category"
+                                    placeholder="e.g. Wallet, Bag, Belt, Cardholder"
+                                    value={data.category}
+                                    onChange={(e) => setData('category', e.target.value)}
+                                    error={errors.category}
                                 />
                             </div>
-                        </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <Input
-                                label="Category"
-                                placeholder="e.g. Wallet, Bag, Belt, Footwear"
-                                value={data.category}
-                                onChange={(e) => setData('category', e.target.value)}
-                                error={errors.category}
+                                label="Product Name"
+                                required
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                placeholder="e.g. Minimalist Bifold Leather Wallet"
+                                error={errors.name}
                             />
 
+                            <Textarea
+                                label="Description / Craft Notes"
+                                rows={4}
+                                value={data.description}
+                                onChange={(e) => setData('description', e.target.value)}
+                                placeholder="Add dimensions, leather tanning specs, lining requirements, or stitching instructions..."
+                                error={errors.description}
+                            />
+                        </div>
+
+                        {/* Right Photo Upload Box (4 cols) */}
+                        <div className="lg:col-span-4 flex flex-col">
                             <ImageUpload
                                 label="Product Photo (Optional)"
                                 value={data.image_url}
@@ -152,19 +164,10 @@ export default function Create({ materials = [] }) {
                                 error={errors.image_url}
                             />
                         </div>
-
-                        <Textarea
-                            label="Description / Craft Notes"
-                            rows={3}
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            placeholder="Add dimensions, leather tanning specs, lining requirements, or stitching instructions..."
-                            error={errors.description}
-                        />
                     </div>
                 </Card>
 
-                {/* Dynamic BOM Builder */}
+                {/* 2. Dynamic BOM Builder */}
                 <Card>
                     <div className="mb-4 pb-2 border-b border-neutral-200">
                         <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
