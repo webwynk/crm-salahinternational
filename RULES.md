@@ -41,6 +41,9 @@ Immediately after implementing any bug fix or new feature, conduct a full verifi
 4. **Automated Test Validation**:
    * Run automated tests (`php artisan test`) and verify 100% assertions pass.
    * Run production build (`npm run build`) to ensure zero compile warnings/errors.
+5. **Live Production Database Migration Link**:
+   * Whenever any database migration or schema modification is created or altered, **always explicitly provide the user with the direct live one-click update link**:
+     `https://crm.salahinternational.com/system/migrate-db` (and the SSH command `php artisan migrate --force`).
 
 ---
 
