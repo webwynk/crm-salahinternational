@@ -186,7 +186,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                 emptyActionLabel="+ Add Material"
                 onEmptyAction={() => setIsAddDrawerOpen(true)}
                 renderRowActions={(row) => (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center justify-end gap-2">
                         <Button
                             variant="outline"
                             size="sm"
@@ -194,15 +194,14 @@ export default function Index({ materials, categories = [], filters = {} }) {
                         >
                             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Restock
                         </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-neutral-400 hover:text-danger-600 hover:bg-danger-50 px-2"
+                        <button
+                            type="button"
+                            className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-neutral-200 bg-neutral-0 text-neutral-400 hover:text-danger-600 hover:bg-danger-50 hover:border-danger-300 transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-danger-500 focus:ring-offset-1"
                             onClick={() => setDeleteMaterial(row)}
                             title="Delete Material"
                         >
                             <Trash2 className="w-4 h-4 text-danger-500" />
-                        </Button>
+                        </button>
                     </div>
                 )}
             />
