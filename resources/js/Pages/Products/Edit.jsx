@@ -13,6 +13,8 @@ import { Plus, Trash2, ArrowLeft, Layers } from 'lucide-react';
 import { BASE_UNITS } from '@/constants/units';
 
 export default function Edit({ product, materials = [] }) {
+    const bomBottomRef = React.useRef(null);
+
     const { data, setData, put, processing, errors } = useForm({
         code: product.code || '',
         name: product.name || '',
@@ -49,6 +51,9 @@ export default function Edit({ product, materials = [] }) {
                 unit: 'pcs',
             },
         ]);
+        setTimeout(() => {
+            bomBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 50);
     };
 
     const removeBomRow = (index) => {
@@ -176,6 +181,7 @@ export default function Edit({ product, materials = [] }) {
                                             type="button"
                                             onClick={() => removeBomRow(idx)}
                                             className="text-neutral-400 hover:text-danger-500 p-1"
+                                            title="Remove row"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -240,6 +246,20 @@ export default function Edit({ product, materials = [] }) {
                             </div>
                         ))}
                     </div>
+
+                    {/* Bottom Add Row Dashed Button */}
+                    <button
+                        type="button"
+                        onClick={addBomRow}
+                        className="w-full mt-4 py-3 px-4 rounded-lg border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-brand-50/50 text-neutral-600 hover:text-brand-700 text-sm font-semibold flex items-center justify-center gap-2 transition-all group shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                    >
+                        <div className="w-6 h-6 rounded-full bg-neutral-100 group-hover:bg-brand-100 flex items-center justify-center transition-colors">
+                            <Plus className="w-4 h-4 text-neutral-600 group-hover:text-brand-600" />
+                        </div>
+                        <span>Add Another Material / BOM Item</span>
+                    </button>
+
+                    <div ref={bomBottomRef} />
                 </Card>
 
                 {/* Controls */}
