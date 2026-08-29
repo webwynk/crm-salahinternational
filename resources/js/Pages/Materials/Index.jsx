@@ -118,20 +118,21 @@ export default function Index({ materials, categories = [], filters = {} }) {
 
     const handleAddSubmit = (e) => {
         e.preventDefault();
-        const payload = {
-            name: addForm.data.name,
-            category: addForm.data.category,
-            base_unit: addForm.data.base_unit,
+
+        addForm.transform((data) => ({
+            name: data.name,
+            category: data.category,
+            base_unit: data.base_unit,
             ...(hasVariations ? {
-                variants: addForm.data.variants,
+                variants: data.variants,
             } : {
-                reorder_level: addForm.data.reorder_level,
-                initial_stock: addForm.data.initial_stock,
+                reorder_level: data.reorder_level,
+                initial_stock: data.initial_stock,
                 variants: [],
             }),
-        };
+        }));
 
-        addForm.transform(() => payload).post(route('materials.store'), {
+        addForm.post(route('materials.store'), {
             onSuccess: () => {
                 handleCloseDrawer();
             },
@@ -676,12 +677,14 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                 required
                                                 value={v.name}
                                                 onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
+                                                error={addForm.errors[`variants.${idx}.name`]}
                                             />
                                             <Input
                                                 label="SKU Code"
                                                 placeholder="e.g. LEA-TAN-01"
                                                 value={v.sku}
                                                 onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
+                                                error={addForm.errors[`variants.${idx}.sku`]}
                                             />
                                             <Input
                                                 label="Reorder Alert Level"
@@ -690,6 +693,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                 required
                                                 value={v.reorder_level}
                                                 onChange={(e) => handleVariantChange(idx, 'reorder_level', e.target.value)}
+                                                error={addForm.errors[`variants.${idx}.reorder_level`]}
                                             />
                                             <Input
                                                 label={`Initial Stock (${addForm.data.base_unit})`}
@@ -698,6 +702,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                 required
                                                 value={v.initial_stock}
                                                 onChange={(e) => handleVariantChange(idx, 'initial_stock', e.target.value)}
+                                                error={addForm.errors[`variants.${idx}.initial_stock`]}
                                             />
                                         </div>
                                     </div>
