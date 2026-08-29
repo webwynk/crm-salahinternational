@@ -100,4 +100,25 @@ class MaterialController extends Controller
 
         return redirect()->route('materials.index')->with('success', "Restocked {$validated['add_quantity']} {$material->base_unit} for '{$material->name}'.");
     }
+
+    public function destroy(Material $material): RedirectResponse
+    {
+        if ($material->productMaterials()->exists()) {
+            return back()->with('error', "Cannot delete material '{$material->name}' because it is actively used in Product Bill of Materials (BOM).");
+        }
+
+        if ($material->assignmentMaterials()->exists()) {
+            return back()->with('error', "Cannot delete material '{$material->name}' because it has historical work order assignments.");
+        }
+
+        $name = $material->name;
+
+        DB::transaction(function () use ($material) {
+            $material->stockTransactions()->delete();
+            $material->inventory()->delete();
+            $material->delete();
+        });
+
+        return redirect()->route('materials.index')->with('success', "Material '{$name}' was deleted successfully.");
+    }
 }

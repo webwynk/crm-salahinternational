@@ -143,4 +143,84 @@ class MaterialCrudTest extends TestCase
 
         $response->assertSessionHasErrors(['category']);
     }
+
+    public function test_admin_can_delete_unused_material_from_database(): void
+    {
+        $this->actingAs($this->admin);
+
+        $material = Material::create([
+            'name' => 'Obsolete Rivets',
+            'category' => 'HARDWARE',
+            'base_unit' => 'pcs',
+            'reorder_level' => 10,
+        ]);
+
+        $material->inventory()->create([
+            'quantity_on_hand' => 100,
+            'unit' => 'pcs',
+        ]);
+
+        $response = $this->delete("/materials/{$material->id}");
+
+        $response->assertRedirect('/materials');
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('materials', ['id' => $material->id]);
+        $this->assertDatabaseMissing('inventory', ['material_id' => $material->id]);
+    }
+
+    public function test_material_used_in_product_bom_cannot_be_deleted(): void
+    {
+        $this->actingAs($this->admin);
+
+        $material = Material::create([
+            'name' => 'Active Shell Leather',
+            'category' => 'LEATHER',
+            'base_unit' => 'sq m',
+            'reorder_level' => 5,
+        ]);
+
+        $material->inventory()->create([
+            'quantity_on_hand' => 20,
+            'unit' => 'sq m',
+        ]);
+
+        $product = \App\Models\Product::create([
+            'code' => 'BAG-TEST-001',
+            'name' => 'Leather Briefcase',
+            'created_by' => $this->admin->id,
+        ]);
+
+        $product->materials()->create([
+            'material_id' => $material->id,
+            'material_type' => 'CONSUMABLE',
+            'label' => 'Main Body Hides',
+            'quantity_min' => 1.5,
+            'quantity_max' => 1.8,
+            'unit' => 'sq m',
+        ]);
+
+        $response = $this->delete("/materials/{$material->id}");
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('materials', ['id' => $material->id]);
+    }
+
+    public function test_non_admin_cannot_delete_material(): void
+    {
+        $staff = User::factory()->create(['role' => 'STAFF']);
+        $this->actingAs($staff);
+
+        $material = Material::create([
+            'name' => 'Protected Thread',
+            'category' => 'THREAD',
+            'base_unit' => 'm',
+            'reorder_level' => 10,
+        ]);
+
+        $response = $this->delete("/materials/{$material->id}");
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('materials', ['id' => $material->id]);
+    }
 }

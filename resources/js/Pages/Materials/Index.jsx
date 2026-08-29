@@ -10,7 +10,7 @@ import Drawer from '@/Components/ui/Drawer';
 import Modal from '@/Components/ui/Modal';
 import Input from '@/Components/ui/Input';
 import Select from '@/Components/ui/Select';
-import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Plus, RefreshCw, AlertTriangle, Trash2 } from 'lucide-react';
 import { BASE_UNITS } from '@/constants/units';
 import { STANDARD_CATEGORIES } from '@/constants/categories';
 
@@ -21,6 +21,8 @@ export default function Index({ materials, categories = [], filters = {} }) {
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
     const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
     const [restockMaterial, setRestockMaterial] = useState(null);
+    const [deleteMaterial, setDeleteMaterial] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [isCustomCategory, setIsCustomCategory] = useState(false);
     const [customCategoryInput, setCustomCategoryInput] = useState('');
 
@@ -75,6 +77,19 @@ export default function Index({ materials, categories = [], filters = {} }) {
             onSuccess: () => {
                 restockForm.reset();
                 setRestockMaterial(null);
+            },
+        });
+    };
+
+    const handleDeleteConfirm = () => {
+        if (!deleteMaterial) return;
+        setIsDeleting(true);
+        router.delete(route('materials.destroy', deleteMaterial.id), {
+            onSuccess: () => {
+                setDeleteMaterial(null);
+            },
+            onFinish: () => {
+                setIsDeleting(false);
             },
         });
     };
@@ -171,13 +186,24 @@ export default function Index({ materials, categories = [], filters = {} }) {
                 emptyActionLabel="+ Add Material"
                 onEmptyAction={() => setIsAddDrawerOpen(true)}
                 renderRowActions={(row) => (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setRestockMaterial(row)}
-                    >
-                        <RefreshCw className="w-3.5 h-3.5 mr-1" /> Restock
-                    </Button>
+                    <div className="flex items-center gap-1.5">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRestockMaterial(row)}
+                        >
+                            <RefreshCw className="w-3.5 h-3.5 mr-1" /> Restock
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-neutral-400 hover:text-danger-600 hover:bg-danger-50 px-2"
+                            onClick={() => setDeleteMaterial(row)}
+                            title="Delete Material"
+                        >
+                            <Trash2 className="w-4 h-4 text-danger-500" />
+                        </Button>
+                    </div>
                 )}
             />
 
@@ -327,6 +353,61 @@ export default function Index({ materials, categories = [], filters = {} }) {
                         </Button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={Boolean(deleteMaterial)}
+                onClose={() => !isDeleting && setDeleteMaterial(null)}
+                title={`Delete Material: ${deleteMaterial?.name}`}
+            >
+                <div className="space-y-4 text-left">
+                    <div className="p-3.5 bg-danger-50 border border-danger-200 rounded-lg flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-danger-600 shrink-0 mt-0.5" />
+                        <div className="text-xs text-danger-900 space-y-1">
+                            <p className="font-semibold">Are you sure you want to permanently delete this raw material?</p>
+                            <p className="text-danger-700">
+                                This action will permanently remove this material and its inventory records from the database.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 text-xs space-y-1.5">
+                        <div className="flex justify-between items-center">
+                            <span className="text-neutral-500">Material Name:</span>
+                            <strong className="text-neutral-900">{deleteMaterial?.name}</strong>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-neutral-500">Category:</span>
+                            <Badge variant="neutral">{deleteMaterial?.category}</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-neutral-500">Current Stock:</span>
+                            <span className="tabular-nums font-bold text-neutral-800">
+                                {parseFloat(deleteMaterial?.inventory?.quantity_on_hand || 0).toLocaleString()} {deleteMaterial?.base_unit}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="pt-3 flex justify-end gap-3 border-t border-neutral-200">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isDeleting}
+                            onClick={() => setDeleteMaterial(null)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="danger"
+                            isLoading={isDeleting}
+                            onClick={handleDeleteConfirm}
+                        >
+                            Delete Material
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </AppLayout>
     );

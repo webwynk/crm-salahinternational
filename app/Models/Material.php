@@ -56,4 +56,12 @@ class Material extends Model
     {
         return $this->hasMany(ProductMaterial::class, 'material_id');
     }
+
+    /**
+     * @return HasMany<AssignmentMaterial, $this>
+     */
+    public function assignmentMaterials(): HasMany
+    {
+        return $this->hasMany(AssignmentMaterial::class, 'material_id');
+    }
 }
