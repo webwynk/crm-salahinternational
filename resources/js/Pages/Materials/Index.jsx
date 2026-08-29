@@ -548,24 +548,13 @@ export default function Index({ materials, categories = [], filters = {} }) {
 
                     {/* Multi-Variation Rows Section */}
                     <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 space-y-4">
-                        <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
-                            <div>
-                                <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
-                                    2. Stock Variations & Quantities
-                                </h4>
-                                <p className="text-[11px] text-neutral-500">
-                                    Each variation manages its own independent stock on hand and reorder alert threshold.
-                                </p>
-                            </div>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={handleAddVariantRow}
-                                className="text-xs text-brand-700 border-brand-300"
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-1" /> Add Variation
-                            </Button>
+                        <div className="pb-2 border-b border-neutral-200">
+                            <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                                2. Stock Variations & Quantities
+                            </h4>
+                            <p className="text-[11px] text-neutral-500">
+                                Each variation manages its own independent stock on hand and reorder alert threshold.
+                            </p>
                         </div>
 
                         <div className="space-y-3">
@@ -621,6 +610,18 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Bottom Add Variation Dashed Button */}
+                        <button
+                            type="button"
+                            onClick={handleAddVariantRow}
+                            className="w-full mt-3 py-2.5 px-4 rounded-lg border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-brand-50/50 text-neutral-600 hover:text-brand-700 text-xs font-semibold flex items-center justify-center gap-2 transition-all group shadow-2xs focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                        >
+                            <div className="w-5 h-5 rounded-full bg-neutral-100 group-hover:bg-brand-100 flex items-center justify-center transition-colors">
+                                <Plus className="w-3.5 h-3.5 text-neutral-600 group-hover:text-brand-600" />
+                            </div>
+                            <span>Add Another Variation</span>
+                        </button>
                     </div>
 
                     <div className="pt-4 flex justify-end gap-3 border-t border-neutral-200">
