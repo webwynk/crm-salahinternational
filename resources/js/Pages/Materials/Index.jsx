@@ -12,6 +12,7 @@ import Input from '@/Components/ui/Input';
 import Select from '@/Components/ui/Select';
 import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
 import { BASE_UNITS } from '@/constants/units';
+import { STANDARD_CATEGORIES } from '@/constants/categories';
 
 export default function Index({ materials, categories = [], filters = {} }) {
 
@@ -20,6 +21,10 @@ export default function Index({ materials, categories = [], filters = {} }) {
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
     const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
     const [restockMaterial, setRestockMaterial] = useState(null);
+    const [isCustomCategory, setIsCustomCategory] = useState(false);
+    const [customCategoryInput, setCustomCategoryInput] = useState('');
+
+    const availableCategories = Array.from(new Set([...STANDARD_CATEGORIES, ...categories]));
 
     // Form for Adding Material
     const addForm = useForm({
@@ -46,12 +51,18 @@ export default function Index({ materials, categories = [], filters = {} }) {
         router.get(route('materials.index'), { ...filters, category: cat, page: 1 }, { preserveState: true, replace: true });
     };
 
+    const handleCloseDrawer = () => {
+        setIsAddDrawerOpen(false);
+        setIsCustomCategory(false);
+        setCustomCategoryInput('');
+        addForm.reset();
+    };
+
     const handleAddSubmit = (e) => {
         e.preventDefault();
         addForm.post(route('materials.store'), {
             onSuccess: () => {
-                addForm.reset();
-                setIsAddDrawerOpen(false);
+                handleCloseDrawer();
             },
         });
     };
@@ -173,7 +184,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
             {/* Add Material Drawer */}
             <Drawer
                 isOpen={isAddDrawerOpen}
-                onClose={() => setIsAddDrawerOpen(false)}
+                onClose={handleCloseDrawer}
                 title="Add New Raw Material"
                 subtitle="Define a new raw material master record for inventory tracking"
             >
@@ -187,20 +198,48 @@ export default function Index({ materials, categories = [], filters = {} }) {
                         error={addForm.errors.name}
                     />
 
-                    <Select
-                        label="Category"
-                        required
-                        value={addForm.data.category}
-                        onChange={(e) => addForm.setData('category', e.target.value)}
-                        error={addForm.errors.category}
-                    >
-                        <option value="LEATHER">LEATHER</option>
-                        <option value="THREAD">THREAD</option>
-                        <option value="GLUE">GLUE</option>
-                        <option value="HARDWARE">HARDWARE</option>
-                        <option value="LINING">LINING</option>
-                        <option value="OTHER">OTHER</option>
-                    </Select>
+                    <div className="space-y-3">
+                        <Select
+                            label="Category"
+                            required
+                            value={isCustomCategory ? '__CUSTOM__' : addForm.data.category}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '__CUSTOM__') {
+                                    setIsCustomCategory(true);
+                                    addForm.setData('category', customCategoryInput.trim().toUpperCase());
+                                } else {
+                                    setIsCustomCategory(false);
+                                    addForm.setData('category', val);
+                                }
+                            }}
+                            error={!isCustomCategory ? addForm.errors.category : undefined}
+                        >
+                            {availableCategories.map((cat) => (
+                                <option key={cat} value={cat}>
+                                    {cat}
+                                </option>
+                            ))}
+                            <option value="__CUSTOM__">+ Custom Category...</option>
+                        </Select>
+
+                        {isCustomCategory && (
+                            <Input
+                                label="Custom Category Name"
+                                required
+                                placeholder="e.g. PACKAGING, ZIPPER, FOAM, CANVAS"
+                                value={customCategoryInput}
+                                onChange={(e) => {
+                                    const raw = e.target.value;
+                                    setCustomCategoryInput(raw);
+                                    addForm.setData('category', raw.toUpperCase());
+                                }}
+                                error={addForm.errors.category}
+                                helperText="Enter category name (max 40 characters)"
+                                autoFocus
+                            />
+                        )}
+                    </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <Select
@@ -236,7 +275,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                     />
 
                     <div className="pt-4 flex justify-end gap-3">
-                        <Button type="button" variant="outline" onClick={() => setIsAddDrawerOpen(false)}>
+                        <Button type="button" variant="outline" onClick={handleCloseDrawer}>
                             Cancel
                         </Button>
                         <Button type="submit" variant="primary" isLoading={addForm.processing}>

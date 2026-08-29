@@ -100,4 +100,47 @@ class MaterialCrudTest extends TestCase
             'type' => 'RESTOCK',
         ]);
     }
+
+    public function test_admin_can_create_material_with_custom_category(): void
+    {
+        $this->actingAs($this->admin);
+
+        $response = $this->post('/materials', [
+            'name' => 'Heavy Duty Brass Zipper #5',
+            'category' => 'zipper',
+            'base_unit' => 'm',
+            'reorder_level' => 15,
+            'initial_stock' => 100,
+        ]);
+
+        $response->assertRedirect('/materials');
+
+        // Verify that custom category is uppercased and saved
+        $this->assertDatabaseHas('materials', [
+            'name' => 'Heavy Duty Brass Zipper #5',
+            'category' => 'ZIPPER',
+            'base_unit' => 'm',
+        ]);
+
+        // Verify distinct categories in index includes new custom category
+        $indexResponse = $this->get('/materials');
+        $indexResponse->assertOk();
+        $categories = $indexResponse->inertiaProps('categories');
+        $this->assertTrue(collect($categories)->contains('ZIPPER'));
+    }
+
+    public function test_category_length_exceeding_40_chars_fails_validation(): void
+    {
+        $this->actingAs($this->admin);
+
+        $response = $this->post('/materials', [
+            'name' => 'Overly Long Category Material',
+            'category' => str_repeat('A', 41),
+            'base_unit' => 'pcs',
+            'reorder_level' => 5,
+            'initial_stock' => 10,
+        ]);
+
+        $response->assertSessionHasErrors(['category']);
+    }
 }
