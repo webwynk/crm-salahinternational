@@ -136,7 +136,7 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
                                     <p className="text-xs font-bold text-neutral-100 truncate leading-snug group-hover/user:text-white transition-colors">
                                         {user.name}
                                     </p>
-                                    <span className="inline-block mt-0.5 px-1.5 py-0.2 text-[9px] font-mono font-bold tracking-wider uppercase rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">
+                                    <span className="inline-block mt-0.5 px-1.5 py-0.2 text-[9px] font-sans font-bold tracking-wider uppercase rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">
                                         {user.role}
                                     </span>
                                 </div>

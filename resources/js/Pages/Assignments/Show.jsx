@@ -41,7 +41,7 @@ export default function Show({ assignment }) {
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between py-1 border-b border-neutral-200">
                                 <span className="text-neutral-500">Work Order No:</span>
-                                <strong className="text-neutral-900 font-mono tabular-nums">{assignment.assignment_no}</strong>
+                                <strong className="text-neutral-900 font-sans font-bold tabular-nums">{assignment.assignment_no}</strong>
                             </div>
                             <div className="flex justify-between py-1 border-b border-neutral-200">
                                 <span className="text-neutral-500">Product Name:</span>

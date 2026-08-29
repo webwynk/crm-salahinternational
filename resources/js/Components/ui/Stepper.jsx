@@ -40,11 +40,11 @@ export default function Stepper({ steps = [], currentStep = 1, onStepClick }) {
                                         <CheckCircle2 className="w-4 h-4" strokeWidth={2.5} />
                                     </div>
                                 ) : isCurrent ? (
-                                    <div className="w-7 h-7 rounded-lg bg-brand-500 text-white font-mono font-bold text-xs flex items-center justify-center shadow-xs">
+                                    <div className="w-7 h-7 rounded-lg bg-brand-500 text-white font-sans font-bold text-xs flex items-center justify-center shadow-xs">
                                         {stepNumber}
                                     </div>
                                 ) : (
-                                    <div className="w-7 h-7 rounded-lg bg-neutral-200/80 text-neutral-600 font-mono font-semibold text-xs flex items-center justify-center">
+                                    <div className="w-7 h-7 rounded-lg bg-neutral-200/80 text-neutral-600 font-sans font-semibold text-xs flex items-center justify-center">
                                         {stepNumber}
                                     </div>
                                 )}

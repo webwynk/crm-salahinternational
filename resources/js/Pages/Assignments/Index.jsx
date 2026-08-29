@@ -39,7 +39,7 @@ export default function Index({ assignments, filters = {} }) {
             render: (row) => (
                 <div>
                     <span className="font-semibold text-neutral-900 block">{row.product?.name}</span>
-                    <span className="text-xs text-neutral-500 font-mono">Code: {row.product?.code}</span>
+                    <span className="text-xs text-neutral-500 font-sans">Code: {row.product?.code}</span>
                 </div>
             ),
         },

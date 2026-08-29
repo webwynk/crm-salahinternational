@@ -169,7 +169,7 @@ export default function Create({ products = [], labour = [] }) {
                                 </p>
                             </div>
                             {selectedProduct && (
-                                <Badge variant="warning" className="font-mono text-2xs">
+                                <Badge variant="warning" className="font-sans font-bold text-2xs">
                                     Selected: {selectedProduct.code}
                                 </Badge>
                             )}
@@ -236,7 +236,7 @@ export default function Create({ products = [], labour = [] }) {
                                                         className="w-10 h-10 rounded-md object-cover border border-neutral-200 shrink-0"
                                                     />
                                                 ) : (
-                                                    <div className="w-10 h-10 rounded-md bg-brand-100/70 border border-brand-200 flex items-center justify-center text-brand-800 font-mono text-xs font-bold shrink-0">
+                                                    <div className="w-10 h-10 rounded-md bg-brand-100/70 border border-brand-200 flex items-center justify-center text-brand-800 font-sans text-xs font-bold shrink-0">
                                                         {codePrefix}
                                                     </div>
                                                 )}
@@ -252,7 +252,7 @@ export default function Create({ products = [], labour = [] }) {
                                                         )}
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-0.5 text-2xs">
-                                                        <span className="font-mono font-bold text-brand-700">
+                                                        <span className="font-sans font-bold text-brand-700 text-xs">
                                                             {p.code || 'NO-CODE'}
                                                         </span>
                                                         {Array.isArray(p.materials) && (
@@ -318,7 +318,7 @@ export default function Create({ products = [], labour = [] }) {
                                             <span className="text-neutral-600 text-2xs">
                                                 Skill: <strong>{Array.isArray(selectedArtisan.skill_tags) && selectedArtisan.skill_tags.length > 0 ? selectedArtisan.skill_tags.join(', ') : 'Leather Craftsman'}</strong>
                                             </span>
-                                            <span className="text-2xs text-neutral-500 font-mono">
+                                            <span className="text-2xs text-neutral-500 font-sans">
                                                 {selectedArtisan.phone}
                                             </span>
                                         </div>
@@ -344,7 +344,7 @@ export default function Create({ products = [], labour = [] }) {
                                             value={data.quantity}
                                             onChange={(e) => setData('quantity', parseInt(e.target.value) || '')}
                                             error={errors.quantity}
-                                            className="text-center font-mono font-bold text-sm py-1.5"
+                                            className="text-center font-sans font-bold text-sm py-1.5"
                                         />
                                         <button
                                             type="button"
@@ -362,7 +362,7 @@ export default function Create({ products = [], labour = [] }) {
                                                 key={preset}
                                                 type="button"
                                                 onClick={() => setQuickQuantity(preset)}
-                                                className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
+                                                className={`px-2 py-0.5 rounded text-[11px] font-sans transition-colors ${
                                                     data.quantity === preset
                                                         ? 'bg-brand-600 text-white font-bold'
                                                         : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
@@ -493,7 +493,7 @@ export default function Create({ products = [], labour = [] }) {
                                 <div className="p-3 bg-brand-50/50 rounded-lg border border-brand-200/70 text-xs space-y-1.5">
                                     <div className="flex justify-between">
                                         <span className="text-neutral-600">Product:</span>
-                                        <strong className="text-neutral-900 font-mono">{selectedProduct.code} ({selectedProduct.name})</strong>
+                                        <strong className="text-neutral-900 font-sans font-bold">{selectedProduct.code} ({selectedProduct.name})</strong>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-neutral-600">Batch Target:</span>

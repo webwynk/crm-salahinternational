@@ -52,7 +52,7 @@ export default function Index({ products, categories = [], filters = {} }) {
                     )}
                     <div className="min-w-0">
                         <span className="font-semibold text-neutral-900 block truncate">{row.name}</span>
-                        <span className="font-mono font-bold text-xs text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200/80 inline-block mt-0.5">
+                        <span className="font-sans font-bold text-xs text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200/80 inline-block mt-0.5">
                             {row.code}
                         </span>
                     </div>

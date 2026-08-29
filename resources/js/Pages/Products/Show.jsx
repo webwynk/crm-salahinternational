@@ -53,7 +53,7 @@ export default function Show({ product }) {
                         )}
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-3 mb-2">
-                                <span className="font-mono font-bold text-xs text-brand-700 bg-brand-50 px-3 py-1 rounded border border-brand-200">
+                                <span className="font-sans font-bold text-xs text-brand-700 bg-brand-50 px-3 py-1 rounded border border-brand-200">
                                     {product.code}
                                 </span>
                                 <StatusPill status={product.is_active ? 'ACTIVE' : 'INACTIVE'} />

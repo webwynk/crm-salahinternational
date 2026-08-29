@@ -395,7 +395,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                                                         </strong>
                                                                                     </div>
                                                                                 </td>
-                                                                                <td className="px-4 py-2.5 font-mono text-[11px] text-neutral-500">
+                                                                                <td className="px-4 py-2.5 font-sans text-[11px] text-neutral-500 font-medium">
                                                                                     {variant.sku || '—'}
                                                                                 </td>
                                                                                 <td className="px-4 py-2.5">
