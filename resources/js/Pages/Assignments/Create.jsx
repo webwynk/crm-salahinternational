@@ -135,8 +135,6 @@ export default function Create({ products = [], labour = [] }) {
     };
 
     const selectedArtisan = safeLabour.find((l) => l && String(l.id) === String(data.labour_id));
-    const pieceRate = selectedArtisan?.piece_rate ? parseFloat(selectedArtisan.piece_rate) : 0;
-    const totalLaborPayout = pieceRate * (parseInt(data.quantity) || 0);
 
     return (
         <AppLayout>
@@ -310,7 +308,7 @@ export default function Create({ products = [], labour = [] }) {
                                         <option value="">— Choose Artisan Worker —</option>
                                         {safeLabour.map((w) => (
                                             <option key={w.id} value={w.id}>
-                                                {w.name} ({w.phone || 'N/A'}) — ₹{w.piece_rate || 0}/pc
+                                                {w.name} ({w.phone || 'N/A'})
                                             </option>
                                         ))}
                                     </Select>
@@ -318,11 +316,11 @@ export default function Create({ products = [], labour = [] }) {
                                     {selectedArtisan && (
                                         <div className="mt-2 p-2 bg-neutral-50 rounded-md border border-neutral-200 flex items-center justify-between text-xs">
                                             <span className="text-neutral-600 text-2xs">
-                                                Skill: <strong>{Array.isArray(selectedArtisan.skill_tags) ? selectedArtisan.skill_tags.join(', ') : 'Leather Craftsman'}</strong>
+                                                Skill: <strong>{Array.isArray(selectedArtisan.skill_tags) && selectedArtisan.skill_tags.length > 0 ? selectedArtisan.skill_tags.join(', ') : 'Leather Craftsman'}</strong>
                                             </span>
-                                            <Badge variant="info" className="text-2xs">
-                                                Rate: ₹{selectedArtisan.piece_rate || 0}/pc
-                                            </Badge>
+                                            <span className="text-2xs text-neutral-500 font-mono">
+                                                {selectedArtisan.phone}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -491,21 +489,21 @@ export default function Create({ products = [], labour = [] }) {
                                     )}
                                 </div>
 
-                                {/* Order & Financial Summary */}
+                                {/* Order & Production Summary */}
                                 <div className="p-3 bg-brand-50/50 rounded-lg border border-brand-200/70 text-xs space-y-1.5">
                                     <div className="flex justify-between">
                                         <span className="text-neutral-600">Product:</span>
-                                        <strong className="text-neutral-900 font-mono">{selectedProduct.code}</strong>
+                                        <strong className="text-neutral-900 font-mono">{selectedProduct.code} ({selectedProduct.name})</strong>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-neutral-600">Batch Quantity:</span>
-                                        <strong className="text-neutral-900">{data.quantity} pcs</strong>
+                                        <span className="text-neutral-600">Batch Target:</span>
+                                        <strong className="text-neutral-900 font-bold">{data.quantity} pcs</strong>
                                     </div>
                                     {selectedArtisan && (
                                         <div className="flex justify-between pt-1 border-t border-brand-200/50">
-                                            <span className="text-neutral-600">Labor Payout:</span>
-                                            <strong className="text-brand-900 font-mono">
-                                                ₹{totalLaborPayout.toLocaleString()} ({data.quantity} × ₹{pieceRate})
+                                            <span className="text-neutral-600">Assigned Artisan:</span>
+                                            <strong className="text-brand-900">
+                                                {selectedArtisan.name}
                                             </strong>
                                         </div>
                                     )}
