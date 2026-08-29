@@ -387,9 +387,9 @@ export default function Create({ products = [], labour = [] }) {
                     </Card>
                 </div>
 
-                {/* RIGHT PANEL: Live Stock Pre-Check & Action Summary (5 cols - Sticky) */}
-                <div className="lg:col-span-5 xl:col-span-5 sticky top-6 space-y-4">
-                    <Card className="border-brand-200/90 shadow-sm bg-neutral-0">
+                {/* RIGHT PANEL: Live Stock Pre-Check & Action Summary (5 cols - Sticky Safe Offset) */}
+                <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-[76px] space-y-4">
+                    <Card className="border-brand-200/90 shadow-sm bg-neutral-0 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin">
                         <div className="pb-3 mb-3 border-b border-neutral-200 flex items-center justify-between">
                             <h3 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
                                 <Layers className="w-4 h-4 text-brand-600" />
