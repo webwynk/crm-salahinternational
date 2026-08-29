@@ -68,6 +68,39 @@ class ProductCrudTest extends TestCase
         $this->assertCount(2, $product->materials);
     }
 
+    public function test_authenticated_user_can_create_product_with_streamlined_bom(): void
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->post('/products', [
+            'code' => 'WAL-SLIM-01',
+            'name' => 'Slim Cardholder',
+            'category' => 'Wallet',
+            'materials' => [
+                [
+                    'material_id' => $this->material->id,
+                    'label' => $this->material->name,
+                    'quantity_min' => 0.5,
+                    'unit' => 'cm2',
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/products');
+        $this->assertDatabaseHas('products', [
+            'code' => 'WAL-SLIM-01',
+            'name' => 'Slim Cardholder',
+        ]);
+
+        $product = Product::where('code', 'WAL-SLIM-01')->first();
+        $this->assertCount(1, $product->materials);
+
+        $bomItem = $product->materials->first();
+        $this->assertEquals('CONSUMABLE', $bomItem->material_type);
+        $this->assertEquals(0.5, (float) $bomItem->quantity_min);
+        $this->assertEquals($this->material->name, $bomItem->label);
+    }
+
     public function test_duplicate_product_code_validation_fails(): void
     {
         $this->actingAs($this->user);

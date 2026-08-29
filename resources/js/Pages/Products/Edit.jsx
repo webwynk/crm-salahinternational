@@ -25,9 +25,7 @@ export default function Edit({ product, materials = [] }) {
                 material_type: m.material_type || 'CONSUMABLE',
                 label: m.label || '',
                 quantity_min: m.quantity_min || '',
-                quantity_max: m.quantity_max || '',
-                unit: m.unit || '',
-                dimension_note: m.dimension_note || '',
+                unit: m.unit || 'pcs',
             }))
             : [
                 {
@@ -35,9 +33,7 @@ export default function Edit({ product, materials = [] }) {
                     material_type: 'CONSUMABLE',
                     label: '',
                     quantity_min: '',
-                    quantity_max: '',
                     unit: 'pcs',
-                    dimension_note: '',
                 },
             ],
     });
@@ -50,9 +46,7 @@ export default function Edit({ product, materials = [] }) {
                 material_type: 'CONSUMABLE',
                 label: '',
                 quantity_min: '',
-                quantity_max: '',
                 unit: 'pcs',
-                dimension_note: '',
             },
         ]);
     };
@@ -71,7 +65,7 @@ export default function Edit({ product, materials = [] }) {
         if (field === 'material_id' && value) {
             const selectedMat = materials.find((m) => m.id === parseInt(value) || m.id === value);
             if (selectedMat) {
-                if (!updated[index].label) updated[index].label = selectedMat.name;
+                updated[index].label = selectedMat.name;
                 updated[index].unit = selectedMat.base_unit;
             }
         }
@@ -81,25 +75,16 @@ export default function Edit({ product, materials = [] }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('products.update', product.id), {
-            onError: (errs) => {
-                const firstErr = Object.values(errs)[0] || 'Please fix the form validation errors.';
-                if (typeof window !== 'undefined') {
-                    window.dispatchEvent(new CustomEvent('show-toast', {
-                        detail: { message: firstErr, type: 'danger' }
-                    }));
-                }
-            }
-        });
+        put(route('products.update', product.id));
     };
 
     return (
         <AppLayout>
-            <Head title={`Edit ${product.name} — Leather CRM`} />
+            <Head title={`Edit Product: ${product.name} — Leather CRM`} />
 
             <PageHeader
                 title={`Edit Product: ${product.name}`}
-                description={`Code: ${product.code} • Update product specs and BOM rows`}
+                description="Modify product specifications, upload fresh craft photo, and refine BOM items"
                 action={
                     <Link href={route('products.index')}>
                         <Button variant="outline" size="sm">
@@ -146,7 +131,6 @@ export default function Edit({ product, materials = [] }) {
                                 rows={3}
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
-                                placeholder="General overview, craftsmanship notes, or client specifications..."
                             />
                         </div>
 
@@ -170,6 +154,9 @@ export default function Edit({ product, materials = [] }) {
                                 <Layers className="w-5 h-5 text-brand-600" />
                                 2. Bill of Materials (BOM) & Process Specifications
                             </h3>
+                            <p className="text-xs text-neutral-500 mt-0.5">
+                                Add raw materials (leather, thread, glue, hardware) required per single product unit.
+                            </p>
                         </div>
                         <Button type="button" variant="outline" size="sm" onClick={addBomRow}>
                             <Plus className="w-4 h-4" /> Add Row
@@ -195,26 +182,14 @@ export default function Edit({ product, materials = [] }) {
                                     )}
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                                    <div className="sm:col-span-3">
-                                        <Select
-                                            label="Type"
-                                            value={row.material_type}
-                                            onChange={(e) => updateBomRow(idx, 'material_type', e.target.value)}
-                                        >
-                                            <option value="CONSUMABLE">CONSUMABLE (Deducted)</option>
-                                            <option value="HARDWARE">HARDWARE</option>
-                                            <option value="PROCESS_NOTE">PROCESS NOTE</option>
-                                        </Select>
-                                    </div>
-
+                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
                                     <div className="sm:col-span-4">
                                         <Select
                                             label="Material Master Item"
                                             value={row.material_id}
                                             onChange={(e) => updateBomRow(idx, 'material_id', e.target.value)}
                                         >
-                                            <option value="">— None (Custom Note) —</option>
+                                            <option value="">— Select Raw Material —</option>
                                             {materials.map((m) => (
                                                 <option key={m.id} value={m.id}>
                                                     {m.name} ({m.category} — {m.base_unit})
@@ -223,34 +198,28 @@ export default function Edit({ product, materials = [] }) {
                                         </Select>
                                     </div>
 
-                                    <div className="sm:col-span-5">
+                                    <div className="sm:col-span-4">
                                         <Input
-                                            label="Label / Component Name *"
+                                            label="Label / Component Name"
+                                            required
                                             value={row.label}
                                             onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
+                                            placeholder="e.g. Full-Grain Calfskin Leather"
                                         />
                                     </div>
-                                </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-neutral-200">
-                                    <div className="sm:col-span-3">
+                                    <div className="sm:col-span-2">
                                         <Input
-                                            label="Qty Min / Fixed"
+                                            label="Qty"
                                             type="number"
                                             step="0.001"
+                                            required
                                             value={row.quantity_min}
                                             onChange={(e) => updateBomRow(idx, 'quantity_min', e.target.value)}
+                                            placeholder="e.g. 1.5"
                                         />
                                     </div>
-                                    <div className="sm:col-span-3">
-                                        <Input
-                                            label="Qty Max (Range)"
-                                            type="number"
-                                            step="0.001"
-                                            value={row.quantity_max}
-                                            onChange={(e) => updateBomRow(idx, 'quantity_max', e.target.value)}
-                                        />
-                                    </div>
+
                                     <div className="sm:col-span-2">
                                         <Select
                                             label="Unit"
@@ -266,13 +235,6 @@ export default function Edit({ product, materials = [] }) {
                                                 <option value={row.unit}>{row.unit}</option>
                                             )}
                                         </Select>
-                                    </div>
-                                    <div className="sm:col-span-4">
-                                        <Input
-                                            label="Dimension / Process Note"
-                                            value={row.dimension_note}
-                                            onChange={(e) => updateBomRow(idx, 'dimension_note', e.target.value)}
-                                        />
                                     </div>
                                 </div>
                             </div>

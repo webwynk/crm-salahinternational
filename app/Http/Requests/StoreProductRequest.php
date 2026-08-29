@@ -12,6 +12,22 @@ class StoreProductRequest extends FormRequest
         return $this->user() !== null;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('materials') && is_array($this->materials)) {
+            $sanitized = array_map(function ($item) {
+                if (is_array($item)) {
+                    if (empty($item['material_type'])) {
+                        $item['material_type'] = 'CONSUMABLE';
+                    }
+                }
+                return $item;
+            }, $this->materials);
+
+            $this->merge(['materials' => $sanitized]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -22,7 +38,7 @@ class StoreProductRequest extends FormRequest
             'image_url' => ['nullable', 'string'],
             'materials' => ['required', 'array', 'min:1'],
             'materials.*.material_id' => ['nullable', 'exists:materials,id'],
-            'materials.*.material_type' => ['required', 'string', Rule::in(['CONSUMABLE', 'HARDWARE', 'PROCESS_NOTE'])],
+            'materials.*.material_type' => ['nullable', 'string', Rule::in(['CONSUMABLE', 'HARDWARE', 'PROCESS_NOTE'])],
             'materials.*.label' => ['required', 'string', 'max:150'],
             'materials.*.quantity_min' => ['nullable', 'numeric', 'min:0', 'max:999999'],
             'materials.*.quantity_max' => ['nullable', 'numeric', 'min:0', 'max:999999'],

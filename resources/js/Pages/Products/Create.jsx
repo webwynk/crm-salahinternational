@@ -23,11 +23,9 @@ export default function Create({ materials = [] }) {
             {
                 material_id: '',
                 material_type: 'CONSUMABLE',
-                label: 'Leather Outer Shell',
+                label: '',
                 quantity_min: '',
-                quantity_max: '',
                 unit: 'pcs',
-                dimension_note: '',
             },
         ],
     });
@@ -40,9 +38,7 @@ export default function Create({ materials = [] }) {
                 material_type: 'CONSUMABLE',
                 label: '',
                 quantity_min: '',
-                quantity_max: '',
                 unit: 'pcs',
-                dimension_note: '',
             },
         ]);
     };
@@ -61,7 +57,7 @@ export default function Create({ materials = [] }) {
         if (field === 'material_id' && value) {
             const selectedMat = materials.find((m) => m.id === parseInt(value) || m.id === value);
             if (selectedMat) {
-                if (!updated[index].label) updated[index].label = selectedMat.name;
+                updated[index].label = selectedMat.name;
                 updated[index].unit = selectedMat.base_unit;
             }
         }
@@ -156,7 +152,7 @@ export default function Create({ materials = [] }) {
                                 2. Bill of Materials (BOM) & Process Specifications
                             </h3>
                             <p className="text-xs text-neutral-500 mt-0.5">
-                                Add raw consumables (leather, thread, glue), hardware, and stitch process notes. Range quantities supported (e.g. 5–8g glue).
+                                Add raw materials (leather, thread, glue, hardware) required per single product unit.
                             </p>
                         </div>
                         <Button type="button" variant="outline" size="sm" onClick={addBomRow}>
@@ -190,26 +186,14 @@ export default function Create({ materials = [] }) {
                                     )}
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                                    <div className="sm:col-span-3">
-                                        <Select
-                                            label="Type"
-                                            value={row.material_type}
-                                            onChange={(e) => updateBomRow(idx, 'material_type', e.target.value)}
-                                        >
-                                            <option value="CONSUMABLE">CONSUMABLE (Deducted)</option>
-                                            <option value="HARDWARE">HARDWARE</option>
-                                            <option value="PROCESS_NOTE">PROCESS NOTE</option>
-                                        </Select>
-                                    </div>
-
+                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
                                     <div className="sm:col-span-4">
                                         <Select
                                             label="Material Master"
                                             value={row.material_id}
                                             onChange={(e) => updateBomRow(idx, 'material_id', e.target.value)}
                                         >
-                                            <option value="">— None (Custom Note) —</option>
+                                            <option value="">— Select Raw Material —</option>
                                             {materials.map((m) => (
                                                 <option key={m.id} value={m.id}>
                                                     {m.name} ({m.category} — {m.base_unit})
@@ -218,38 +202,28 @@ export default function Create({ materials = [] }) {
                                         </Select>
                                     </div>
 
-                                    <div className="sm:col-span-5">
+                                    <div className="sm:col-span-4">
                                         <Input
                                             label="Label / Component Name"
                                             required
                                             value={row.label}
                                             onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
-                                            placeholder="e.g. Leather Exterior Panel"
+                                            placeholder="e.g. Full-Grain Calfskin Leather"
                                         />
                                     </div>
-                                </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-neutral-200">
-                                    <div className="sm:col-span-3">
+                                    <div className="sm:col-span-2">
                                         <Input
-                                            label="Qty Min / Fixed"
+                                            label="Qty"
                                             type="number"
                                             step="0.001"
+                                            required
                                             value={row.quantity_min}
                                             onChange={(e) => updateBomRow(idx, 'quantity_min', e.target.value)}
-                                            placeholder="e.g. 5"
+                                            placeholder="e.g. 1.5"
                                         />
                                     </div>
-                                    <div className="sm:col-span-3">
-                                        <Input
-                                            label="Qty Max (Range)"
-                                            type="number"
-                                            step="0.001"
-                                            value={row.quantity_max}
-                                            onChange={(e) => updateBomRow(idx, 'quantity_max', e.target.value)}
-                                            placeholder="e.g. 8"
-                                        />
-                                    </div>
+
                                     <div className="sm:col-span-2">
                                         <Select
                                             label="Unit"
@@ -265,14 +239,6 @@ export default function Create({ materials = [] }) {
                                                 <option value={row.unit}>{row.unit}</option>
                                             )}
                                         </Select>
-                                    </div>
-                                    <div className="sm:col-span-4">
-                                        <Input
-                                            label="Dimension / Process Note"
-                                            value={row.dimension_note}
-                                            onChange={(e) => updateBomRow(idx, 'dimension_note', e.target.value)}
-                                            placeholder="e.g. 23 × 9.5 cm outer shell"
-                                        />
                                     </div>
                                 </div>
                             </div>
