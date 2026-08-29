@@ -37,6 +37,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
     const [restockVariant, setRestockVariant] = useState(null);
     const [deleteMaterial, setDeleteMaterial] = useState(null);
     const [deleteVariant, setDeleteVariant] = useState(null);
+    const [hasVariations, setHasVariations] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isCustomCategory, setIsCustomCategory] = useState(false);
     const [customCategoryInput, setCustomCategoryInput] = useState('');
@@ -44,13 +45,15 @@ export default function Index({ materials, categories = [], filters = {} }) {
 
     const availableCategories = Array.from(new Set([...STANDARD_CATEGORIES, ...categories]));
 
-    // Multi-Variant Initial Form State for New Material
+    // Initial Form State for New Material (Supports Simple & Multi-Variant)
     const addForm = useForm({
         name: '',
         category: 'LEATHER',
         base_unit: 'pcs',
+        reorder_level: '100',
+        initial_stock: '0',
         variants: [
-            { name: 'Standard', sku: '', reorder_level: '100', initial_stock: '500' }
+            { name: 'Standard', sku: '', reorder_level: '100', initial_stock: '0' }
         ],
     });
 
@@ -109,12 +112,26 @@ export default function Index({ materials, categories = [], filters = {} }) {
         setIsAddDrawerOpen(false);
         setIsCustomCategory(false);
         setCustomCategoryInput('');
+        setHasVariations(false);
         addForm.reset();
     };
 
     const handleAddSubmit = (e) => {
         e.preventDefault();
-        addForm.post(route('materials.store'), {
+        const payload = {
+            name: addForm.data.name,
+            category: addForm.data.category,
+            base_unit: addForm.data.base_unit,
+            ...(hasVariations ? {
+                variants: addForm.data.variants,
+            } : {
+                reorder_level: addForm.data.reorder_level,
+                initial_stock: addForm.data.initial_stock,
+                variants: [],
+            }),
+        };
+
+        addForm.transform(() => payload).post(route('materials.store'), {
             onSuccess: () => {
                 handleCloseDrawer();
             },
@@ -466,13 +483,13 @@ export default function Index({ materials, categories = [], filters = {} }) {
             <Drawer
                 isOpen={isAddDrawerOpen}
                 onClose={handleCloseDrawer}
-                title="Add New Raw Material & Variations"
-                subtitle="Create a raw material and define its stock variations (colors, sizes, finishes)"
+                title={hasVariations ? "Add Raw Material & Multi-Variations" : "Add New Raw Material"}
+                subtitle={hasVariations ? "Create a raw material and define its stock variations (colors, sizes, finishes)" : "Quickly register a standard raw material and initial inventory"}
                 size="xl"
             >
-                <form onSubmit={handleAddSubmit} className="space-y-6">
+                <form onSubmit={handleAddSubmit} className="space-y-5">
                     {/* General Material Information */}
-                    <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 space-y-4">
+                    <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-3.5">
                         <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
                             1. Material Master Specifications
                         </h4>
@@ -544,92 +561,169 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                 ))}
                             </Select>
                         </div>
+
+                        {/* Standard Initial Inventory (Visible only in Simple Mode) */}
+                        {!hasVariations && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-neutral-200/80">
+                                <Input
+                                    label="Reorder Alert Level"
+                                    type="number"
+                                    step="0.001"
+                                    required={!hasVariations}
+                                    placeholder="e.g. 100"
+                                    value={addForm.data.reorder_level}
+                                    onChange={(e) => addForm.setData('reorder_level', e.target.value)}
+                                    error={addForm.errors.reorder_level}
+                                    helperText="Alert when inventory drops below this quantity"
+                                />
+                                <Input
+                                    label={`Initial Stock (${addForm.data.base_unit})`}
+                                    type="number"
+                                    step="0.001"
+                                    required={!hasVariations}
+                                    placeholder="e.g. 500"
+                                    value={addForm.data.initial_stock}
+                                    onChange={(e) => addForm.setData('initial_stock', e.target.value)}
+                                    error={addForm.errors.initial_stock}
+                                    helperText="Initial inventory quantity on hand"
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    {/* Multi-Variation Rows Section */}
-                    <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 space-y-4">
-                        <div className="pb-2 border-b border-neutral-200">
-                            <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
-                                2. Stock Variations & Quantities
-                            </h4>
+                    {/* Multi-Variation Toggle Card */}
+                    <div 
+                        className={`p-3.5 rounded-xl border transition-all flex items-center justify-between gap-4 cursor-pointer select-none ${
+                            hasVariations 
+                                ? 'bg-brand-50/60 border-brand-300 shadow-2xs' 
+                                : 'bg-neutral-50/80 hover:bg-neutral-50 border-neutral-200'
+                        }`}
+                        onClick={() => setHasVariations(!hasVariations)}
+                    >
+                        <div className="space-y-0.5 min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                                <Tag className={`w-4 h-4 transition-colors ${hasVariations ? 'text-brand-600' : 'text-neutral-400'}`} />
+                                <span className="text-xs font-bold text-neutral-800">
+                                    Multi-Variation Stock Tracking
+                                </span>
+                                {hasVariations && (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-brand-100 text-brand-700 rounded border border-brand-200">
+                                        Active ({addForm.data.variants.length})
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-[11px] text-neutral-500">
-                                Each variation manages its own independent stock on hand and reorder alert threshold.
+                                Enable if this raw material comes in multiple colors, sizes, or finishes (e.g. Black/Tan or 6mm/8mm).
                             </p>
                         </div>
 
-                        <div className="space-y-3">
-                            {addForm.data.variants.map((v, idx) => (
-                                <div key={idx} className="p-3.5 bg-neutral-0 rounded-md border border-neutral-200 shadow-xs space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-                                            <Tag className="w-3.5 h-3.5 text-brand-600" /> Variation #{idx + 1}
-                                        </span>
-                                        {addForm.data.variants.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveVariantRow(idx)}
-                                                className="text-neutral-400 hover:text-danger-600 p-1 rounded-md hover:bg-neutral-100 transition-colors"
-                                                title="Remove variation"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                        <Input
-                                            label="Variation Name"
-                                            placeholder="e.g. Tan / Cognac, 20cm Brass"
-                                            required
-                                            value={v.name}
-                                            onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
-                                        />
-                                        <Input
-                                            label="SKU Code"
-                                            placeholder="e.g. LEA-TAN-01"
-                                            value={v.sku}
-                                            onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
-                                        />
-                                        <Input
-                                            label="Reorder Alert Level"
-                                            type="number"
-                                            step="0.001"
-                                            required
-                                            value={v.reorder_level}
-                                            onChange={(e) => handleVariantChange(idx, 'reorder_level', e.target.value)}
-                                        />
-                                        <Input
-                                            label={`Initial Stock (${addForm.data.base_unit})`}
-                                            type="number"
-                                            step="0.001"
-                                            required
-                                            value={v.initial_stock}
-                                            onChange={(e) => handleVariantChange(idx, 'initial_stock', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Bottom Add Variation Dashed Button */}
+                        {/* Animated Switch */}
                         <button
                             type="button"
-                            onClick={handleAddVariantRow}
-                            className="w-full mt-3 py-2.5 px-4 rounded-lg border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-brand-50/50 text-neutral-600 hover:text-brand-700 text-xs font-semibold flex items-center justify-center gap-2 transition-all group shadow-2xs focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                            role="switch"
+                            aria-checked={hasVariations}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setHasVariations(!hasVariations);
+                            }}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
+                                hasVariations ? 'bg-brand-600' : 'bg-neutral-300'
+                            }`}
                         >
-                            <div className="w-5 h-5 rounded-full bg-neutral-100 group-hover:bg-brand-100 flex items-center justify-center transition-colors">
-                                <Plus className="w-3.5 h-3.5 text-neutral-600 group-hover:text-brand-600" />
-                            </div>
-                            <span>Add Another Variation</span>
+                            <span
+                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                                    hasVariations ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                            />
                         </button>
                     </div>
+
+                    {/* Multi-Variation Rows Section (Visible when Switch is ON) */}
+                    {hasVariations && (
+                        <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="pb-2 border-b border-neutral-200">
+                                <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                                    2. Stock Variations & Quantities
+                                </h4>
+                                <p className="text-[11px] text-neutral-500">
+                                    Each variation manages its own independent stock on hand and reorder alert threshold.
+                                </p>
+                            </div>
+
+                            <div className="space-y-3">
+                                {addForm.data.variants.map((v, idx) => (
+                                    <div key={idx} className="p-3.5 bg-neutral-0 rounded-lg border border-neutral-200 shadow-2xs space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
+                                                <Tag className="w-3.5 h-3.5 text-brand-600" /> Variation #{idx + 1}
+                                            </span>
+                                            {addForm.data.variants.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveVariantRow(idx)}
+                                                    className="text-neutral-400 hover:text-danger-600 p-1 rounded-md hover:bg-neutral-100 transition-colors"
+                                                    title="Remove variation"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                            <Input
+                                                label="Variation Name"
+                                                placeholder="e.g. Tan / Cognac, 20cm Brass"
+                                                required
+                                                value={v.name}
+                                                onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
+                                            />
+                                            <Input
+                                                label="SKU Code"
+                                                placeholder="e.g. LEA-TAN-01"
+                                                value={v.sku}
+                                                onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
+                                            />
+                                            <Input
+                                                label="Reorder Alert Level"
+                                                type="number"
+                                                step="0.001"
+                                                required
+                                                value={v.reorder_level}
+                                                onChange={(e) => handleVariantChange(idx, 'reorder_level', e.target.value)}
+                                            />
+                                            <Input
+                                                label={`Initial Stock (${addForm.data.base_unit})`}
+                                                type="number"
+                                                step="0.001"
+                                                required
+                                                value={v.initial_stock}
+                                                onChange={(e) => handleVariantChange(idx, 'initial_stock', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Bottom Add Variation Dashed Button */}
+                            <button
+                                type="button"
+                                onClick={handleAddVariantRow}
+                                className="w-full mt-3 py-2.5 px-4 rounded-lg border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-brand-50/50 text-neutral-600 hover:text-brand-700 text-xs font-semibold flex items-center justify-center gap-2 transition-all group shadow-2xs focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                            >
+                                <div className="w-5 h-5 rounded-full bg-neutral-100 group-hover:bg-brand-100 flex items-center justify-center transition-colors">
+                                    <Plus className="w-3.5 h-3.5 text-neutral-600 group-hover:text-brand-600" />
+                                </div>
+                                <span>Add Another Variation</span>
+                            </button>
+                        </div>
+                    )}
 
                     <div className="pt-4 flex justify-end gap-3 border-t border-neutral-200">
                         <Button type="button" variant="outline" onClick={handleCloseDrawer}>
                             Cancel
                         </Button>
                         <Button type="submit" variant="primary" isLoading={addForm.processing}>
-                            Save Material & Variations
+                            {hasVariations ? 'Save Material & Variations' : 'Save Raw Material'}
                         </Button>
                     </div>
                 </form>
