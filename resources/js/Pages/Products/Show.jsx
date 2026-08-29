@@ -35,7 +35,7 @@ export default function Show({ product }) {
                 }
             />
 
-            <div className="space-y-6 max-w-5xl">
+            <div className="space-y-6 w-full">
                 {/* General Info Card with Product Image */}
                 <Card>
                     <div className="flex flex-col sm:flex-row items-start gap-6">
