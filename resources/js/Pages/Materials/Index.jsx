@@ -468,7 +468,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                 onClose={handleCloseDrawer}
                 title="Add New Raw Material & Variations"
                 subtitle="Create a raw material and define its stock variations (colors, sizes, finishes)"
-                size="lg"
+                size="xl"
             >
                 <form onSubmit={handleAddSubmit} className="space-y-6">
                     {/* General Material Information */}
@@ -570,7 +570,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
 
                         <div className="space-y-3">
                             {addForm.data.variants.map((v, idx) => (
-                                <div key={idx} className="p-3 bg-neutral-0 rounded-md border border-neutral-200/90 shadow-xs space-y-3">
+                                <div key={idx} className="p-3.5 bg-neutral-0 rounded-md border border-neutral-200 shadow-xs space-y-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
                                             <Tag className="w-3.5 h-3.5 text-brand-600" /> Variation #{idx + 1}
@@ -579,7 +579,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveVariantRow(idx)}
-                                                className="text-neutral-400 hover:text-danger-600 p-1"
+                                                className="text-neutral-400 hover:text-danger-600 p-1 rounded-md hover:bg-neutral-100 transition-colors"
                                                 title="Remove variation"
                                             >
                                                 <X className="w-4 h-4" />
@@ -587,42 +587,36 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                         )}
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                                        <div className="sm:col-span-4">
-                                            <Input
-                                                label="Variation Name *"
-                                                placeholder="e.g. Tan / Cognac, 20cm Brass"
-                                                required
-                                                value={v.name}
-                                                onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-3">
-                                            <Input
-                                                label="SKU Code"
-                                                placeholder="e.g. LEA-TAN"
-                                                value={v.sku}
-                                                onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-2">
-                                            <Input
-                                                label="Reorder Level"
-                                                type="number"
-                                                required
-                                                value={v.reorder_level}
-                                                onChange={(e) => handleVariantChange(idx, 'reorder_level', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-3">
-                                            <Input
-                                                label={`Initial Stock (${addForm.data.base_unit})`}
-                                                type="number"
-                                                required
-                                                value={v.initial_stock}
-                                                onChange={(e) => handleVariantChange(idx, 'initial_stock', e.target.value)}
-                                            />
-                                        </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        <Input
+                                            label="Variation Name"
+                                            placeholder="e.g. Tan / Cognac, 20cm Brass"
+                                            required
+                                            value={v.name}
+                                            onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
+                                        />
+                                        <Input
+                                            label="SKU Code"
+                                            placeholder="e.g. LEA-TAN-01"
+                                            value={v.sku}
+                                            onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
+                                        />
+                                        <Input
+                                            label="Reorder Alert Level"
+                                            type="number"
+                                            step="0.001"
+                                            required
+                                            value={v.reorder_level}
+                                            onChange={(e) => handleVariantChange(idx, 'reorder_level', e.target.value)}
+                                        />
+                                        <Input
+                                            label={`Initial Stock (${addForm.data.base_unit})`}
+                                            type="number"
+                                            step="0.001"
+                                            required
+                                            value={v.initial_stock}
+                                            onChange={(e) => handleVariantChange(idx, 'initial_stock', e.target.value)}
+                                        />
                                     </div>
                                 </div>
                             ))}
@@ -652,7 +646,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                     </p>
 
                     <Input
-                        label="Variation Name *"
+                        label="Variation Name"
                         placeholder="e.g. Olive Green, 30cm Silver Nickel, 0.8mm Black"
                         required
                         value={newVariantForm.data.name}
@@ -672,6 +666,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                         <Input
                             label="Reorder Threshold"
                             type="number"
+                            step="0.001"
                             required
                             value={newVariantForm.data.reorder_level}
                             onChange={(e) => newVariantForm.setData('reorder_level', e.target.value)}
@@ -681,6 +676,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                         <Input
                             label={`Initial Stock (${addVariantMaterial?.base_unit})`}
                             type="number"
+                            step="0.001"
                             required
                             value={newVariantForm.data.initial_stock}
                             onChange={(e) => newVariantForm.setData('initial_stock', e.target.value)}
@@ -724,7 +720,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                     </div>
 
                     <Input
-                        label={`Replenish Quantity (${restockVariant?.base_unit}) *`}
+                        label={`Replenish Quantity (${restockVariant?.base_unit})`}
                         type="number"
                         step="0.001"
                         required

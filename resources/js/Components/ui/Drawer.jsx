@@ -8,8 +8,19 @@ export default function Drawer({
     title,
     subtitle,
     children,
-    width = 'max-w-md',
+    size = 'md',
+    width,
 }) {
+    const sizeMap = {
+        sm: 'max-w-sm',
+        md: 'max-w-md',
+        lg: 'max-w-xl',
+        xl: 'max-w-2xl',
+        '2xl': 'max-w-3xl',
+    };
+
+    const drawerWidth = width || sizeMap[size] || 'max-w-md';
+
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape' && isOpen) onClose();
@@ -39,7 +50,7 @@ export default function Drawer({
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                            className={`w-screen ${width} bg-white shadow-xl flex flex-col`}
+                            className={`w-screen ${drawerWidth} bg-white shadow-xl flex flex-col`}
                         >
                             {/* Header */}
                             <div className="px-6 py-5 border-b border-neutral-200 flex items-center justify-between bg-neutral-50">
