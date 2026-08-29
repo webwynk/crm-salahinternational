@@ -226,7 +226,7 @@ export default function Create({ materials = [] }) {
                                         </div>
 
                                         {variants.length > 1 ? (
-                                            <div className="sm:col-span-3">
+                                            <div className="sm:col-span-2">
                                                 <Select
                                                     label="Variation"
                                                     value={row.material_variant_id || ''}
@@ -252,7 +252,7 @@ export default function Create({ materials = [] }) {
                                         )}
 
                                         {variants.length > 1 && (
-                                            <div className="sm:col-span-2">
+                                            <div className="sm:col-span-3">
                                                 <Input
                                                     label="Component"
                                                     required
