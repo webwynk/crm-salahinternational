@@ -36,7 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Assignments & Work Orders
     Route::get('/assignments', [AssignmentController::class, 'index'])->name('assignments.index');
     Route::get('/assignments/create', [AssignmentController::class, 'create'])->name('assignments.create');
-    Route::post('/assignments/pre-check', [AssignmentController::class, 'preCheck'])->name('assignments.pre-check');
+    Route::match(['get', 'post'], '/assignments/pre-check', [AssignmentController::class, 'preCheck'])->name('assignments.pre-check');
     Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
     Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
     Route::patch('/assignments/{assignment}/status', [AssignmentController::class, 'updateStatus'])->name('assignments.status');

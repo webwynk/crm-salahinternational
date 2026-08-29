@@ -106,9 +106,11 @@ export default function Create({ products = [], labour = [] }) {
         setPreCheckError(null);
 
         const timer = setTimeout(() => {
-            axios.post(route('assignments.pre-check'), {
-                product_id: data.product_id,
-                quantity: data.quantity,
+            axios.get(route('assignments.pre-check'), {
+                params: {
+                    product_id: data.product_id,
+                    quantity: data.quantity,
+                },
             })
             .then((res) => {
                 setPreCheckResult(res.data);
