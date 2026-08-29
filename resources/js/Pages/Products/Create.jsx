@@ -150,19 +150,14 @@ export default function Create({ materials = [] }) {
 
                 {/* Dynamic BOM Builder */}
                 <Card>
-                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-neutral-200">
-                        <div>
-                            <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
-                                <Layers className="w-5 h-5 text-brand-600" />
-                                2. Bill of Materials (BOM) & Process Specifications
-                            </h3>
-                            <p className="text-xs text-neutral-500 mt-0.5">
-                                Add raw materials (leather, thread, glue, hardware) required per single product unit.
-                            </p>
-                        </div>
-                        <Button type="button" variant="outline" size="sm" onClick={addBomRow}>
-                            <Plus className="w-4 h-4" /> Add Row
-                        </Button>
+                    <div className="mb-4 pb-2 border-b border-neutral-200">
+                        <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
+                            <Layers className="w-5 h-5 text-brand-600" />
+                            2. Bill of Materials (BOM) & Process Specifications
+                        </h3>
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                            Add raw materials (leather, thread, glue, hardware) required per single product unit.
+                        </p>
                     </div>
 
                     {errors.materials && typeof errors.materials === 'string' && (
