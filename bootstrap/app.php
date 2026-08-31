@@ -27,5 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->respond(function ($response, $e, $request) {
+            if ($response->getStatusCode() === 419) {
+                return back()->with([
+                    'error' => 'Your session expired. Please sign in again.',
+                ]);
+            }
+            return $response;
+        });
     })->create();

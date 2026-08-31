@@ -7,8 +7,9 @@ import Checkbox from '@/Components/ui/Checkbox';
 import { Gem, Lock, Mail } from 'lucide-react';
 
 export default function Login({ status, canResetPassword }) {
-    const { url } = usePage();
+    const { url, props } = usePage();
     const isSessionExpired = url.includes('session=expired');
+    const flashError = props.flash?.error;
 
     const { data, setData, post, processing, errors, reset } = useForm({
         email:    '',
@@ -24,6 +25,7 @@ export default function Login({ status, canResetPassword }) {
     };
 
     const isLocked = errors.email && errors.email.includes('locked');
+    const isInvalidCredentials = errors.email && !isLocked;
 
     return (
         <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -56,10 +58,24 @@ export default function Login({ status, canResetPassword }) {
                         </Alert>
                     )}
 
+                    {/* Flash Error Banner (from 419 interceptor) */}
+                    {flashError && !isSessionExpired && (
+                        <Alert variant="danger" className="mb-6">
+                            {flashError}
+                        </Alert>
+                    )}
+
                     {/* UI State #10 — Status message (e.g. password reset sent) */}
                     {status && (
                         <Alert variant="success" className="mb-6">
                             {status}
+                        </Alert>
+                    )}
+
+                    {/* Invalid credentials banner */}
+                    {isInvalidCredentials && (
+                        <Alert variant="danger" className="mb-6">
+                            {errors.email}
                         </Alert>
                     )}
 

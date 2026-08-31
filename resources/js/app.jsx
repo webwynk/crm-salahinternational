@@ -7,9 +7,11 @@ import { createRoot } from 'react-dom/client';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Leather CRM';
 
-// Handle session expiry globally
+// Handle session expiry and CSRF 419 errors globally
 router.on('invalid', (event) => {
-    if (event.detail.response.status === 409) {
+    const status = event.detail.response.status;
+    if (status === 419 || status === 409) {
+        event.preventDefault();
         window.location.href = '/login?session=expired';
     }
 });
