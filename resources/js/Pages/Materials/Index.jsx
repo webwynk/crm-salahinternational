@@ -353,7 +353,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                             onClick={() => setAddVariantMaterial(material)}
                                                             className="text-xs"
                                                         >
-                                                            <PlusCircle className="w-3.5 h-3.5 mr-1" /> + Variation
+                                                            <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Variation
                                                         </Button>
                                                         <button
                                                             type="button"

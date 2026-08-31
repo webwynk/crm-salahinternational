@@ -93,7 +93,7 @@ export default function Index({ assignments, filters = {} }) {
                 action={
                     <Link href={route('assignments.create')}>
                         <Button variant="primary">
-                            <Plus className="w-4 h-4 mr-1.5" /> + New Assignment Work Order
+                            <Plus className="w-4 h-4 mr-1.5" /> New Assignment Work Order
                         </Button>
                     </Link>
                 }
@@ -114,10 +114,10 @@ export default function Index({ assignments, filters = {} }) {
                 pagination={assignments}
                 search={search}
                 onSearchChange={handleSearch}
-                searchPlaceholder="Search by Work Order #, product name/code, or artisan..."
-                emptyTitle="No work order assignments created yet"
-                emptyDescription="Assign products to workers with auto-stock deduction and PDF generation."
-                emptyActionLabel="+ New Assignment Work Order"
+                searchPlaceholder="Search by work order #, product, or artisan..."
+                emptyTitle="No work orders found"
+                emptyDescription="Create your first production assignment to start tracking manufacturing batches."
+                emptyActionLabel="New Assignment Work Order"
                 onEmptyAction={() => router.visit(route('assignments.create'))}
                 renderRowActions={(row) => (
                     <div className="flex items-center justify-end gap-2">

@@ -143,7 +143,7 @@ export default function Index({ labour, filters = {} }) {
                 description="Manage leather craftsmen, contact details, skill specialization tags, and work history"
                 action={
                     <Button variant="primary" onClick={openAddDrawer}>
-                        <Plus className="w-4 h-4 mr-1.5" /> + Add Artisan Worker
+                        <Plus className="w-4 h-4 mr-1.5" /> Add Artisan Worker
                     </Button>
                 }
             />
@@ -157,7 +157,7 @@ export default function Index({ labour, filters = {} }) {
                 searchPlaceholder="Search artisan by name or phone..."
                 emptyTitle="No labour records found"
                 emptyDescription="Add artisan workers to assign production work orders."
-                emptyActionLabel="+ Add Artisan Worker"
+                emptyActionLabel="Add Artisan Worker"
                 onEmptyAction={openAddDrawer}
                 renderRowActions={(row) => (
                     <Button variant="outline" size="sm" onClick={() => openEditDrawer(row)}>
