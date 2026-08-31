@@ -1,7 +1,6 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import PageHeader from '@/Components/layout/PageHeader';
 import Card from '@/Components/ui/Card';
 import Badge from '@/Components/ui/Badge';
 import Button from '@/Components/ui/Button';
@@ -83,21 +82,7 @@ export default function Dashboard({
         <AppLayout>
             <Head title="Dashboard - Leather CRM" />
 
-            <PageHeader
-                title="Manufacturing Dashboard"
-                description="Real-time overview of product recipes, inventory stock, and active work orders"
-                action={
-                    <div className="flex items-center gap-2">
-                        <Link href={route('assignments.create')}>
-                            <Button variant="primary" size="md">
-                                <Plus className="w-4 h-4 mr-1.5" /> Assign Work Order
-                            </Button>
-                        </Link>
-                    </div>
-                }
-            />
-
-            <div className="space-y-6 mt-6">
+            <div className="space-y-6">
 
                 {/* 2. HERO KPI METRICS GRID */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
