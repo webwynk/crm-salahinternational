@@ -19,6 +19,7 @@ import {
     Activity,
     ChevronLeft,
     ChevronRight,
+    Clock,
 } from 'lucide-react';
 
 export default function Dashboard({
@@ -32,6 +33,23 @@ export default function Dashboard({
 
     const totalWoPages = Math.ceil(recent_assignments.length / pageSize) || 1;
     const paginatedAssignments = recent_assignments.slice((woPage - 1) * pageSize, woPage * pageSize);
+
+    const formatOrderDate = (dateStr) => {
+        if (!dateStr) return '';
+        try {
+            const d = new Date(dateStr);
+            return new Intl.DateTimeFormat('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'Asia/Kolkata',
+            }).format(d);
+        } catch {
+            return new Date(dateStr).toLocaleDateString();
+        }
+    };
 
     const kpiCards = [
         {
@@ -299,9 +317,9 @@ export default function Dashboard({
                                                     <Badge variant={statusBadge} size="sm">{wo.status}</Badge>
                                                 </div>
 
-                                                <div className="flex items-center justify-between text-xs pt-1 border-t border-neutral-100/80">
-                                                    <div className="flex items-center gap-2 text-neutral-500 text-[11px] min-w-0">
-                                                        <span className="shrink-0 font-semibold text-neutral-700 font-sans">
+                                                <div className="flex items-center justify-between text-xs pt-1 border-t border-neutral-100/80 gap-2">
+                                                    <div className="flex items-center gap-1.5 text-neutral-500 text-[11px] min-w-0">
+                                                        <span className="shrink-0 font-bold text-neutral-800 font-sans">
                                                             {wo.quantity} Pcs
                                                         </span>
                                                         <span className="text-neutral-300">•</span>
@@ -310,23 +328,31 @@ export default function Dashboard({
                                                         </span>
                                                     </div>
 
-                                                    <div className="flex items-center gap-1 shrink-0">
-                                                        <Link href={route('assignments.show', wo.id)}>
-                                                            <button
-                                                                className="p-1 text-neutral-400 hover:text-brand-700 hover:bg-neutral-100 rounded transition-colors"
-                                                                title="View Details"
-                                                            >
-                                                                <Eye className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </Link>
-                                                        <a href={route('assignments.pdf', wo.id)} target="_blank" rel="noreferrer">
-                                                            <button
-                                                                className="p-1 text-neutral-400 hover:text-brand-700 hover:bg-neutral-100 rounded transition-colors"
-                                                                title="Download PDF Work Order"
-                                                            >
-                                                                <FileText className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </a>
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        {wo.created_at && (
+                                                            <span className="text-[10px] font-medium text-neutral-400 font-sans tabular-nums flex items-center gap-1">
+                                                                <Clock className="w-3 h-3 text-neutral-400" />
+                                                                {formatOrderDate(wo.created_at)}
+                                                            </span>
+                                                        )}
+                                                        <div className="flex items-center gap-0.5 border-l border-neutral-200 pl-1">
+                                                            <Link href={route('assignments.show', wo.id)}>
+                                                                <button
+                                                                    className="p-1 text-neutral-400 hover:text-brand-700 hover:bg-neutral-100 rounded transition-colors cursor-pointer"
+                                                                    title="View Details"
+                                                                >
+                                                                    <Eye className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </Link>
+                                                            <a href={route('assignments.pdf', wo.id)} target="_blank" rel="noreferrer">
+                                                                <button
+                                                                    className="p-1 text-neutral-400 hover:text-brand-700 hover:bg-neutral-100 rounded transition-colors cursor-pointer"
+                                                                    title="Download PDF Work Order"
+                                                                >
+                                                                    <FileText className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </a>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
