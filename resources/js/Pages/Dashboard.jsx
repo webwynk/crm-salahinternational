@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import PageHeader from '@/Components/layout/PageHeader';
 import Card from '@/Components/ui/Card';
 import Badge from '@/Components/ui/Badge';
 import Button from '@/Components/ui/Button';
@@ -31,7 +32,6 @@ export default function Dashboard({
     recent_transactions = [],
 }) {
     const { auth } = usePage().props;
-    const userName = auth?.user?.name || 'Administrator';
 
     const kpiCards = [
         {
@@ -79,54 +79,25 @@ export default function Dashboard({
         { label: '+ Register Artisan', href: route('labour.index') },
     ];
 
-    const todayStr = new Date().toLocaleDateString('en-GB', {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    });
-
     return (
         <AppLayout>
             <Head title="Dashboard - Leather CRM" />
 
-            <div className="space-y-6">
-                {/* 1. EXECUTIVE WELCOME & QUICK ACTIONS HERO */}
-                <div className="p-6 rounded-2xl bg-gradient-to-r from-brand-900 via-neutral-900 to-brand-950 text-white shadow-md border border-neutral-800/80 relative overflow-hidden">
-                    {/* Subtle ambient light orb */}
-                    <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute left-1/2 -top-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="space-y-1.5">
-                            <div className="flex items-center gap-2">
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                    Factory Operational • {todayStr}
-                                </span>
-                            </div>
-                            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                                Welcome back, {userName}
-                            </h1>
-                            <p className="text-xs sm:text-sm text-neutral-300 max-w-xl">
-                                Real-time executive command center for production assignments, material stock deduction, and artisan workflow.
-                            </p>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2.5 pt-2 md:pt-0">
-                            <Link href={route('assignments.create')}>
-                                <Button variant="primary" size="md" className="bg-brand-600 hover:bg-brand-500 shadow-sm border border-brand-400/40">
-                                    <Plus className="w-4 h-4 mr-1.5" /> Assign Work Order
-                                </Button>
-                            </Link>
-                            <Link href={route('materials.index')}>
-                                <Button variant="outline" size="md" className="bg-neutral-800/70 hover:bg-neutral-800 text-neutral-200 border-neutral-700 shadow-sm">
-                                    <Layers className="w-4 h-4 mr-1.5" /> Stock Inventory
-                                </Button>
-                            </Link>
-                        </div>
+            <PageHeader
+                title="Manufacturing Dashboard"
+                description="Real-time overview of product recipes, inventory stock, and active work orders"
+                action={
+                    <div className="flex items-center gap-2">
+                        <Link href={route('assignments.create')}>
+                            <Button variant="primary" size="md">
+                                <Plus className="w-4 h-4 mr-1.5" /> Assign Work Order
+                            </Button>
+                        </Link>
                     </div>
-                </div>
+                }
+            />
+
+            <div className="space-y-6 mt-6">
 
                 {/* 2. HERO KPI METRICS GRID */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
