@@ -123,10 +123,10 @@ export default function Index({ assignments, filters = {} }) {
                     <div className="flex items-center justify-end gap-2">
                         {row.status === 'ASSIGNED' ? (
                             <select
-                                value=""
+                                value={row.status}
                                 onChange={(e) => {
                                     const val = e.target.value;
-                                    if (!val) return;
+                                    if (!val || val === row.status) return;
                                     if (val === 'CANCELLED') {
                                         if (confirm(`Cancel Work Order #${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
                                             router.patch(route('assignments.status', row.id), { status: val });
@@ -135,11 +135,11 @@ export default function Index({ assignments, filters = {} }) {
                                         router.patch(route('assignments.status', row.id), { status: val });
                                     }
                                 }}
-                                className="text-xs border border-neutral-300 rounded-md px-2 py-1 bg-white font-medium text-neutral-700 hover:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs"
+                                className="text-xs border border-brand-300 rounded-md px-2.5 py-1 bg-brand-50/50 font-bold text-brand-800 hover:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-colors"
                             >
-                                <option value="" disabled>Change Status...</option>
-                                <option value="COMPLETED">Completed</option>
-                                <option value="CANCELLED">Cancelled (Refund Stock)</option>
+                                <option value="ASSIGNED">ASSIGNED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                                <option value="CANCELLED">CANCELLED</option>
                             </select>
                         ) : null}
                         <Link href={route('assignments.show', row.id)}>
