@@ -155,142 +155,145 @@ export default function Dashboard({
                     </div>
                 </div>
 
-                {/* 4. MAIN OPERATIONAL COMMAND GRID (BALANCED 2-COLUMN) */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                {/* 4. MAIN OPERATIONAL COMMAND GRID (BALANCED 2-COLUMN EQUAL HEIGHT) */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                     
                     {/* LEFT COLUMN: Stock Reorder Center */}
-                    <div className="space-y-6">
-                        <Card className="border-neutral-200/90 shadow-2xs">
-                            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-100 mb-4">
-                                <div className="flex items-center gap-2.5">
-                                    <div className={`p-2 rounded-lg ${stats.low_stock_count > 0 ? 'bg-danger-50 text-danger-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                                        {stats.low_stock_count > 0 ? (
-                                            <AlertTriangle className="w-4 h-4" />
-                                        ) : (
-                                            <ShieldCheck className="w-4 h-4" />
-                                        )}
+                    <div className="flex flex-col h-full">
+                        <Card className="border-neutral-200/90 shadow-2xs h-full flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center justify-between pb-3.5 border-b border-neutral-100 mb-4">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className={`p-2 rounded-lg ${stats.low_stock_count > 0 ? 'bg-danger-50 text-danger-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                                            {stats.low_stock_count > 0 ? (
+                                                <AlertTriangle className="w-4 h-4" />
+                                            ) : (
+                                                <ShieldCheck className="w-4 h-4" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold text-neutral-900">
+                                                Inventory Reorder Alerts
+                                            </h3>
+                                            <p className="text-xs text-neutral-500">
+                                                Materials near or below minimum threshold
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-sm font-bold text-neutral-900">
-                                            Inventory Reorder Alerts
-                                        </h3>
-                                        <p className="text-xs text-neutral-500">
-                                            Materials near or below minimum threshold
+                                    <div className="flex items-center gap-2">
+                                        {stats.low_stock_count > 0 && (
+                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-danger-100 text-danger-800 border border-danger-200">
+                                                {stats.low_stock_count} Low
+                                            </span>
+                                        )}
+                                        <Link href={route('materials.index')}>
+                                            <Button variant="ghost" size="sm" className="text-xs text-brand-700 hover:text-brand-800">
+                                                All Materials <ArrowRight className="w-3 h-3 ml-1" />
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </div>
+
+                                {low_stock_materials.length === 0 ? (
+                                    <div className="p-8 rounded-xl bg-gradient-to-br from-emerald-50/60 to-neutral-50 border border-emerald-100 text-center space-y-3 flex-1 flex flex-col items-center justify-center min-h-[225px]">
+                                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center shadow-2xs">
+                                            <CheckCircle2 className="w-6 h-6" />
+                                        </div>
+                                        <h4 className="text-xs font-bold text-emerald-950 uppercase tracking-wide">
+                                            All Raw Materials Healthy
+                                        </h4>
+                                        <p className="text-xs text-neutral-600 max-w-sm mx-auto">
+                                            100% of warehouse inventory balances are currently above safe reorder thresholds.
                                         </p>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    {stats.low_stock_count > 0 && (
-                                        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-danger-100 text-danger-800 border border-danger-200">
-                                            {stats.low_stock_count} Low
-                                        </span>
-                                    )}
-                                    <Link href={route('materials.index')}>
-                                        <Button variant="ghost" size="sm" className="text-xs text-brand-700 hover:text-brand-800">
-                                            All Materials <ArrowRight className="w-3 h-3 ml-1" />
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {low_stock_materials.map((inv) => {
+                                            const reorder = parseFloat(inv.variant?.reorder_level ?? inv.material?.reorder_level ?? 0);
+                                            const current = parseFloat(inv.quantity_on_hand || 0);
+                                            const ratio = reorder > 0 ? Math.min(100, Math.round((current / reorder) * 100)) : 0;
+                                            const isCritical = current <= 0 || current < reorder * 0.5;
 
-                            {low_stock_materials.length === 0 ? (
-                                <div className="p-8 rounded-xl bg-gradient-to-br from-emerald-50/60 to-neutral-50 border border-emerald-100 text-center space-y-2">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center shadow-2xs">
-                                        <CheckCircle2 className="w-5 h-5" />
-                                    </div>
-                                    <h4 className="text-xs font-bold text-emerald-950 uppercase tracking-wide">
-                                        All Raw Materials Healthy
-                                    </h4>
-                                    <p className="text-xs text-neutral-600 max-w-sm mx-auto">
-                                        100% of warehouse inventory balances are currently above safe reorder thresholds.
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {low_stock_materials.map((inv) => {
-                                        const reorder = parseFloat(inv.variant?.reorder_level ?? inv.material?.reorder_level ?? 0);
-                                        const current = parseFloat(inv.quantity_on_hand || 0);
-                                        const ratio = reorder > 0 ? Math.min(100, Math.round((current / reorder) * 100)) : 0;
-                                        const isCritical = current <= 0 || current < reorder * 0.5;
-
-                                        return (
-                                            <div
-                                                key={inv.id}
-                                                className="p-3 rounded-xl border border-neutral-200/90 bg-neutral-50/50 hover:bg-neutral-50 transition-colors space-y-2"
-                                            >
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <div className="min-w-0">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-bold text-xs text-neutral-900 truncate">
-                                                                {inv.material?.name}
-                                                            </span>
-                                                            {inv.variant && inv.variant.name !== 'Standard' && (
-                                                                <span className="px-1.5 py-0.2 text-[10px] font-semibold bg-neutral-200/80 text-neutral-700 rounded">
-                                                                    {inv.variant.name}
+                                            return (
+                                                <div
+                                                    key={inv.id}
+                                                    className="p-3 rounded-xl border border-neutral-200/90 bg-neutral-50/50 hover:bg-neutral-50 transition-colors space-y-2"
+                                                >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-bold text-xs text-neutral-900 truncate">
+                                                                    {inv.material?.name}
                                                                 </span>
-                                                            )}
+                                                                {inv.variant && inv.variant.name !== 'Standard' && (
+                                                                    <span className="px-1.5 py-0.2 text-[10px] font-semibold bg-neutral-200/80 text-neutral-700 rounded">
+                                                                        {inv.variant.name}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <span className="text-[11px] text-neutral-500">
+                                                                Category: <strong className="text-neutral-700">{inv.material?.category}</strong>
+                                                            </span>
                                                         </div>
-                                                        <span className="text-[11px] text-neutral-500">
-                                                            Category: <strong className="text-neutral-700">{inv.material?.category}</strong>
-                                                        </span>
+                                                        <div className="text-right shrink-0">
+                                                            <span className={`text-xs font-bold tabular-nums block ${isCritical ? 'text-danger-700' : 'text-warning-700'}`}>
+                                                                {current} / {reorder} {inv.unit}
+                                                            </span>
+                                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded border ${
+                                                                isCritical 
+                                                                    ? 'bg-danger-50 text-danger-700 border-danger-200' 
+                                                                    : 'bg-warning-50 text-warning-800 border-warning-200'
+                                                            }`}>
+                                                                {isCritical ? 'Critical' : 'Reorder Needed'}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div className="text-right shrink-0">
-                                                        <span className={`text-xs font-bold tabular-nums block ${isCritical ? 'text-danger-700' : 'text-warning-700'}`}>
-                                                            {current} / {reorder} {inv.unit}
-                                                        </span>
-                                                        <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded border ${
-                                                            isCritical 
-                                                                ? 'bg-danger-50 text-danger-700 border-danger-200' 
-                                                                : 'bg-warning-50 text-warning-800 border-warning-200'
-                                                        }`}>
-                                                            {isCritical ? 'Critical' : 'Reorder Needed'}
-                                                        </span>
-                                                    </div>
-                                                </div>
 
-                                                {/* Mini Progress Bar + 1-Click Restock Link */}
-                                                <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-200/60">
-                                                    <div className="w-full bg-neutral-200 rounded-full h-1.5 overflow-hidden">
-                                                        <div
-                                                            className={`h-full transition-all duration-300 ${isCritical ? 'bg-danger-600' : 'bg-warning-500'}`}
-                                                            style={{ width: `${ratio}%` }}
-                                                        />
+                                                    {/* Mini Progress Bar + 1-Click Restock Link */}
+                                                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-200/60">
+                                                        <div className="w-full bg-neutral-200 rounded-full h-1.5 overflow-hidden">
+                                                            <div
+                                                                className={`h-full transition-all duration-300 ${isCritical ? 'bg-danger-600' : 'bg-warning-500'}`}
+                                                                style={{ width: `${ratio}%` }}
+                                                            />
+                                                        </div>
+                                                        <Link href={route('materials.index', { search: inv.material?.name })}>
+                                                            <button
+                                                                type="button"
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-brand-50 text-brand-800 hover:bg-brand-100 border border-brand-200 transition-colors shrink-0 cursor-pointer"
+                                                            >
+                                                                <RotateCcw className="w-3 h-3" /> Restock
+                                                            </button>
+                                                        </Link>
                                                     </div>
-                                                    <Link href={route('materials.index', { search: inv.material?.name })}>
-                                                        <button
-                                                            type="button"
-                                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-brand-50 text-brand-800 hover:bg-brand-100 border border-brand-200 transition-colors shrink-0 cursor-pointer"
-                                                        >
-                                                            <RotateCcw className="w-3 h-3" /> Restock
-                                                        </button>
-                                                    </Link>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         </Card>
                     </div>
 
                     {/* RIGHT COLUMN: Live Work Orders Activity Stream (Compact 3-per-page) */}
-                    <div className="space-y-6">
-                        <Card className="border-neutral-200/90 shadow-2xs">
-                            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-100 mb-3.5">
-                                <div>
-                                    <h3 className="text-sm font-bold text-neutral-900">
-                                        Live Work Orders Stream
-                                    </h3>
-                                    <p className="text-xs text-neutral-500">
-                                        Active batches & workbench production
-                                    </p>
+                    <div className="flex flex-col h-full">
+                        <Card className="border-neutral-200/90 shadow-2xs h-full flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center justify-between pb-3.5 border-b border-neutral-100 mb-3.5">
+                                    <div>
+                                        <h3 className="text-sm font-bold text-neutral-900">
+                                            Live Work Orders Stream
+                                        </h3>
+                                        <p className="text-xs text-neutral-500">
+                                            Active batches & workbench production
+                                        </p>
+                                    </div>
+                                    <Link href={route('assignments.index')}>
+                                        <Button variant="ghost" size="sm" className="text-xs text-brand-700 hover:text-brand-800">
+                                            View All ({stats.active_assignments}) <ArrowRight className="w-3 h-3 ml-1" />
+                                        </Button>
+                                    </Link>
                                 </div>
-                                <Link href={route('assignments.index')}>
-                                    <Button variant="ghost" size="sm" className="text-xs text-brand-700 hover:text-brand-800">
-                                        View All ({stats.active_assignments}) <ArrowRight className="w-3 h-3 ml-1" />
-                                    </Button>
-                                </Link>
-                            </div>
 
                             {recent_assignments.length === 0 ? (
                                 <div className="text-center py-8 bg-neutral-50 rounded-xl border border-neutral-200 space-y-3">
@@ -372,7 +375,7 @@ export default function Dashboard({
 
                                     {/* Pagination Controls Footer */}
                                     {recent_assignments.length > pageSize && (
-                                        <div className="pt-2.5 flex items-center justify-between text-xs text-neutral-500 border-t border-neutral-100">
+                                        <div className="pt-2.5 flex items-center justify-between text-xs text-neutral-500 border-t border-neutral-100 mt-3">
                                             <span className="text-[11px]">
                                                 Showing <strong className="text-neutral-700 font-sans">{(woPage - 1) * pageSize + 1}–{Math.min(woPage * pageSize, recent_assignments.length)}</strong> of <strong className="text-neutral-700 font-sans">{recent_assignments.length}</strong>
                                             </span>
@@ -399,6 +402,7 @@ export default function Dashboard({
                                     )}
                                 </div>
                             )}
+                            </div>
                         </Card>
                     </div>
                 </div>
