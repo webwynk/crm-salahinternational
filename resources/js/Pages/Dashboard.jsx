@@ -20,6 +20,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Clock,
+    RotateCcw,
 } from 'lucide-react';
 
 export default function Dashboard({
@@ -186,7 +187,7 @@ export default function Dashboard({
                                     )}
                                     <Link href={route('materials.index')}>
                                         <Button variant="ghost" size="sm" className="text-xs text-brand-700 hover:text-brand-800">
-                                            Manage <ArrowRight className="w-3 h-3 ml-1" />
+                                            All Materials <ArrowRight className="w-3 h-3 ml-1" />
                                         </Button>
                                     </Link>
                                 </div>
@@ -207,7 +208,7 @@ export default function Dashboard({
                             ) : (
                                 <div className="space-y-3">
                                     {low_stock_materials.map((inv) => {
-                                        const reorder = parseFloat(inv.material?.reorder_level || 0);
+                                        const reorder = parseFloat(inv.variant?.reorder_level ?? inv.material?.reorder_level ?? 0);
                                         const current = parseFloat(inv.quantity_on_hand || 0);
                                         const ratio = reorder > 0 ? Math.min(100, Math.round((current / reorder) * 100)) : 0;
                                         const isCritical = current <= 0 || current < reorder * 0.5;
@@ -247,12 +248,22 @@ export default function Dashboard({
                                                     </div>
                                                 </div>
 
-                                                {/* Mini Progress Bar */}
-                                                <div className="w-full bg-neutral-200 rounded-full h-1.5 overflow-hidden">
-                                                    <div
-                                                        className={`h-full transition-all duration-300 ${isCritical ? 'bg-danger-600' : 'bg-warning-500'}`}
-                                                        style={{ width: `${ratio}%` }}
-                                                    />
+                                                {/* Mini Progress Bar + 1-Click Restock Link */}
+                                                <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-200/60">
+                                                    <div className="w-full bg-neutral-200 rounded-full h-1.5 overflow-hidden">
+                                                        <div
+                                                            className={`h-full transition-all duration-300 ${isCritical ? 'bg-danger-600' : 'bg-warning-500'}`}
+                                                            style={{ width: `${ratio}%` }}
+                                                        />
+                                                    </div>
+                                                    <Link href={route('materials.index', { search: inv.material?.name })}>
+                                                        <button
+                                                            type="button"
+                                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-brand-50 text-brand-800 hover:bg-brand-100 border border-brand-200 transition-colors shrink-0 cursor-pointer"
+                                                        >
+                                                            <RotateCcw className="w-3 h-3" /> Restock
+                                                        </button>
+                                                    </Link>
                                                 </div>
                                             </div>
                                         );

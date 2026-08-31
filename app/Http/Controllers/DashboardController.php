@@ -26,11 +26,13 @@ class DashboardController extends Controller
         $totalUnitsInProduction = (clone $activeAssignmentsQuery)->sum('quantity');
         $completedAssignmentsCount = Assignment::where('status', 'COMPLETED')->count();
 
-        // Low stock count (quantity_on_hand <= reorder_level) via pure SQL query
+        // Low stock count (quantity_on_hand <= reorder_level for variant or master material)
         $lowStockQuery = Inventory::with(['material', 'variant'])
             ->join('materials', 'inventory.material_id', '=', 'materials.id')
+            ->leftJoin('material_variants', 'inventory.material_variant_id', '=', 'material_variants.id')
             ->where('materials.is_active', true)
-            ->whereColumn('inventory.quantity_on_hand', '<=', 'materials.reorder_level');
+            ->whereRaw('inventory.quantity_on_hand <= COALESCE(material_variants.reorder_level, materials.reorder_level, 0)')
+            ->whereRaw('COALESCE(material_variants.reorder_level, materials.reorder_level, 0) > 0');
 
         $lowStockCount = (clone $lowStockQuery)->count();
         $lowStockMaterials = $lowStockQuery->select('inventory.*')->take(6)->get();
