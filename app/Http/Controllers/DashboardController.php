@@ -8,7 +8,6 @@ use App\Models\Labour;
 use App\Models\Material;
 use App\Models\MaterialVariant;
 use App\Models\Product;
-use App\Models\StockTransaction;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -41,11 +40,6 @@ class DashboardController extends Controller
             ->limit(6)
             ->get();
 
-        $recentTransactions = StockTransaction::with(['material', 'variant', 'creator'])
-            ->orderBy('created_at', 'desc')
-            ->limit(6)
-            ->get();
-
         return Inertia::render('Dashboard', [
             'stats' => [
                 'total_products' => $totalProducts,
@@ -59,7 +53,6 @@ class DashboardController extends Controller
             ],
             'low_stock_materials' => $lowStockMaterials,
             'recent_assignments' => $recentAssignments,
-            'recent_transactions' => $recentTransactions,
         ]);
     }
 }
