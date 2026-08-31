@@ -1,15 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Menu } from 'lucide-react';
+import { Menu, Clock } from 'lucide-react';
 import Badge from '@/Components/ui/Badge';
 
 /**
- * Topbar — sticky top header with hamburger (mobile), breadcrumb hint, and user badge.
- * Logout has been moved to the Sidebar to avoid duplication.
+ * Topbar — sticky top header with hamburger (mobile), breadcrumb, live IST clock, and user profile.
  */
 export default function Topbar({ onOpenMobile }) {
     const { url, props } = usePage();
     const user = props.auth?.user;
+    const [istTime, setIstTime] = useState('');
+
+    useEffect(() => {
+        const updateTime = () => {
+            try {
+                const formatter = new Intl.DateTimeFormat('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true,
+                });
+                setIstTime(formatter.format(new Date()));
+            } catch (e) {
+                setIstTime(new Date().toLocaleTimeString());
+            }
+        };
+
+        updateTime();
+        const interval = setInterval(updateTime, 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Derive a simple breadcrumb label from the current URL
     const breadcrumb = (() => {
@@ -41,9 +66,18 @@ export default function Topbar({ onOpenMobile }) {
                 </button>
 
                 {/* Breadcrumb / page context */}
-                <span className="text-sm font-medium text-neutral-500 hidden sm:block">
+                <span className="text-sm font-semibold text-neutral-800 hidden sm:block">
                     {breadcrumb}
                 </span>
+
+                {/* Live Indian Standard Time (IST) Clock Badge */}
+                {istTime && (
+                    <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-50 border border-neutral-200 text-xs font-medium text-neutral-600 tabular-nums shadow-2xs">
+                        <Clock className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+                        <span>{istTime}</span>
+                        <span className="text-[10px] font-bold px-1 py-0.2 rounded bg-neutral-200/80 text-neutral-700">IST</span>
+                    </div>
+                )}
             </div>
 
             {/* Right section — role badge + profile link */}
