@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $totalProducts = Product::where('is_active', true)->count();
         $totalMaterials = Material::where('is_active', true)->count();
         $totalLabour = Labour::where('is_active', true)->count();
-        $activeAssignments = Assignment::whereIn('status', ['ASSIGNED', 'IN_PROGRESS'])->count();
+        $activeAssignments = Assignment::where('status', 'ASSIGNED')->count();
 
         // Low stock count (quantity_on_hand <= reorder_level) via pure SQL query
         $lowStockQuery = Inventory::with('material')

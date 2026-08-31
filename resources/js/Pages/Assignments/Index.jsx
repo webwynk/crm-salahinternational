@@ -64,7 +64,6 @@ export default function Index({ assignments, filters = {} }) {
             render: (row) => {
                 const statusVariants = {
                     ASSIGNED: 'brand',
-                    IN_PROGRESS: 'warning',
                     COMPLETED: 'success',
                     CANCELLED: 'danger',
                 };
@@ -82,7 +81,7 @@ export default function Index({ assignments, filters = {} }) {
         },
     ];
 
-    const statuses = ['ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+    const statuses = ['ASSIGNED', 'COMPLETED', 'CANCELLED'];
 
     return (
         <AppLayout>
@@ -122,18 +121,27 @@ export default function Index({ assignments, filters = {} }) {
                 onEmptyAction={() => router.visit(route('assignments.create'))}
                 renderRowActions={(row) => (
                     <div className="flex items-center justify-end gap-2">
-                        <select
-                            value={row.status}
-                            disabled={row.status === 'COMPLETED' || row.status === 'CANCELLED'}
-                            onChange={(e) => router.patch(route('assignments.status', row.id), { status: e.target.value })}
-                            className="text-xs border border-neutral-300 rounded px-2 py-1 bg-white cursor-pointer disabled:bg-neutral-100 disabled:cursor-not-allowed"
-                        >
-                            {statuses.map((st) => (
-                                <option key={st} value={st}>
-                                    {st}
-                                </option>
-                            ))}
-                        </select>
+                        {row.status === 'ASSIGNED' ? (
+                            <select
+                                value=""
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (!val) return;
+                                    if (val === 'CANCELLED') {
+                                        if (confirm(`Cancel Work Order #${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
+                                            router.patch(route('assignments.status', row.id), { status: val });
+                                        }
+                                    } else {
+                                        router.patch(route('assignments.status', row.id), { status: val });
+                                    }
+                                }}
+                                className="text-xs border border-neutral-300 rounded-md px-2 py-1 bg-white font-medium text-neutral-700 hover:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs"
+                            >
+                                <option value="" disabled>Change Status...</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="CANCELLED">Cancelled (Refund Stock)</option>
+                            </select>
+                        ) : null}
                         <Link href={route('assignments.show', row.id)}>
                             <button className="p-1.5 text-neutral-500 hover:text-brand-600 hover:bg-neutral-100 rounded" title="View details">
                                 <Eye className="w-4 h-4" />

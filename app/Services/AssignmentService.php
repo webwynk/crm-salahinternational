@@ -170,4 +170,74 @@ class AssignmentService
             return $assignment;
         });
     }
+
+    /**
+     * Complete a work order assignment.
+     */
+    public function completeAssignment(Assignment $assignment): Assignment
+    {
+        return DB::transaction(function () use ($assignment) {
+            if ($assignment->status === 'CANCELLED') {
+                throw new \InvalidArgumentException("Cannot complete a cancelled work order.");
+            }
+
+            $assignment->update([
+                'status'       => 'COMPLETED',
+                'completed_at' => now(),
+            ]);
+
+            return $assignment;
+        });
+    }
+
+    /**
+     * Cancel a work order assignment and atomically refund all deducted raw materials back to inventory stock.
+     */
+    public function cancelAssignment(Assignment $assignment, int|string $userId): Assignment
+    {
+        return DB::transaction(function () use ($assignment, $userId) {
+            if ($assignment->status === 'CANCELLED') {
+                return $assignment; // Idempotent: already cancelled and refunded
+            }
+
+            $assignment->load('materials');
+
+            foreach ($assignment->materials as $mat) {
+                if (!$mat->material_id) continue;
+
+                $query = Inventory::where('material_id', $mat->material_id);
+                if ($mat->material_variant_id) {
+                    $query->where('material_variant_id', $mat->material_variant_id);
+                }
+                $inv = $query->lockForUpdate()->first();
+
+                if (!$inv) {
+                    $inv = Inventory::where('material_id', $mat->material_id)->lockForUpdate()->first();
+                }
+
+                if ($inv) {
+                    $refundQty = (float) $mat->quantity_used;
+                    $inv->increment('quantity_on_hand', $refundQty);
+
+                    StockTransaction::create([
+                        'material_id'         => $mat->material_id,
+                        'material_variant_id' => $mat->material_variant_id,
+                        'change_qty'          => $refundQty,
+                        'type'                => StockTransaction::TYPE_RESTOCK,
+                        'reference_id'        => $assignment->id,
+                        'balance_after'       => $inv->fresh()->quantity_on_hand,
+                        'note'                => "Stock refunded from cancelled Work Order #{$assignment->assignment_no}",
+                        'created_by'          => $userId,
+                    ]);
+                }
+            }
+
+            $assignment->update([
+                'status' => 'CANCELLED',
+            ]);
+
+            return $assignment;
+        });
+    }
 }
+

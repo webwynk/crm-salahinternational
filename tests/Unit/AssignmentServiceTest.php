@@ -309,4 +309,73 @@ class AssignmentServiceTest extends TestCase
             'type' => 'ASSIGNMENT_DEDUCTION',
         ]);
     }
+
+    public function test_complete_assignment_sets_completed_status_and_timestamp(): void
+    {
+        $assignment = $this->service->createAssignment(
+            $this->product->id,
+            $this->labour->id,
+            10,
+            $this->admin->id
+        );
+
+        $this->assertEquals('ASSIGNED', $assignment->status);
+        $this->assertNull($assignment->completed_at);
+
+        $completed = $this->service->completeAssignment($assignment);
+
+        $this->assertEquals('COMPLETED', $completed->status);
+        $this->assertNotNull($completed->completed_at);
+    }
+
+    public function test_cancel_assignment_refunds_stock_to_inventory_and_logs_transaction(): void
+    {
+        // 1000 initial, 10 pcs * 15 = 150 deducted -> 850 remaining
+        $assignment = $this->service->createAssignment(
+            $this->product->id,
+            $this->labour->id,
+            10,
+            $this->admin->id
+        );
+
+        $inv = Inventory::where('material_id', $this->material->id)->first();
+        $this->assertEquals(850, $inv->quantity_on_hand);
+
+        // Cancel assignment -> should refund 150 back to 1000
+        $cancelled = $this->service->cancelAssignment($assignment, $this->admin->id);
+
+        $this->assertEquals('CANCELLED', $cancelled->status);
+        $this->assertEquals(1000, $inv->fresh()->quantity_on_hand);
+
+        // Verify restock transaction logged
+        $this->assertDatabaseHas('stock_transactions', [
+            'material_id' => $this->material->id,
+            'change_qty' => 150,
+            'type' => 'RESTOCK',
+            'balance_after' => 1000,
+            'reference_id' => $assignment->id,
+        ]);
+    }
+
+    public function test_cancel_assignment_is_idempotent(): void
+    {
+        $assignment = $this->service->createAssignment(
+            $this->product->id,
+            $this->labour->id,
+            10,
+            $this->admin->id
+        );
+
+        $inv = Inventory::where('material_id', $this->material->id)->first();
+        $this->assertEquals(850, $inv->quantity_on_hand);
+
+        // First cancel: refunds to 1000
+        $this->service->cancelAssignment($assignment, $this->admin->id);
+        $this->assertEquals(1000, $inv->fresh()->quantity_on_hand);
+
+        // Second cancel call: should do nothing (idempotent)
+        $this->service->cancelAssignment($assignment, $this->admin->id);
+        $this->assertEquals(1000, $inv->fresh()->quantity_on_hand);
+    }
 }
+

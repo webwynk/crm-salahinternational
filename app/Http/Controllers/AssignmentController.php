@@ -119,17 +119,26 @@ class AssignmentController extends Controller
         return response()->download($fullPath, "Work_Order_{$assignment->assignment_no}.pdf");
     }
 
-    public function updateStatus(Request $request, Assignment $assignment): RedirectResponse
+    public function updateStatus(Request $request, Assignment $assignment, AssignmentService $assignmentService): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'string', \Illuminate\Validation\Rule::in(['ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'])],
+            'status' => ['required', 'string', \Illuminate\Validation\Rule::in(['COMPLETED', 'CANCELLED'])],
         ]);
 
-        $assignment->update([
-            'status' => $validated['status'],
-            'completed_at' => $validated['status'] === 'COMPLETED' ? now() : ($validated['status'] === 'CANCELLED' ? $assignment->completed_at : null),
-        ]);
+        if ($assignment->status === 'COMPLETED' || $assignment->status === 'CANCELLED') {
+            return back()->with('warning', "Work Order #{$assignment->assignment_no} is already {$assignment->status} and cannot be altered.");
+        }
 
-        return back()->with('success', "Work Order #{$assignment->assignment_no} status updated to {$validated['status']}.");
+        if ($validated['status'] === 'CANCELLED') {
+            $assignmentService->cancelAssignment($assignment, $request->user()->id);
+            return back()->with('success', "Work Order #{$assignment->assignment_no} cancelled. All deducted raw materials have been refunded back to inventory stock.");
+        }
+
+        if ($validated['status'] === 'COMPLETED') {
+            $assignmentService->completeAssignment($assignment);
+            return back()->with('success', "Work Order #{$assignment->assignment_no} marked as COMPLETED.");
+        }
+
+        return back();
     }
 }
