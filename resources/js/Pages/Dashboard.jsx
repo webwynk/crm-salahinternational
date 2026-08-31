@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import Card from '@/Components/ui/Card';
@@ -17,6 +17,8 @@ import {
     FileText,
     Eye,
     Activity,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
 
 export default function Dashboard({
@@ -25,6 +27,11 @@ export default function Dashboard({
     recent_assignments = [],
 }) {
     const { auth } = usePage().props;
+    const [woPage, setWoPage] = useState(1);
+    const pageSize = 3;
+
+    const totalWoPages = Math.ceil(recent_assignments.length / pageSize) || 1;
+    const paginatedAssignments = recent_assignments.slice((woPage - 1) * pageSize, woPage * pageSize);
 
     const kpiCards = [
         {
@@ -237,10 +244,10 @@ export default function Dashboard({
                         </Card>
                     </div>
 
-                    {/* RIGHT COLUMN: Live Work Orders Activity Stream */}
+                    {/* RIGHT COLUMN: Live Work Orders Activity Stream (Compact 3-per-page) */}
                     <div className="space-y-6">
                         <Card className="border-neutral-200/90 shadow-2xs">
-                            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-100 mb-4">
+                            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-100 mb-3.5">
                                 <div>
                                     <h3 className="text-sm font-bold text-neutral-900">
                                         Live Work Orders Stream
@@ -262,55 +269,48 @@ export default function Dashboard({
                                     <p className="text-xs text-neutral-600">No work orders issued yet.</p>
                                     <Link href={route('assignments.create')}>
                                         <Button variant="primary" size="sm">
-                                            + Assign Work Order
+                                            Assign Work Order
                                         </Button>
                                     </Link>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
-                                    {recent_assignments.map((wo) => {
+                                <div className="space-y-2.5">
+                                    {paginatedAssignments.map((wo) => {
                                         const statusBadge = {
                                             ASSIGNED: 'brand',
                                             COMPLETED: 'success',
                                             CANCELLED: 'danger',
                                         }[wo.status] || 'neutral';
 
-                                        const initials = wo.labour?.name
-                                            ? wo.labour.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
-                                            : 'AR';
-
                                         return (
                                             <div
                                                 key={wo.id}
-                                                className="p-3.5 rounded-xl border border-neutral-200 bg-white hover:border-brand-300 hover:shadow-sm transition-all space-y-2.5"
+                                                className="p-2.5 rounded-xl border border-neutral-200/90 bg-white hover:border-brand-300 hover:shadow-2xs transition-all space-y-1.5"
                                             >
                                                 <div className="flex items-center justify-between gap-2">
-                                                    <span className="font-bold text-xs text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200 font-sans">
-                                                        {wo.assignment_no}
-                                                    </span>
-                                                    <Badge variant={statusBadge}>{wo.status}</Badge>
-                                                </div>
-
-                                                <div>
-                                                    <h4 className="text-xs font-bold text-neutral-900 truncate">
-                                                        {wo.product?.name}
-                                                    </h4>
-                                                    <span className="text-[11px] text-neutral-500">
-                                                        Target Batch: <strong className="text-neutral-800 font-sans font-bold">{wo.quantity} Pcs</strong>
-                                                    </span>
-                                                </div>
-
-                                                <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
                                                     <div className="flex items-center gap-2 min-w-0">
-                                                        <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-800 font-bold text-[10px] flex items-center justify-center shrink-0">
-                                                            {initials}
-                                                        </div>
-                                                        <span className="text-neutral-600 truncate font-medium">
-                                                            {wo.labour?.name}
+                                                        <span className="font-bold text-xs text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200 font-sans shrink-0">
+                                                            {wo.assignment_no}
+                                                        </span>
+                                                        <span className="font-bold text-xs text-neutral-900 truncate">
+                                                            {wo.product?.name}
+                                                        </span>
+                                                    </div>
+                                                    <Badge variant={statusBadge} size="sm">{wo.status}</Badge>
+                                                </div>
+
+                                                <div className="flex items-center justify-between text-xs pt-1 border-t border-neutral-100/80">
+                                                    <div className="flex items-center gap-2 text-neutral-500 text-[11px] min-w-0">
+                                                        <span className="shrink-0 font-semibold text-neutral-700 font-sans">
+                                                            {wo.quantity} Pcs
+                                                        </span>
+                                                        <span className="text-neutral-300">•</span>
+                                                        <span className="truncate">
+                                                            Artisan: <strong className="text-neutral-700 font-medium">{wo.labour?.name || 'Unassigned'}</strong>
                                                         </span>
                                                     </div>
 
-                                                    <div className="flex items-center gap-1.5 shrink-0">
+                                                    <div className="flex items-center gap-1 shrink-0">
                                                         <Link href={route('assignments.show', wo.id)}>
                                                             <button
                                                                 className="p-1 text-neutral-400 hover:text-brand-700 hover:bg-neutral-100 rounded transition-colors"
@@ -332,6 +332,34 @@ export default function Dashboard({
                                             </div>
                                         );
                                     })}
+
+                                    {/* Pagination Controls Footer */}
+                                    {recent_assignments.length > pageSize && (
+                                        <div className="pt-2.5 flex items-center justify-between text-xs text-neutral-500 border-t border-neutral-100">
+                                            <span className="text-[11px]">
+                                                Showing <strong className="text-neutral-700 font-sans">{(woPage - 1) * pageSize + 1}–{Math.min(woPage * pageSize, recent_assignments.length)}</strong> of <strong className="text-neutral-700 font-sans">{recent_assignments.length}</strong>
+                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => setWoPage((p) => Math.max(1, p - 1))}
+                                                    disabled={woPage === 1}
+                                                    className="p-1 px-2 rounded border border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-medium flex items-center gap-0.5 cursor-pointer"
+                                                >
+                                                    <ChevronLeft className="w-3 h-3" /> Prev
+                                                </button>
+                                                <span className="px-1.5 font-bold text-neutral-700 text-[11px] font-sans">
+                                                    {woPage} / {totalWoPages}
+                                                </span>
+                                                <button
+                                                    onClick={() => setWoPage((p) => Math.min(totalWoPages, p + 1))}
+                                                    disabled={woPage === totalWoPages}
+                                                    className="p-1 px-2 rounded border border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-medium flex items-center gap-0.5 cursor-pointer"
+                                                >
+                                                    Next <ChevronRight className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </Card>

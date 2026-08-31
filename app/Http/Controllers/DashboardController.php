@@ -37,7 +37,7 @@ class DashboardController extends Controller
 
         $recentAssignments = Assignment::with(['product', 'labour', 'pdfs'])
             ->orderBy('created_at', 'desc')
-            ->limit(6)
+            ->limit(15)
             ->get();
 
         return Inertia::render('Dashboard', [
