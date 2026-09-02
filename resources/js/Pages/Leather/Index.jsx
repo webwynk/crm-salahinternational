@@ -27,6 +27,7 @@ import {
     Sparkles,
     CheckCircle2,
     Gem,
+    X,
 } from 'lucide-react';
 import { BASE_UNITS } from '@/constants/units';
 import { STANDARD_TANNAGES } from '@/constants/tannages';
@@ -50,7 +51,7 @@ export default function Index({
     const [customCategoryInput, setCustomCategoryInput] = useState('');
     const [isEditCustomCategory, setIsEditCustomCategory] = useState(false);
     const [editCustomCategoryInput, setEditCustomCategoryInput] = useState('');
-    const [hasVariations, setHasVariations] = useState(true);
+    const [hasVariations, setHasVariations] = useState(false);
 
     const [addVariantMaterial, setAddVariantMaterial] = useState(null);
     const [restockVariant, setRestockVariant] = useState(null);
@@ -64,7 +65,7 @@ export default function Index({
         reorder_level: '50',
         initial_stock: '0',
         variants: [
-            { name: 'Cognac Brown (1.4mm)', sku: '', reorder_level: '50', initial_stock: '0' },
+            { name: 'Standard', sku: '', reorder_level: '50', initial_stock: '0' },
         ],
     });
 
@@ -611,168 +612,255 @@ export default function Index({
                 </Card>
             </div>
 
-            {/* 4. ADD LEATHER HIDE DRAWER */}
+            {/* 4. ADD LEATHER HIDE DRAWER WITH MULTI-VARIANT BUILDER */}
             <Drawer
                 isOpen={isAddDrawerOpen}
                 onClose={handleCloseDrawer}
-                title="Add New Leather Hide"
-                description="Register a new master leather type, tannage specifications, and initial color balances in Sq. Ft"
-                size="lg"
+                title={hasVariations ? "Add Leather Hide & Multi-Variations" : "Add New Leather Hide"}
+                subtitle={hasVariations ? "Create a leather master and define its stock variations (colors, thicknesses, finishes)" : "Quickly register a standard leather hide and initial inventory"}
+                size="xl"
             >
                 <form onSubmit={handleAddSubmit} className="space-y-5">
-                    <Input
-                        label="Leather Hide Name / Tannage Title"
-                        required
-                        value={addForm.data.name}
-                        onChange={(e) => addForm.setData('name', e.target.value)}
-                        placeholder="e.g. Classic Pull-Up Leather, Tuscany Veg-Tan, Smooth Nappa"
-                        error={addForm.errors.name}
-                    />
+                    {/* General Leather Information */}
+                    <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-3.5">
+                        <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                            1. Leather Master Specifications
+                        </h4>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-2">
+                        <Input
+                            label="Leather Hide Name"
+                            required
+                            placeholder="e.g. Full-Grain Calfskin Leather, Tuscany Veg-Tan"
+                            value={addForm.data.name}
+                            onChange={(e) => addForm.setData('name', e.target.value)}
+                            error={addForm.errors.name}
+                        />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Select
+                                    label="Category"
+                                    required
+                                    value={isCustomCategory ? '__CUSTOM__' : addForm.data.category}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '__CUSTOM__') {
+                                            setIsCustomCategory(true);
+                                            addForm.setData('category', customCategoryInput.trim().toUpperCase());
+                                        } else {
+                                            setIsCustomCategory(false);
+                                            addForm.setData('category', val);
+                                        }
+                                    }}
+                                    error={!isCustomCategory ? addForm.errors.category : undefined}
+                                >
+                                    {availableCategories.map((cat) => (
+                                        <option key={cat} value={cat}>
+                                            {cat}
+                                        </option>
+                                    ))}
+                                    <option value="__CUSTOM__">+ Custom Category...</option>
+                                </Select>
+
+                                {isCustomCategory && (
+                                    <Input
+                                        label="Custom Category Name"
+                                        required
+                                        placeholder="e.g. SEMI-ANILINE, OIL PULL-UP, PONY HAIR"
+                                        value={customCategoryInput}
+                                        onChange={(e) => {
+                                            const raw = e.target.value;
+                                            setCustomCategoryInput(raw);
+                                            addForm.setData('category', raw.toUpperCase());
+                                        }}
+                                        error={addForm.errors.category}
+                                        helperText="Max 40 characters"
+                                        autoFocus
+                                    />
+                                )}
+                            </div>
+
                             <Select
-                                label="Tannage Category"
+                                label="Base Measurement Unit"
                                 required
-                                value={isCustomCategory ? '__CUSTOM__' : addForm.data.category}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === '__CUSTOM__') {
-                                        setIsCustomCategory(true);
-                                        addForm.setData('category', customCategoryInput.trim().toUpperCase());
-                                    } else {
-                                        setIsCustomCategory(false);
-                                        addForm.setData('category', val);
-                                    }
-                                }}
-                                error={!isCustomCategory ? addForm.errors.category : undefined}
+                                value={addForm.data.base_unit}
+                                onChange={(e) => addForm.setData('base_unit', e.target.value)}
+                                error={addForm.errors.base_unit}
                             >
-                                {availableCategories.map((cat) => (
-                                    <option key={cat} value={cat}>
-                                        {cat}
+                                {BASE_UNITS.map((u) => (
+                                    <option key={u.value} value={u.value}>
+                                        {u.label}
                                     </option>
                                 ))}
-                                <option value="__CUSTOM__">+ Custom Category...</option>
                             </Select>
-
-                            {isCustomCategory && (
-                                <Input
-                                    label="Custom Category Name"
-                                    required
-                                    placeholder="e.g. SEMI-ANILINE, OIL PULL-UP, PONY HAIR"
-                                    value={customCategoryInput}
-                                    onChange={(e) => {
-                                        const raw = e.target.value;
-                                        setCustomCategoryInput(raw);
-                                        addForm.setData('category', raw.toUpperCase());
-                                    }}
-                                    error={addForm.errors.category}
-                                    helperText="Max 40 characters"
-                                    autoFocus
-                                />
-                            )}
                         </div>
 
-                        <Select
-                            label="Unit of Measurement"
-                            value={addForm.data.base_unit}
-                            onChange={(e) => addForm.setData('base_unit', e.target.value)}
-                        >
-                            <option value="sq_ft">Square Feet (Sq. Ft) — Standard</option>
-                            <option value="sq_dm">Square Decimeters (Sq. Dm)</option>
-                            <option value="sq_m">Square Meters (Sq. M)</option>
-                            <option value="hides">Hides / Sides (Pcs)</option>
-                        </Select>
+                        {/* Standard Initial Inventory (Visible only in Simple Mode) */}
+                        {!hasVariations && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-neutral-200/80">
+                                <Input
+                                    label="Reorder Alert Level"
+                                    type="number"
+                                    step="0.001"
+                                    required={!hasVariations}
+                                    placeholder="e.g. 50"
+                                    value={addForm.data.reorder_level}
+                                    onChange={(e) => addForm.setData('reorder_level', e.target.value)}
+                                    error={addForm.errors.reorder_level}
+                                    helperText="Alert when inventory drops below this quantity"
+                                />
+                                <Input
+                                    label={`Initial Stock (${addForm.data.base_unit})`}
+                                    type="number"
+                                    step="0.001"
+                                    required={!hasVariations}
+                                    placeholder="e.g. 100"
+                                    value={addForm.data.initial_stock}
+                                    onChange={(e) => addForm.setData('initial_stock', e.target.value)}
+                                    error={addForm.errors.initial_stock}
+                                    helperText="Initial inventory quantity on hand"
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    {/* Color & Thickness Variations Builder */}
-                    <div className="p-4 rounded-xl border border-neutral-200 bg-neutral-50/70 space-y-3">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
-                                    Color & Thickness Variations
-                                </h4>
-                                <p className="text-[11px] text-neutral-500">
-                                    Add individual color shades, thickness ratings (mm), and initial Sq. Ft balances.
-                                </p>
+                    {/* Multi-Variation Toggle Card */}
+                    <div 
+                        className={`p-3.5 rounded-xl border transition-all flex items-center justify-between gap-4 cursor-pointer select-none ${
+                            hasVariations 
+                                ? 'bg-brand-50/60 border-brand-300 shadow-2xs' 
+                                : 'bg-neutral-50/80 hover:bg-neutral-50 border-neutral-200'
+                        }`}
+                        onClick={() => setHasVariations(!hasVariations)}
+                    >
+                        <div className="space-y-0.5 min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                                <Tag className={`w-4 h-4 transition-colors ${hasVariations ? 'text-brand-600' : 'text-neutral-400'}`} />
+                                <span className="text-xs font-bold text-neutral-800">
+                                    Multi-Variation Stock Tracking
+                                </span>
+                                {hasVariations && (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-brand-100 text-brand-700 rounded border border-brand-200">
+                                        Active ({addForm.data.variants.length})
+                                    </span>
+                                )}
                             </div>
+                            <p className="text-[11px] text-neutral-500">
+                                Enable if this leather hide comes in multiple colors, sizes, or finishes (e.g. Black/Tan or 6mm/8mm).
+                            </p>
                         </div>
 
-                        <div className="space-y-3">
-                            {addForm.data.variants.map((v, idx) => (
-                                <div key={idx} className="p-3 rounded-lg bg-white border border-neutral-200 relative space-y-2">
-                                    <div className="flex items-center justify-between text-xs font-semibold text-neutral-500">
-                                        <span>Color #{idx + 1}</span>
-                                        {addForm.data.variants.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveVariantRow(idx)}
-                                                className="text-neutral-400 hover:text-danger-500 cursor-pointer p-1"
-                                                title="Remove variation"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
-                                        <div className="sm:col-span-5">
-                                            <Input
-                                                label="Color Shade & Thickness"
-                                                required
-                                                placeholder="e.g. Cognac Brown (1.4mm)"
-                                                value={v.name}
-                                                onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-3">
-                                            <Input
-                                                label="Roll / SKU (Opt)"
-                                                placeholder="e.g. LTH-BRN-01"
-                                                value={v.sku}
-                                                onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-2">
-                                            <Input
-                                                label="Initial Sq. Ft"
-                                                type="number"
-                                                step="0.01"
-                                                placeholder="0"
-                                                value={v.initial_stock}
-                                                onChange={(e) => handleVariantChange(idx, 'initial_stock', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-2">
-                                            <Input
-                                                label="Reorder Alert"
-                                                type="number"
-                                                step="0.01"
-                                                placeholder="50"
-                                                value={v.reorder_level}
-                                                onChange={(e) => handleVariantChange(idx, 'reorder_level', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
+                        {/* Animated Switch */}
                         <button
                             type="button"
-                            onClick={handleAddVariantRow}
-                            className="w-full py-2 rounded-lg border border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-brand-50/50 text-neutral-600 hover:text-brand-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            role="switch"
+                            aria-checked={hasVariations}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setHasVariations(!hasVariations);
+                            }}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
+                                hasVariations ? 'bg-brand-600' : 'bg-neutral-300'
+                            }`}
                         >
-                            <Plus className="w-3.5 h-3.5" /> Add Another Color Shade
+                            <span
+                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                                    hasVariations ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                            />
                         </button>
                     </div>
 
-                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-200">
+                    {/* Multi-Variation Rows Section (Visible when Switch is ON) */}
+                    {hasVariations && (
+                        <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="pb-2 border-b border-neutral-200">
+                                <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                                    2. Stock Variations & Quantities
+                                </h4>
+                                <p className="text-[11px] text-neutral-500">
+                                    Each variation manages its own independent stock on hand and reorder alert threshold.
+                                </p>
+                            </div>
+
+                            <div className="space-y-3">
+                                {addForm.data.variants.map((v, idx) => (
+                                    <div key={idx} className="p-3.5 bg-neutral-0 rounded-lg border border-neutral-200 shadow-2xs space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
+                                                <Tag className="w-3.5 h-3.5 text-brand-600" /> Variation #{idx + 1}
+                                            </span>
+                                            {addForm.data.variants.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveVariantRow(idx)}
+                                                    className="text-neutral-400 hover:text-danger-600 p-1 rounded-md hover:bg-neutral-100 transition-colors"
+                                                    title="Remove variation"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                            <Input
+                                                label="Variation Name"
+                                                placeholder="e.g. Tan / Cognac (1.4mm)"
+                                                required
+                                                value={v.name}
+                                                onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
+                                                error={addForm.errors[`variants.${idx}.name`]}
+                                            />
+                                            <Input
+                                                label="SKU Code"
+                                                placeholder="e.g. LTH-COG-01"
+                                                value={v.sku}
+                                                onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
+                                                error={addForm.errors[`variants.${idx}.sku`]}
+                                            />
+                                            <Input
+                                                label="Reorder Alert Level"
+                                                type="number"
+                                                step="0.001"
+                                                required
+                                                value={v.reorder_level}
+                                                onChange={(e) => handleVariantChange(idx, 'reorder_level', e.target.value)}
+                                                error={addForm.errors[`variants.${idx}.reorder_level`]}
+                                            />
+                                            <Input
+                                                label={`Initial Stock (${addForm.data.base_unit})`}
+                                                type="number"
+                                                step="0.001"
+                                                required
+                                                value={v.initial_stock}
+                                                onChange={(e) => handleVariantChange(idx, 'initial_stock', e.target.value)}
+                                                error={addForm.errors[`variants.${idx}.initial_stock`]}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Bottom Add Variation Dashed Button */}
+                            <button
+                                type="button"
+                                onClick={handleAddVariantRow}
+                                className="w-full mt-3 py-2.5 px-4 rounded-lg border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-brand-50/50 text-neutral-600 hover:text-brand-700 text-xs font-semibold flex items-center justify-center gap-2 transition-all group shadow-2xs focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                            >
+                                <div className="w-5 h-5 rounded-full bg-neutral-100 group-hover:bg-brand-100 flex items-center justify-center transition-colors">
+                                    <Plus className="w-3.5 h-3.5 text-neutral-600 group-hover:text-brand-600" />
+                                </div>
+                                <span>Add Another Variation</span>
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="pt-4 flex justify-end gap-3 border-t border-neutral-200">
                         <Button type="button" variant="outline" onClick={handleCloseDrawer}>
                             Cancel
                         </Button>
                         <Button type="submit" variant="primary" isLoading={addForm.processing}>
-                            Save Leather Hide
+                            {hasVariations ? 'Save Leather & Variations' : 'Save Leather Hide'}
                         </Button>
                     </div>
                 </form>
