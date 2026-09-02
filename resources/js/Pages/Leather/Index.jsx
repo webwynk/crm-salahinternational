@@ -1,55 +1,46 @@
 import React, { useState } from 'react';
-import { Head, useForm, router, Link } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
+import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
+import Badge from '@/Components/ui/Badge';
+import Drawer from '@/Components/ui/Drawer';
+import Modal from '@/Components/ui/Modal';
 import Input from '@/Components/ui/Input';
 import Select from '@/Components/ui/Select';
-import Badge from '@/Components/ui/Badge';
-import Card from '@/Components/ui/Card';
-import Drawer from '@/Components/ui/Drawer';
 import EmptyState from '@/Components/ui/EmptyState';
-import FilterChips from '@/Components/ui/FilterChips';
 import {
     Plus,
-    Search,
-    RotateCcw,
-    Layers,
+    RefreshCw,
+    AlertTriangle,
+    Trash2,
     ChevronDown,
     ChevronRight,
+    Search,
+    Layers,
     Tag,
-    Trash2,
-    SlidersHorizontal,
-    Boxes,
-    AlertTriangle,
-    ShieldCheck,
     Scissors,
-    Sparkles,
-    CheckCircle2,
-    Gem,
+    PlusCircle,
     X,
 } from 'lucide-react';
 import { LEATHER_UNITS } from '@/constants/leatherUnits';
 
-export default function Index({
-    materials,
-    categories = [],
-    filters = {},
-    kpis = { total_sq_ft: 0, total_variations: 0, total_tannages: 0, low_stock_count: 0 },
-}) {
-    // Search & Filter State
+export default function Index({ materials, categories = [], filters = {} }) {
     const [search, setSearch] = useState(filters.search || '');
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
+
+    // UI Drawer and Modal States
+    const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
+    const [addVariantMaterial, setAddVariantMaterial] = useState(null);
+    const [restockVariant, setRestockVariant] = useState(null);
+    const [deleteMaterial, setDeleteMaterial] = useState(null);
+    const [deleteVariant, setDeleteVariant] = useState(null);
+    const [hasVariations, setHasVariations] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [expandedRows, setExpandedRows] = useState({});
 
-    // Drawers State
-    const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
-    const [hasVariations, setHasVariations] = useState(false);
-
-    const [restockVariant, setRestockVariant] = useState(null);
-    const [editMaterial, setEditMaterial] = useState(null);
-
-    // Add Leather Form
+    // Initial Form State for New Leather Hide (Supports Simple & Multi-Variant)
     const addForm = useForm({
         name: '',
         category: '',
@@ -61,24 +52,23 @@ export default function Index({
         ],
     });
 
-    // Restock Leather Form
+    // Form for Adding a New Variant to Existing Leather
+    const newVariantForm = useForm({
+        name: '',
+        sku: '',
+        reorder_level: '50',
+        initial_stock: '0',
+    });
+
+    // Form for Restocking a Specific Variant
     const restockForm = useForm({
         add_quantity: '',
         note: '',
     });
 
-    // Edit Leather Master Form
-    const editForm = useForm({
-        name: '',
-        category: '',
-        base_unit: 'sq_ft',
-        reorder_level: '50',
-    });
-
-    // Search Trigger
-    const handleSearch = (e) => {
-        e.preventDefault();
-        router.get(route('leather.index'), { ...filters, search, page: 1 }, { preserveState: true, replace: true });
+    const handleSearch = (val) => {
+        setSearch(val);
+        router.get(route('leather.index'), { ...filters, search: val, page: 1 }, { preserveState: true, replace: true });
     };
 
     const handleCategoryFilter = (cat) => {
@@ -143,6 +133,18 @@ export default function Index({
         });
     };
 
+    const handleCreateVariantSubmit = (e) => {
+        e.preventDefault();
+        if (!addVariantMaterial) return;
+
+        newVariantForm.post(route('leather.variants.store', addVariantMaterial.id), {
+            onSuccess: () => {
+                newVariantForm.reset();
+                setAddVariantMaterial(null);
+            },
+        });
+    };
+
     const handleRestockSubmit = (e) => {
         e.preventDefault();
         if (!restockVariant) return;
@@ -155,438 +157,335 @@ export default function Index({
         });
     };
 
-    const handleOpenEdit = (material) => {
-        setEditMaterial(material);
-        editForm.setData({
-            name: material.name,
-            category: material.category,
-            base_unit: material.base_unit || 'sq_ft',
-            reorder_level: material.reorder_level || '50',
-        });
-    };
+    const handleDeleteVariantConfirm = () => {
+        if (!deleteVariant) return;
+        setIsDeleting(true);
 
-    const handleEditSubmit = (e) => {
-        e.preventDefault();
-        if (!editMaterial) return;
-
-        editForm.put(route('leather.update', editMaterial.id), {
+        router.delete(route('leather.variants.destroy', deleteVariant.id), {
             onSuccess: () => {
-                setEditMaterial(null);
-                editForm.reset();
+                setDeleteVariant(null);
+                setIsDeleting(false);
+            },
+            onError: () => {
+                setIsDeleting(false);
             },
         });
     };
 
-    const handleDeleteVariant = (variant) => {
-        if (confirm(`Are you sure you want to delete the variation '${variant.name}'? This action cannot be undone.`)) {
-            router.delete(route('leather.variants.destroy', variant.id));
-        }
+    const handleDeleteMaterialConfirm = () => {
+        if (!deleteMaterial) return;
+        setIsDeleting(true);
+
+        router.delete(route('leather.destroy', deleteMaterial.id), {
+            onSuccess: () => {
+                setDeleteMaterial(null);
+                setIsDeleting(false);
+            },
+            onError: () => {
+                setIsDeleting(false);
+            },
+        });
     };
 
-    const handleDeleteMaterial = (material) => {
-        if (confirm(`Are you sure you want to delete the entire leather type '${material.name}' and all its variations? This cannot be undone.`)) {
-            router.delete(route('leather.destroy', material.id));
-        }
-    };
+    const items = materials?.data || [];
+    const totalMaterialsCount = materials?.total ?? items.length;
 
     return (
         <AppLayout>
-            <Head title="Leather Hides & Stock Management — Leather CRM" />
+            <Head title="Leather & Hide Inventory - Leather CRM" />
 
             <PageHeader
-                title="Leather Hides & Stock Management"
-                description="Manage raw leather hides, tannage types, color variations, and stock balances in Sq. Ft"
+                title="Leather Hide Master"
+                description="Manage leather stock, multi-variation hide grades, and replenish inventory balances"
                 action={
-                    <Button variant="primary" size="sm" onClick={() => setIsAddDrawerOpen(true)}>
+                    <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
                         <Plus className="w-4 h-4 mr-1.5" /> Add Leather Hide
                     </Button>
                 }
             />
 
-            <div className="space-y-6">
-
-                {/* 1. LEATHER METRICS KPI CARDS */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="border-neutral-200/90 shadow-2xs hover:border-brand-300 transition-all">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                                    Total Leather Balance
-                                </p>
-                                <div className="flex items-baseline gap-1.5">
-                                    <span className="text-2xl font-extrabold text-brand-900 font-sans tabular-nums">
-                                        {kpis.total_sq_ft.toLocaleString()}
-                                    </span>
-                                    <span className="text-xs font-bold text-brand-700 uppercase">
-                                        Sq. Ft
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="p-2.5 rounded-xl bg-brand-50 text-brand-700 border border-brand-200/80">
-                                <Scissors className="w-5 h-5" />
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card className="border-neutral-200/90 shadow-2xs hover:border-brand-300 transition-all">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                                    Color Variations
-                                </p>
-                                <div className="flex items-baseline gap-1.5">
-                                    <span className="text-2xl font-extrabold text-neutral-900 font-sans tabular-nums">
-                                        {kpis.total_variations}
-                                    </span>
-                                    <span className="text-xs font-medium text-neutral-500">
-                                        Hide Shades
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="p-2.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/80">
-                                <Layers className="w-5 h-5" />
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card className="border-neutral-200/90 shadow-2xs hover:border-brand-300 transition-all">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                                    Master Tannages
-                                </p>
-                                <div className="flex items-baseline gap-1.5">
-                                    <span className="text-2xl font-extrabold text-neutral-900 font-sans tabular-nums">
-                                        {kpis.total_tannages}
-                                    </span>
-                                    <span className="text-xs font-medium text-neutral-500">
-                                        Tanning Types
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/80">
-                                <Gem className="w-5 h-5" />
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card className="border-neutral-200/90 shadow-2xs hover:border-brand-300 transition-all">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                                    Low Stock Alerts
-                                </p>
-                                <div className="flex items-baseline gap-1.5">
-                                    <span className={`text-2xl font-extrabold font-sans tabular-nums ${kpis.low_stock_count > 0 ? 'text-danger-700' : 'text-emerald-700'}`}>
-                                        {kpis.low_stock_count}
-                                    </span>
-                                    <span className="text-xs font-medium text-neutral-500">
-                                        Hides Below Buffer
-                                    </span>
-                                </div>
-                            </div>
-                            <div className={`p-2.5 rounded-xl border ${kpis.low_stock_count > 0 ? 'bg-danger-50 text-danger-700 border-danger-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                                {kpis.low_stock_count > 0 ? <AlertTriangle className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
-                            </div>
-                        </div>
-                    </Card>
+            {/* Filter Bar & Search */}
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
+                <div className="relative w-full sm:w-80">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    <input
+                        type="text"
+                        placeholder="Search leather by name, category, or SKU..."
+                        value={search}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 text-xs border border-neutral-300 rounded-lg focus:ring-1 focus:ring-brand-500 focus:border-brand-500 bg-neutral-0 placeholder-neutral-400"
+                    />
                 </div>
 
-                {/* 2. SEARCH & TANNAGE FILTER CHIPS */}
-                <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <form onSubmit={handleSearch} className="relative w-full sm:w-80">
-                            <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search leather hide name, color shade, or SKU..."
-                                className="w-full pl-9 pr-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 shadow-2xs"
-                            />
-                        </form>
+                <FilterChips
+                    options={categories}
+                    value={selectedCategory}
+                    onChange={handleCategoryFilter}
+                    allLabel="All Categories"
+                />
+            </div>
 
-                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                            <span className="text-xs text-neutral-500">
-                                Showing <strong>{materials.total || 0}</strong> Leather Types
-                            </span>
-                        </div>
-                    </div>
+            {/* Main Materials Table */}
+            {items.length === 0 ? (
+                <EmptyState
+                    icon={Scissors}
+                    title="No leather stock found"
+                    description={
+                        search || selectedCategory
+                            ? 'No leather hides match your active search or category filters.'
+                            : 'Get started by creating your first leather hide master and stock variations.'
+                    }
+                    action={
+                        <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
+                            <Plus className="w-4 h-4 mr-1.5" /> Add Leather Hide
+                        </Button>
+                    }
+                />
+            ) : (
+                <div className="bg-neutral-0 rounded-xl border border-neutral-200/80 shadow-xs overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                            <thead className="bg-neutral-50/80 border-b border-neutral-200 text-neutral-600 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th className="px-4 py-3">Leather & Specs</th>
+                                    <th className="px-4 py-3">Variations</th>
+                                    <th className="px-4 py-3">Total Stock Balance</th>
+                                    <th className="px-4 py-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-neutral-200">
+                                {items.map((material) => {
+                                    const variants = material.variants || [];
+                                    const variantCount = variants.length;
+                                    const isExpanded = Boolean(expandedRows[material.id]);
 
-                    {/* Tannage Filter Pills */}
-                    {categories.length > 0 && (
-                        <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                            <span className="text-xs font-semibold text-neutral-500 mr-1 flex items-center gap-1">
-                                <Tag className="w-3 h-3" /> Tannage:
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => handleCategoryFilter('')}
-                                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
-                                    !selectedCategory
-                                        ? 'bg-brand-50 text-brand-800 border border-brand-200 shadow-2xs'
-                                        : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                                }`}
-                            >
-                                All Tannages
-                            </button>
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat}
-                                    type="button"
-                                    onClick={() => handleCategoryFilter(cat)}
-                                    className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
-                                        selectedCategory === cat
-                                            ? 'bg-brand-50 text-brand-800 border border-brand-200 shadow-2xs'
-                                            : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                                    }`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                                    const totalStock = variants.reduce(
+                                        (sum, v) => sum + parseFloat(v.inventory?.quantity_on_hand || 0),
+                                        0
+                                    );
 
-                {/* 3. MULTI-VARIATION LEATHER TABLE */}
-                <Card className="p-0 overflow-hidden border-neutral-200 shadow-2xs">
-                    {materials.data.length === 0 ? (
-                        <div className="py-12">
-                            <EmptyState
-                                title="No leather hides found"
-                                description="Add full-grain, vegetable tanned, pull-up, or suede leather hides to manage Sq. Ft cutting stock."
-                                actionLabel="Add Leather Hide"
-                                onAction={() => setIsAddDrawerOpen(true)}
-                            />
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-neutral-50 border-b border-neutral-200 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                                    <tr>
-                                        <th className="w-10 px-3 py-3 text-center"></th>
-                                        <th className="px-4 py-3">Leather Master & Tannage</th>
-                                        <th className="px-4 py-3">Color Variations</th>
-                                        <th className="px-4 py-3">Total Balance (Sq. Ft)</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-neutral-200 text-sm text-neutral-800">
-                                    {materials.data.map((material) => {
-                                        const variants = material.variants || [];
-                                        const variantCount = variants.length;
-                                        const isExpanded = Boolean(expandedRows[material.id]);
+                                    const hasLowStockVariant = variants.some(
+                                        (v) =>
+                                            parseFloat(v.inventory?.quantity_on_hand || 0) <=
+                                            parseFloat(v.reorder_level || 0)
+                                    );
 
-                                        const totalStock = variants.reduce((sum, v) => {
-                                            return sum + parseFloat(v.inventory?.quantity_on_hand || 0);
-                                        }, 0);
-
-                                        const hasLowStockVariant = variants.some((v) => {
-                                            const stock = parseFloat(v.inventory?.quantity_on_hand || 0);
-                                            const reorder = parseFloat(v.reorder_level || 0);
-                                            return stock <= reorder;
-                                        });
-
-                                        return (
-                                            <React.Fragment key={material.id}>
-                                                {/* Parent Leather Row */}
-                                                <tr className="hover:bg-neutral-50/80 transition-colors group">
-                                                    <td className="px-3 py-3.5 text-center">
+                                    return (
+                                        <React.Fragment key={material.id}>
+                                            <tr className="hover:bg-neutral-50/70 transition-colors">
+                                                <td className="px-4 py-3.5">
+                                                    <div className="flex items-center gap-3">
                                                         <button
                                                             type="button"
                                                             onClick={() => toggleRow(material.id)}
-                                                            className="p-1 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200/60 transition-colors cursor-pointer"
-                                                            title={isExpanded ? 'Collapse Shades' : 'Expand Shades'}
+                                                            className="p-1 rounded text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
                                                         >
                                                             {isExpanded ? (
-                                                                <ChevronDown className="w-4 h-4 text-brand-600" strokeWidth={2.5} />
+                                                                <ChevronDown className="w-4 h-4 text-brand-600" />
                                                             ) : (
-                                                                <ChevronRight className="w-4 h-4" strokeWidth={2} />
+                                                                <ChevronRight className="w-4 h-4" />
                                                             )}
                                                         </button>
-                                                    </td>
-                                                    <td className="px-4 py-3.5">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-200/70 flex items-center justify-center text-brand-700 shrink-0 shadow-2xs">
-                                                                <Scissors className="w-4 h-4" />
+
+                                                        <div className="p-2.5 rounded-full bg-brand-50 border border-brand-200/80 text-brand-700 shrink-0">
+                                                            <Scissors className="w-4 h-4" />
+                                                        </div>
+
+                                                        <div>
+                                                            <div className="font-bold text-neutral-900 text-sm">
+                                                                {material.name}
                                                             </div>
-                                                            <div>
-                                                                <span className="font-bold text-neutral-900 block leading-tight">
-                                                                    {material.name}
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <Badge variant="neutral" size="sm">
+                                                                    {material.category}
+                                                                </Badge>
+                                                                <span className="text-[11px] text-neutral-500 font-medium">
+                                                                    Base Unit: <strong className="text-neutral-700">{material.base_unit}</strong>
                                                                 </span>
-                                                                <div className="flex items-center gap-2 mt-1">
-                                                                    <Badge variant="brand" size="sm">
-                                                                        {material.category}
-                                                                    </Badge>
-                                                                    <span className="text-[11px] text-neutral-400 font-sans">
-                                                                        Unit: <strong className="text-neutral-700">{material.base_unit}</strong>
-                                                                    </span>
-                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </td>
-                                                    <td className="px-4 py-3.5">
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3.5">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => toggleRow(material.id)}
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-colors cursor-pointer"
+                                                    >
+                                                        <Layers className="w-3.5 h-3.5 text-neutral-500" />
+                                                        <span>{variantCount} {variantCount === 1 ? 'Variation' : 'Variations'}</span>
+                                                    </button>
+                                                </td>
+                                                <td className="px-4 py-3.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`font-bold text-sm font-sans tabular-nums ${hasLowStockVariant ? 'text-danger-700' : 'text-neutral-900'}`}>
+                                                            {totalStock.toLocaleString()} {material.base_unit}
+                                                        </span>
+                                                        {hasLowStockVariant && (
+                                                            <Badge variant="danger" size="sm">
+                                                                <AlertTriangle className="w-3 h-3 mr-1" /> Low Stock
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-[11px] text-neutral-400">Combined balance across variants</span>
+                                                </td>
+                                                <td className="px-4 py-3.5 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setAddVariantMaterial(material)}
+                                                            className="text-xs"
+                                                        >
+                                                            <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Variation
+                                                        </Button>
                                                         <button
                                                             type="button"
-                                                            onClick={() => toggleRow(material.id)}
-                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-colors cursor-pointer"
+                                                            className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-neutral-200 bg-neutral-0 text-neutral-400 hover:text-danger-600 hover:bg-danger-50 hover:border-danger-300 transition-all shadow-xs cursor-pointer"
+                                                            onClick={() => setDeleteMaterial(material)}
+                                                            title="Delete Entire Leather Type"
                                                         >
-                                                            <Layers className="w-3.5 h-3.5 text-neutral-500" />
-                                                            <span>{variantCount} {variantCount === 1 ? 'Color/Shade' : 'Colors/Shades'}</span>
+                                                            <Trash2 className="w-4 h-4 text-danger-500" />
                                                         </button>
-                                                    </td>
-                                                    <td className="px-4 py-3.5">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={`font-bold text-sm font-sans tabular-nums ${hasLowStockVariant ? 'text-danger-700' : 'text-neutral-900'}`}>
-                                                                {totalStock.toLocaleString()} {material.base_unit}
-                                                            </span>
-                                                            {hasLowStockVariant && (
-                                                                <Badge variant="danger" size="sm">
-                                                                    <AlertTriangle className="w-3 h-3 mr-1" /> Low Stock
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                        <span className="text-[11px] text-neutral-400">Total hides balance</span>
-                                                    </td>
-                                                    <td className="px-4 py-3.5 text-right">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handleOpenEdit(material)}
-                                                                className="text-xs"
-                                                            >
-                                                                Edit
-                                                            </Button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleDeleteMaterial(material)}
-                                                                className="p-1.5 text-neutral-400 hover:text-danger-600 hover:bg-danger-50 rounded transition-colors cursor-pointer"
-                                                                title="Delete Leather Type"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            {/* Expandable Variations Ledger Sub-Table */}
+                                            {isExpanded && (
+                                                <tr className="bg-neutral-50/60 border-y border-neutral-200">
+                                                    <td colSpan={5} className="px-6 py-4">
+                                                        <div className="bg-neutral-0 rounded-lg border border-neutral-200/80 shadow-xs overflow-hidden">
+                                                            <div className="px-4 py-2.5 bg-neutral-100/70 border-b border-neutral-200 flex items-center justify-between">
+                                                                <span className="text-xs font-bold text-neutral-700 uppercase tracking-wider flex items-center gap-1.5">
+                                                                    <Layers className="w-3.5 h-3.5 text-brand-600" />
+                                                                    Variations of {material.name} ({variantCount})
+                                                                </span>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => setAddVariantMaterial(material)}
+                                                                    className="text-xs text-brand-600 hover:text-brand-700"
+                                                                >
+                                                                    <Plus className="w-3.5 h-3.5 mr-1" /> Add Variation
+                                                                </Button>
+                                                            </div>
+
+                                                            <table className="w-full text-left text-xs border-collapse">
+                                                                <thead className="bg-neutral-50/80 border-b border-neutral-200 text-neutral-500 font-semibold uppercase tracking-wider">
+                                                                    <tr>
+                                                                        <th className="px-4 py-2">Variation / Color / Size</th>
+                                                                        <th className="px-4 py-2">SKU Code</th>
+                                                                        <th className="px-4 py-2">Stock On Hand</th>
+                                                                        <th className="px-4 py-2">Reorder Level</th>
+                                                                        <th className="px-4 py-2 text-right">Actions</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-neutral-100 text-neutral-800">
+                                                                    {variants.map((variant) => {
+                                                                        const stock = parseFloat(variant.inventory?.quantity_on_hand || 0);
+                                                                        const reorder = parseFloat(variant.reorder_level || 0);
+                                                                        const isLow = stock <= reorder;
+
+                                                                        return (
+                                                                            <tr key={variant.id} className="hover:bg-neutral-50/80 transition-colors">
+                                                                                <td className="px-4 py-2.5">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <Tag className="w-3.5 h-3.5 text-brand-500 shrink-0" />
+                                                                                        <strong className="text-neutral-900 text-xs">
+                                                                                            {variant.name}
+                                                                                        </strong>
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="px-4 py-2.5 font-sans text-[11px] text-neutral-500 font-medium">
+                                                                                    {variant.sku || '—'}
+                                                                                </td>
+                                                                                <td className="px-4 py-2.5">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className={`font-bold tabular-nums font-sans ${isLow ? 'text-danger-700' : 'text-neutral-900'}`}>
+                                                                                            {stock.toLocaleString()} {material.base_unit}
+                                                                                        </span>
+                                                                                        {isLow && (
+                                                                                            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-danger-100 text-danger-700 border border-danger-200">
+                                                                                                Low Stock
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="px-4 py-2.5 tabular-nums text-neutral-500 font-sans">
+                                                                                    {reorder.toLocaleString()} {material.base_unit}
+                                                                                </td>
+                                                                                <td className="px-4 py-2.5 text-right">
+                                                                                    <div className="flex items-center justify-end gap-1.5">
+                                                                                        <Button
+                                                                                            variant="primary"
+                                                                                            size="sm"
+                                                                                            onClick={() => {
+                                                                                                setRestockVariant({
+                                                                                                    ...variant,
+                                                                                                    materialName: material.name,
+                                                                                                    base_unit: material.base_unit,
+                                                                                                });
+                                                                                            }}
+                                                                                            className="h-7 text-xs px-2.5"
+                                                                                        >
+                                                                                            <RefreshCw className="w-3 h-3 mr-1" /> Restock
+                                                                                        </Button>
+                                                                                        {variantCount > 1 && (
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => setDeleteVariant({
+                                                                                                    ...variant,
+                                                                                                    materialName: material.name,
+                                                                                                })}
+                                                                                                className="p-1 rounded text-neutral-400 hover:text-danger-600 hover:bg-danger-50 transition-colors cursor-pointer"
+                                                                                                title="Delete this variation"
+                                                                                            >
+                                                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                                                            </button>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
                                                         </div>
                                                     </td>
                                                 </tr>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
-                                                {/* Expanded Child Variations / Colors */}
-                                                {isExpanded && (
-                                                    <tr className="bg-neutral-50/50">
-                                                        <td colSpan={5} className="p-0 border-b border-neutral-200">
-                                                            <div className="p-4 pl-12 space-y-2 bg-neutral-50/70 border-y border-neutral-200/80">
-                                                                <div className="flex items-center justify-between mb-2">
-                                                                    <h5 className="text-xs font-bold text-neutral-600 uppercase tracking-wider flex items-center gap-1.5">
-                                                                        <Layers className="w-3.5 h-3.5 text-brand-600" />
-                                                                        Available Colors, Thicknesses & Hide Rolls for &ldquo;{material.name}&rdquo;
-                                                                    </h5>
-                                                                </div>
-
-                                                                <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden shadow-2xs">
-                                                                    <table className="w-full text-left text-xs border-collapse">
-                                                                        <thead className="bg-neutral-100/70 text-neutral-500 font-semibold uppercase tracking-wider border-b border-neutral-200">
-                                                                            <tr>
-                                                                                <th className="px-4 py-2">Color / Hide Shade</th>
-                                                                                <th className="px-4 py-2">Roll / SKU</th>
-                                                                                <th className="px-4 py-2">Balance On Hand</th>
-                                                                                <th className="px-4 py-2">Reorder Buffer</th>
-                                                                                <th className="px-4 py-2 text-right">Actions</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody className="divide-y divide-neutral-100">
-                                                                            {variants.map((variant) => {
-                                                                                const stockQty = parseFloat(variant.inventory?.quantity_on_hand || 0);
-                                                                                const reorderQty = parseFloat(variant.reorder_level || 0);
-                                                                                const isLow = stockQty <= reorderQty;
-
-                                                                                return (
-                                                                                    <tr key={variant.id} className="hover:bg-neutral-50/60 transition-colors">
-                                                                                        <td className="px-4 py-2.5 font-bold text-neutral-900">
-                                                                                            <div className="flex items-center gap-1.5">
-                                                                                                <Tag className="w-3 h-3 text-brand-500" />
-                                                                                                <span>{variant.name}</span>
-                                                                                            </div>
-                                                                                        </td>
-                                                                                        <td className="px-4 py-2.5 text-neutral-500 font-sans">
-                                                                                            {variant.sku || '—'}
-                                                                                        </td>
-                                                                                        <td className="px-4 py-2.5">
-                                                                                            <div className="flex items-center gap-2">
-                                                                                                <span className={`font-bold font-sans tabular-nums ${isLow ? 'text-danger-700' : 'text-neutral-800'}`}>
-                                                                                                    {stockQty.toLocaleString()} {material.base_unit}
-                                                                                                </span>
-                                                                                                {isLow && (
-                                                                                                    <span className="px-1.5 py-0.2 text-[10px] font-bold bg-danger-50 text-danger-700 border border-danger-200 rounded">
-                                                                                                        Low Stock
-                                                                                                    </span>
-                                                                                                )}
-                                                                                            </div>
-                                                                                        </td>
-                                                                                        <td className="px-4 py-2.5 text-neutral-500 font-sans tabular-nums">
-                                                                                            {reorderQty.toLocaleString()} {material.base_unit}
-                                                                                        </td>
-                                                                                        <td className="px-4 py-2.5 text-right">
-                                                                                            <div className="flex items-center justify-end gap-2">
-                                                                                                <Button
-                                                                                                    type="button"
-                                                                                                    variant="secondary"
-                                                                                                    size="xs"
-                                                                                                    onClick={() => setRestockVariant(variant)}
-                                                                                                >
-                                                                                                    <RotateCcw className="w-3 h-3 mr-1" /> Restock
-                                                                                                </Button>
-                                                                                                {variants.length > 1 && (
-                                                                                                    <button
-                                                                                                        type="button"
-                                                                                                        onClick={() => handleDeleteVariant(variant)}
-                                                                                                        className="p-1 text-neutral-400 hover:text-danger-600 rounded transition-colors cursor-pointer"
-                                                                                                        title="Delete Color Variation"
-                                                                                                    >
-                                                                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                                                                    </button>
-                                                                                                )}
-                                                                                            </div>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                );
-                                                                            })}
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </React.Fragment>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </Card>
-            </div>
-
-            {/* 4. ADD LEATHER HIDE DRAWER WITH MULTI-VARIANT BUILDER */}
+            {/* 1. ADD NEW LEATHER HIDE DRAWER */}
             <Drawer
                 isOpen={isAddDrawerOpen}
                 onClose={handleCloseDrawer}
-                title={hasVariations ? "Add Leather Hide & Multi-Variations" : "Add New Leather Hide"}
-                subtitle={hasVariations ? "Create a leather master and define its stock variations (colors, thicknesses, finishes)" : "Quickly register a standard leather hide and initial inventory"}
-                size="xl"
+                title="Add New Leather Hide"
+                subtitle="Create a new leather hide master specification with optional variations"
+                size="lg"
             >
-                <form onSubmit={handleAddSubmit} className="space-y-5">
-                    {/* General Leather Information */}
-                    <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-3.5">
-                        <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
-                            1. Leather Master Specifications
-                        </h4>
+                <form onSubmit={handleAddSubmit} className="space-y-6">
+                    {/* 1. Master Specifications Section */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 pb-2 border-b border-neutral-200">
+                            <Scissors className="w-4 h-4 text-brand-600" />
+                            <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                                1. Leather Master Specifications
+                            </h4>
+                        </div>
 
                         <Input
                             label="Leather Hide Name"
                             required
-                            placeholder="e.g. Full-Grain Calfskin Leather, Tuscany Veg-Tan"
+                            placeholder="e.g. Full-Grain Calfskin Leather, Cow Hunter, Nappa"
                             value={addForm.data.name}
                             onChange={(e) => addForm.setData('name', e.target.value)}
                             error={addForm.errors.name}
@@ -650,123 +549,120 @@ export default function Index({
                                     value={addForm.data.initial_stock}
                                     onChange={(e) => addForm.setData('initial_stock', e.target.value)}
                                     error={addForm.errors.initial_stock}
-                                    helperText="Initial inventory quantity on hand"
+                                    helperText="Immediate starting warehouse balance"
                                 />
                             </div>
                         )}
                     </div>
 
-                    {/* Multi-Variation Toggle Card */}
-                    <div 
-                        className={`p-3.5 rounded-xl border transition-all flex items-center justify-between gap-4 cursor-pointer select-none ${
-                            hasVariations 
-                                ? 'bg-brand-50/60 border-brand-300 shadow-2xs' 
-                                : 'bg-neutral-50/80 hover:bg-neutral-50 border-neutral-200'
-                        }`}
-                        onClick={() => setHasVariations(!hasVariations)}
-                    >
-                        <div className="space-y-0.5 min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                                <Tag className={`w-4 h-4 transition-colors ${hasVariations ? 'text-brand-600' : 'text-neutral-400'}`} />
-                                <span className="text-xs font-bold text-neutral-800">
+                    {/* Interactive Switch Card for Multi-Variation Stock Tracking */}
+                    <div className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50/60 hover:bg-neutral-50 transition-colors">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="space-y-0.5">
+                                <span className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                                    <Layers className="w-3.5 h-3.5 text-brand-600" />
                                     Multi-Variation Stock Tracking
                                 </span>
-                                {hasVariations && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-brand-100 text-brand-700 rounded border border-brand-200">
-                                        Active ({addForm.data.variants.length})
-                                    </span>
-                                )}
+                                <p className="text-[11px] text-neutral-500">
+                                    Enable if this leather hide is stocked in multiple colors, thicknesses, or grades.
+                                </p>
                             </div>
-                            <p className="text-[11px] text-neutral-500">
-                                Enable if this leather hide comes in multiple colors, sizes, or finishes (e.g. Black/Tan or 6mm/8mm).
-                            </p>
-                        </div>
-
-                        {/* Animated Switch */}
-                        <button
-                            type="button"
-                            role="switch"
-                            aria-checked={hasVariations}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setHasVariations(!hasVariations);
-                            }}
-                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-                                hasVariations ? 'bg-brand-600' : 'bg-neutral-300'
-                            }`}
-                        >
-                            <span
-                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                                    hasVariations ? 'translate-x-5' : 'translate-x-0'
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={hasVariations}
+                                onClick={() => setHasVariations(!hasVariations)}
+                                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                                    hasVariations ? 'bg-brand-600' : 'bg-neutral-300'
                                 }`}
-                            />
-                        </button>
+                            >
+                                <span
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                                        hasVariations ? 'translate-x-5' : 'translate-x-0'
+                                    }`}
+                                />
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Multi-Variation Rows Section (Visible when Switch is ON) */}
+                    {/* 2. Stock Variations & Quantities Section */}
                     {hasVariations && (
-                        <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                            <div className="pb-2 border-b border-neutral-200">
-                                <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
-                                    2. Stock Variations & Quantities
-                                </h4>
-                                <p className="text-[11px] text-neutral-500">
-                                    Each variation manages its own independent stock on hand and reorder alert threshold.
-                                </p>
+                        <div className="space-y-3 pt-2">
+                            <div className="flex items-center justify-between pb-1 border-b border-neutral-200">
+                                <div className="flex items-center gap-2">
+                                    <Layers className="w-4 h-4 text-brand-600" />
+                                    <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                                        2. Stock Variations & Quantities
+                                    </h4>
+                                </div>
+                                <span className="text-[11px] font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md">
+                                    {addForm.data.variants.length} {addForm.data.variants.length === 1 ? 'Variation' : 'Variations'}
+                                </span>
                             </div>
 
                             <div className="space-y-3">
                                 {addForm.data.variants.map((v, idx) => (
-                                    <div key={idx} className="p-3.5 bg-neutral-0 rounded-lg border border-neutral-200 shadow-2xs space-y-3">
+                                    <div
+                                        key={idx}
+                                        className="p-3.5 rounded-lg border border-neutral-200/90 bg-neutral-0 shadow-2xs space-y-3 relative group transition-all hover:border-neutral-300"
+                                    >
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-neutral-800 flex items-center gap-1.5">
-                                                <Tag className="w-3.5 h-3.5 text-brand-600" /> Variation #{idx + 1}
+                                            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span className="w-4 h-4 rounded-full bg-neutral-100 text-neutral-600 flex items-center justify-center text-[10px] font-bold">
+                                                    {idx + 1}
+                                                </span>
+                                                Variation #{idx + 1}
                                             </span>
                                             {addForm.data.variants.length > 1 && (
                                                 <button
                                                     type="button"
                                                     onClick={() => handleRemoveVariantRow(idx)}
-                                                    className="text-neutral-400 hover:text-danger-600 p-1 rounded-md hover:bg-neutral-100 transition-colors"
-                                                    title="Remove variation"
+                                                    className="p-1 rounded text-neutral-400 hover:text-danger-600 hover:bg-danger-50 transition-colors"
+                                                    title="Remove this variation"
                                                 >
-                                                    <X className="w-4 h-4" />
+                                                    <X className="w-3.5 h-3.5" />
                                                 </button>
                                             )}
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <Input
-                                                label="Variation Name"
-                                                placeholder="e.g. Tan / Cognac (1.4mm)"
+                                                label="Variation Name (e.g. Color / Grade / Thickness)"
                                                 required
+                                                placeholder="e.g. Midnight Black (1.6mm), Olive Green"
                                                 value={v.name}
                                                 onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
                                                 error={addForm.errors[`variants.${idx}.name`]}
                                             />
                                             <Input
-                                                label="SKU Code"
-                                                placeholder="e.g. LTH-COG-01"
+                                                label="SKU Code (Optional)"
+                                                placeholder="e.g. LTH-BLK-16"
                                                 value={v.sku}
                                                 onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)}
                                                 error={addForm.errors[`variants.${idx}.sku`]}
                                             />
-                                            <Input
-                                                label="Reorder Alert Level"
-                                                type="number"
-                                                step="0.001"
-                                                required
-                                                value={v.reorder_level}
-                                                onChange={(e) => handleVariantChange(idx, 'reorder_level', e.target.value)}
-                                                error={addForm.errors[`variants.${idx}.reorder_level`]}
-                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <Input
                                                 label={`Initial Stock (${addForm.data.base_unit})`}
                                                 type="number"
                                                 step="0.001"
                                                 required
+                                                placeholder="0"
                                                 value={v.initial_stock}
                                                 onChange={(e) => handleVariantChange(idx, 'initial_stock', e.target.value)}
                                                 error={addForm.errors[`variants.${idx}.initial_stock`]}
+                                            />
+                                            <Input
+                                                label={`Reorder Level (${addForm.data.base_unit})`}
+                                                type="number"
+                                                step="0.001"
+                                                required
+                                                placeholder="50"
+                                                value={v.reorder_level}
+                                                onChange={(e) => handleVariantChange(idx, 'reorder_level', e.target.value)}
+                                                error={addForm.errors[`variants.${idx}.reorder_level`]}
                                             />
                                         </div>
                                     </div>
@@ -798,120 +694,194 @@ export default function Index({
                 </form>
             </Drawer>
 
-            {/* 5. RESTOCK LEATHER DRAWER */}
-            <Drawer
+            {/* 2. ADD VARIANT TO EXISTING LEATHER MODAL */}
+            <Modal
+                isOpen={Boolean(addVariantMaterial)}
+                onClose={() => setAddVariantMaterial(null)}
+                title={`Add Variation for ${addVariantMaterial?.name}`}
+            >
+                <form onSubmit={handleCreateVariantSubmit} className="space-y-4 text-left">
+                    <Input
+                        label="Variation Name (e.g. Color, Grade, Thickness)"
+                        required
+                        placeholder="e.g. Midnight Black (1.6mm), Olive Green, Tan"
+                        value={newVariantForm.data.name}
+                        onChange={(e) => newVariantForm.setData('name', e.target.value)}
+                        error={newVariantForm.errors.name}
+                        autoFocus
+                    />
+
+                    <Input
+                        label="SKU / Item Code (Optional)"
+                        placeholder="e.g. LTH-BLK-04"
+                        value={newVariantForm.data.sku}
+                        onChange={(e) => newVariantForm.setData('sku', e.target.value)}
+                        error={newVariantForm.errors.sku}
+                    />
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <Input
+                            label={`Reorder Level (${addVariantMaterial?.base_unit})`}
+                            type="number"
+                            step="0.001"
+                            required
+                            value={newVariantForm.data.reorder_level}
+                            onChange={(e) => newVariantForm.setData('reorder_level', e.target.value)}
+                            error={newVariantForm.errors.reorder_level}
+                        />
+
+                        <Input
+                            label={`Initial Stock (${addVariantMaterial?.base_unit})`}
+                            type="number"
+                            step="0.001"
+                            required
+                            value={newVariantForm.data.initial_stock}
+                            onChange={(e) => newVariantForm.setData('initial_stock', e.target.value)}
+                            error={newVariantForm.errors.initial_stock}
+                        />
+                    </div>
+
+                    <div className="pt-4 flex justify-end gap-3 border-t border-neutral-200">
+                        <Button type="button" variant="outline" onClick={() => setAddVariantMaterial(null)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" isLoading={newVariantForm.processing}>
+                            Add Variation
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* 3. VARIANT-SPECIFIC RESTOCK MODAL */}
+            <Modal
                 isOpen={Boolean(restockVariant)}
                 onClose={() => setRestockVariant(null)}
-                title={`Restock Leather: ${restockVariant?.name}`}
-                description="Add newly purchased or tanned leather hides in Sq. Ft to replenish warehouse balance."
-                size="md"
+                title={`Restock Variation: ${restockVariant?.name}`}
             >
-                {restockVariant && (
-                    <form onSubmit={handleRestockSubmit} className="space-y-4">
-                        <div className="p-3 rounded-lg bg-brand-50 border border-brand-200/80 text-xs text-brand-900 space-y-1">
-                            <div className="flex justify-between">
-                                <span className="text-neutral-500">Current Balance:</span>
-                                <strong className="font-sans tabular-nums">{parseFloat(restockVariant.inventory?.quantity_on_hand || 0).toLocaleString()} {restockVariant.inventory?.unit || 'sq_ft'}</strong>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-neutral-500">Reorder Threshold:</span>
-                                <strong className="font-sans tabular-nums">{parseFloat(restockVariant.reorder_level || 0).toLocaleString()} {restockVariant.inventory?.unit || 'sq_ft'}</strong>
-                            </div>
+                <form onSubmit={handleRestockSubmit} className="space-y-4 text-left">
+                    <div className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 text-xs space-y-1">
+                        <div className="flex justify-between">
+                            <span className="text-neutral-500">Leather Master:</span>
+                            <strong className="text-neutral-900">{restockVariant?.materialName}</strong>
                         </div>
-
-                        <Input
-                            label={`Quantity to Add (${restockVariant.inventory?.unit || 'sq_ft'})`}
-                            type="number"
-                            step="0.01"
-                            required
-                            placeholder="e.g. 250.5"
-                            value={restockForm.data.add_quantity}
-                            onChange={(e) => restockForm.setData('add_quantity', e.target.value)}
-                            error={restockForm.errors.add_quantity}
-                        />
-
-                        <Input
-                            label="Batch / Tannery Roll Reference Note (Optional)"
-                            placeholder="e.g. Batch #409 from Kolkata Tannery, Grade A Hides"
-                            value={restockForm.data.note}
-                            onChange={(e) => restockForm.setData('note', e.target.value)}
-                            error={restockForm.errors.note}
-                        />
-
-                        <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-200">
-                            <Button type="button" variant="outline" onClick={() => setRestockVariant(null)}>
-                                Cancel
-                            </Button>
-                            <Button type="submit" variant="primary" isLoading={restockForm.processing}>
-                                Confirm Restock
-                            </Button>
+                        <div className="flex justify-between">
+                            <span className="text-neutral-500">Variation:</span>
+                            <strong className="text-brand-700 font-semibold">{restockVariant?.name}</strong>
                         </div>
-                    </form>
-                )}
-            </Drawer>
+                        <div className="flex justify-between">
+                            <span className="text-neutral-500">Current Stock On Hand:</span>
+                            <span className="tabular-nums font-bold text-neutral-900 font-sans">
+                                {parseFloat(restockVariant?.inventory?.quantity_on_hand || 0).toLocaleString()} {restockVariant?.base_unit}
+                            </span>
+                        </div>
+                    </div>
 
-            {/* 7. EDIT LEATHER MASTER DRAWER */}
-            <Drawer
-                isOpen={Boolean(editMaterial)}
-                onClose={() => setEditMaterial(null)}
-                title={`Edit Leather: ${editMaterial?.name}`}
-                description="Update leather master title, tannage classification, and base measurement unit."
-                size="md"
+                    <Input
+                        label={`Replenish Quantity (${restockVariant?.base_unit})`}
+                        type="number"
+                        step="0.001"
+                        required
+                        placeholder="e.g. 250"
+                        value={restockForm.data.add_quantity}
+                        onChange={(e) => restockForm.setData('add_quantity', e.target.value)}
+                        error={restockForm.errors.add_quantity}
+                        autoFocus
+                    />
+
+                    <Input
+                        label="Restock Reference / Note"
+                        placeholder="e.g. Supplier Batch #LTH-8890"
+                        value={restockForm.data.note}
+                        onChange={(e) => restockForm.setData('note', e.target.value)}
+                        error={restockForm.errors.note}
+                    />
+
+                    <div className="pt-4 flex justify-end gap-3 border-t border-neutral-200">
+                        <Button type="button" variant="outline" onClick={() => setRestockVariant(null)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" isLoading={restockForm.processing}>
+                            Confirm Restock
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* 4. DELETE VARIANT CONFIRMATION MODAL */}
+            <Modal
+                isOpen={Boolean(deleteVariant)}
+                onClose={() => !isDeleting && setDeleteVariant(null)}
+                title={`Delete Variation: ${deleteVariant?.name}`}
             >
-                {editMaterial && (
-                    <form onSubmit={handleEditSubmit} className="space-y-4">
-                        <Input
-                            label="Leather Hide Name"
-                            required
-                            value={editForm.data.name}
-                            onChange={(e) => editForm.setData('name', e.target.value)}
-                            error={editForm.errors.name}
-                        />
-
-                        <div>
-                            <Input
-                                label="Category"
-                                required
-                                placeholder="e.g. Vegetable Tanned, Pull-Up, Nappa, Suede"
-                                value={editForm.data.category}
-                                onChange={(e) => editForm.setData('category', e.target.value)}
-                                error={editForm.errors.category}
-                                list="leather-categories-list-edit"
-                            />
-                            {categories && categories.length > 0 && (
-                                <datalist id="leather-categories-list-edit">
-                                    {categories.map((cat) => (
-                                        <option key={cat} value={cat} />
-                                    ))}
-                                </datalist>
-                            )}
+                <div className="space-y-4 text-left">
+                    <div className="p-3.5 bg-danger-50 border border-danger-200 rounded-lg flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-danger-600 shrink-0 mt-0.5" />
+                        <div className="text-xs text-danger-900 space-y-1">
+                            <p className="font-semibold">Are you sure you want to delete this variation?</p>
+                            <p className="text-danger-700">
+                                This will remove variation '{deleteVariant?.name}' of '{deleteVariant?.materialName}' and its individual stock ledger.
+                            </p>
                         </div>
+                    </div>
 
-                        <Select
-                            label="Base Measurement Unit"
-                            required
-                            value={editForm.data.base_unit}
-                            onChange={(e) => editForm.setData('base_unit', e.target.value)}
-                            error={editForm.errors.base_unit}
+                    <div className="pt-3 flex justify-end gap-3 border-t border-neutral-200">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isDeleting}
+                            onClick={() => setDeleteVariant(null)}
                         >
-                            {LEATHER_UNITS.map((u) => (
-                                <option key={u.value} value={u.value}>
-                                    {u.label}
-                                </option>
-                            ))}
-                        </Select>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="danger"
+                            isLoading={isDeleting}
+                            onClick={handleDeleteVariantConfirm}
+                        >
+                            Delete Variation
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
-                        <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-200">
-                            <Button type="button" variant="outline" onClick={() => setEditMaterial(null)}>
-                                Cancel
-                            </Button>
-                            <Button type="submit" variant="primary" isLoading={editForm.processing}>
-                                Update Leather
-                            </Button>
+            {/* 5. DELETE PARENT LEATHER CONFIRMATION MODAL */}
+            <Modal
+                isOpen={Boolean(deleteMaterial)}
+                onClose={() => !isDeleting && setDeleteMaterial(null)}
+                title={`Delete Leather: ${deleteMaterial?.name}`}
+            >
+                <div className="space-y-4 text-left">
+                    <div className="p-3.5 bg-danger-50 border border-danger-200 rounded-lg flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-danger-600 shrink-0 mt-0.5" />
+                        <div className="text-xs text-danger-900 space-y-1">
+                            <p className="font-semibold">Are you sure you want to permanently delete this leather hide?</p>
+                            <p className="text-danger-700">
+                                This will permanently remove '{deleteMaterial?.name}' and all of its associated variations and inventory records.
+                            </p>
                         </div>
-                    </form>
-                )}
-            </Drawer>
+                    </div>
+
+                    <div className="pt-3 flex justify-end gap-3 border-t border-neutral-200">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isDeleting}
+                            onClick={() => setDeleteMaterial(null)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="danger"
+                            isLoading={isDeleting}
+                            onClick={handleDeleteMaterialConfirm}
+                        >
+                            Delete Leather
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </AppLayout>
     );
 }
