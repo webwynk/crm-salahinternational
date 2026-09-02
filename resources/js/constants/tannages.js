@@ -1,0 +1,10 @@
+export const STANDARD_TANNAGES = [
+    'VEGETABLE TANNED',
+    'CHROME TANNED',
+    'PULL-UP LEATHER',
+    'NAPPA LEATHER',
+    'SUEDE',
+    'OIL WAXED LEATHER',
+    'NUBUCK',
+    'EXOTIC LEATHER',
+];

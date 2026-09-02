@@ -29,17 +29,7 @@ import {
     Gem,
 } from 'lucide-react';
 import { BASE_UNITS } from '@/constants/units';
-
-const PRESET_TANNAGES = [
-    'Vegetable Tanned',
-    'Chrome Tanned',
-    'Pull-Up Leather',
-    'Nappa Leather',
-    'Suede',
-    'Oil Waxed Leather',
-    'Nubuck',
-    'Exotic Leather',
-];
+import { STANDARD_TANNAGES } from '@/constants/tannages';
 
 export default function Index({
     materials,
@@ -52,10 +42,14 @@ export default function Index({
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
     const [expandedRows, setExpandedRows] = useState({});
 
+    const availableCategories = Array.from(new Set([...STANDARD_TANNAGES, ...categories]));
+
     // Drawers State
     const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
     const [isCustomCategory, setIsCustomCategory] = useState(false);
     const [customCategoryInput, setCustomCategoryInput] = useState('');
+    const [isEditCustomCategory, setIsEditCustomCategory] = useState(false);
+    const [editCustomCategoryInput, setEditCustomCategoryInput] = useState('');
     const [hasVariations, setHasVariations] = useState(true);
 
     const [addVariantMaterial, setAddVariantMaterial] = useState(null);
@@ -65,7 +59,7 @@ export default function Index({
     // Add Leather Form
     const addForm = useForm({
         name: '',
-        category: 'Vegetable Tanned',
+        category: availableCategories[0] || 'VEGETABLE TANNED',
         base_unit: 'sq_ft',
         reorder_level: '50',
         initial_stock: '0',
@@ -192,6 +186,9 @@ export default function Index({
 
     const handleOpenEdit = (material) => {
         setEditMaterial(material);
+        const isCustom = !availableCategories.includes(material.category);
+        setIsEditCustomCategory(isCustom);
+        setEditCustomCategoryInput(isCustom ? material.category : '');
         editForm.setData({
             name: material.name,
             category: material.category,
@@ -207,6 +204,8 @@ export default function Index({
         editForm.put(route('leather.update', editMaterial.id), {
             onSuccess: () => {
                 setEditMaterial(null);
+                setIsEditCustomCategory(false);
+                setEditCustomCategoryInput('');
                 editForm.reset();
             },
         });
@@ -630,60 +629,47 @@ export default function Index({
                         error={addForm.errors.name}
                     />
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                                Tannage Category
-                            </label>
-                            {!isCustomCategory ? (
-                                <div className="space-y-1.5">
-                                    <Select
-                                        value={addForm.data.category}
-                                        onChange={(e) => {
-                                            if (e.target.value === '__custom__') {
-                                                setIsCustomCategory(true);
-                                                addForm.setData('category', '');
-                                            } else {
-                                                addForm.setData('category', e.target.value);
-                                            }
-                                        }}
-                                    >
-                                        {PRESET_TANNAGES.map((cat) => (
-                                            <option key={cat} value={cat}>{cat}</option>
-                                        ))}
-                                        <option value="__custom__">+ Add Custom Tannage...</option>
-                                    </Select>
-                                </div>
-                            ) : (
-                                <div className="space-y-1.5">
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={customCategoryInput}
-                                            onChange={(e) => {
-                                                setCustomCategoryInput(e.target.value);
-                                                addForm.setData('category', e.target.value);
-                                            }}
-                                            placeholder="e.g. Semi-Aniline, Nubuck Oil"
-                                            className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                                            autoFocus
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                                setIsCustomCategory(false);
-                                                addForm.setData('category', PRESET_TANNAGES[0]);
-                                            }}
-                                        >
-                                            Reset
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-                            {addForm.errors.category && (
-                                <p className="text-xs text-danger-600 mt-1">{addForm.errors.category}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                            <Select
+                                label="Tannage Category"
+                                required
+                                value={isCustomCategory ? '__CUSTOM__' : addForm.data.category}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === '__CUSTOM__') {
+                                        setIsCustomCategory(true);
+                                        addForm.setData('category', customCategoryInput.trim().toUpperCase());
+                                    } else {
+                                        setIsCustomCategory(false);
+                                        addForm.setData('category', val);
+                                    }
+                                }}
+                                error={!isCustomCategory ? addForm.errors.category : undefined}
+                            >
+                                {availableCategories.map((cat) => (
+                                    <option key={cat} value={cat}>
+                                        {cat}
+                                    </option>
+                                ))}
+                                <option value="__CUSTOM__">+ Custom Category...</option>
+                            </Select>
+
+                            {isCustomCategory && (
+                                <Input
+                                    label="Custom Category Name"
+                                    required
+                                    placeholder="e.g. SEMI-ANILINE, OIL PULL-UP, PONY HAIR"
+                                    value={customCategoryInput}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        setCustomCategoryInput(raw);
+                                        addForm.setData('category', raw.toUpperCase());
+                                    }}
+                                    error={addForm.errors.category}
+                                    helperText="Max 40 characters"
+                                    autoFocus
+                                />
                             )}
                         </div>
 
@@ -923,13 +909,48 @@ export default function Index({
                             error={editForm.errors.name}
                         />
 
-                        <Input
-                            label="Tannage Category"
-                            required
-                            value={editForm.data.category}
-                            onChange={(e) => editForm.setData('category', e.target.value)}
-                            error={editForm.errors.category}
-                        />
+                        <div className="space-y-2">
+                            <Select
+                                label="Tannage Category"
+                                required
+                                value={isEditCustomCategory ? '__CUSTOM__' : editForm.data.category}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === '__CUSTOM__') {
+                                        setIsEditCustomCategory(true);
+                                        editForm.setData('category', editCustomCategoryInput.trim().toUpperCase());
+                                    } else {
+                                        setIsEditCustomCategory(false);
+                                        editForm.setData('category', val);
+                                    }
+                                }}
+                                error={!isEditCustomCategory ? editForm.errors.category : undefined}
+                            >
+                                {availableCategories.map((cat) => (
+                                    <option key={cat} value={cat}>
+                                        {cat}
+                                    </option>
+                                ))}
+                                <option value="__CUSTOM__">+ Custom Category...</option>
+                            </Select>
+
+                            {isEditCustomCategory && (
+                                <Input
+                                    label="Custom Category Name"
+                                    required
+                                    placeholder="e.g. SEMI-ANILINE, OIL PULL-UP, PONY HAIR"
+                                    value={editCustomCategoryInput}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        setEditCustomCategoryInput(raw);
+                                        editForm.setData('category', raw.toUpperCase());
+                                    }}
+                                    error={editForm.errors.category}
+                                    helperText="Max 40 characters"
+                                    autoFocus
+                                />
+                            )}
+                        </div>
 
                         <Select
                             label="Unit of Measurement"
