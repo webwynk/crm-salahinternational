@@ -1,1 +1,0 @@
-import{j as s}from"./app-BzPOwolv.js";function t({children:r,className:e="",...o}){return s.jsx("div",{className:`bg-white border border-neutral-200 rounded-md shadow-xs p-6 ${e}`,...o,children:r})}export{t as C};
