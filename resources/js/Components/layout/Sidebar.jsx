@@ -4,12 +4,14 @@ import {
     LayoutDashboard,
     Package,
     Layers,
+    Scissors,
     Users,
     ClipboardList,
     Gem,
     ChevronLeft,
     ChevronRight,
     LogOut,
+    Boxes,
 } from 'lucide-react';
 
 export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMobile }) {
@@ -30,9 +32,15 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
             active: url.startsWith('/products'),
         },
         {
+            label: 'Leather Stock',
+            href: route('leather.index'),
+            icon: Scissors,
+            active: url.startsWith('/leather'),
+        },
+        {
             label: 'Materials Master',
             href: route('materials.index'),
-            icon: Layers,
+            icon: Boxes,
             active: url.startsWith('/materials'),
         },
         {

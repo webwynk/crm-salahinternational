@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
@@ -9,64 +9,78 @@ import Textarea from '@/Components/ui/Textarea';
 import Select from '@/Components/ui/Select';
 import ImageUpload from '@/Components/ui/ImageUpload';
 import Alert from '@/Components/ui/Alert';
-import { Plus, Trash2, ArrowLeft, Layers, Tag } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Layers, Tag, Scissors, Boxes, Info } from 'lucide-react';
 import { BASE_UNITS } from '@/constants/units';
 
-export default function Create({ materials = [] }) {
-    const bomBottomRef = React.useRef(null);
+export default function Create({ leatherMaterials = [], materials = [] }) {
+    const leatherBottomRef = useRef(null);
+    const hardwareBottomRef = useRef(null);
 
-    const { data, setData, post, processing, errors } = useForm({
+    // Initial Leather Rows
+    const [leatherRows, setLeatherRows] = useState([
+        {
+            material_id: leatherMaterials[0]?.id || '',
+            material_variant_id: leatherMaterials[0]?.variants?.[0]?.id || null,
+            material_type: 'LEATHER',
+            label: 'Main Exterior Shell',
+            quantity_min: '1.25',
+            unit: 'sq_ft',
+        },
+    ]);
+
+    // Initial Hardware & Consumables Rows
+    const [hardwareRows, setHardwareRows] = useState([
+        {
+            material_id: materials[0]?.id || '',
+            material_variant_id: materials[0]?.variants?.[0]?.id || null,
+            material_type: 'HARDWARE',
+            label: 'Hardware / Fitting',
+            quantity_min: '1',
+            unit: 'pcs',
+        },
+    ]);
+
+    const { data, setData, post, processing, errors, transform } = useForm({
         code: '',
         name: '',
         category: 'Wallet',
         description: '',
         image_url: '',
-        materials: [
-            {
-                material_id: '',
-                material_variant_id: null,
-                material_type: 'CONSUMABLE',
-                label: '',
-                quantity_min: '',
-                unit: 'pcs',
-            },
-        ],
+        materials: [],
     });
 
-    const addBomRow = () => {
-        setData('materials', [
-            ...data.materials,
+    // Leather Row Handlers
+    const addLeatherRow = () => {
+        setLeatherRows((prev) => [
+            ...prev,
             {
-                material_id: '',
-                material_variant_id: null,
-                material_type: 'CONSUMABLE',
+                material_id: leatherMaterials[0]?.id || '',
+                material_variant_id: leatherMaterials[0]?.variants?.[0]?.id || null,
+                material_type: 'LEATHER',
                 label: '',
                 quantity_min: '',
-                unit: 'pcs',
+                unit: 'sq_ft',
             },
         ]);
         setTimeout(() => {
-            bomBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            leatherBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 50);
     };
 
-    const removeBomRow = (index) => {
-        if (data.materials.length <= 1) return;
-        const updated = [...data.materials];
-        updated.splice(index, 1);
-        setData('materials', updated);
+    const removeLeatherRow = (index) => {
+        if (leatherRows.length <= 1) return;
+        setLeatherRows((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const updateBomRow = (index, field, value) => {
-        const updated = [...data.materials];
+    const updateLeatherRow = (index, field, value) => {
+        const updated = [...leatherRows];
         updated[index][field] = value;
 
         if (field === 'material_id') {
             if (value) {
-                const selectedMat = materials.find((m) => m.id === parseInt(value) || m.id === value);
+                const selectedMat = leatherMaterials.find((m) => m.id === parseInt(value) || m.id === value);
                 if (selectedMat) {
-                    updated[index].label = selectedMat.name;
-                    updated[index].unit = selectedMat.base_unit;
+                    updated[index].unit = selectedMat.base_unit || 'sq_ft';
                     if (selectedMat.variants && selectedMat.variants.length > 0) {
                         updated[index].material_variant_id = selectedMat.variants[0].id;
                     } else {
@@ -78,11 +92,78 @@ export default function Create({ materials = [] }) {
             }
         }
 
-        setData('materials', updated);
+        setLeatherRows(updated);
+    };
+
+    // Hardware Row Handlers
+    const addHardwareRow = () => {
+        setHardwareRows((prev) => [
+            ...prev,
+            {
+                material_id: '',
+                material_variant_id: null,
+                material_type: 'HARDWARE',
+                label: '',
+                quantity_min: '',
+                unit: 'pcs',
+            },
+        ]);
+        setTimeout(() => {
+            hardwareBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 50);
+    };
+
+    const removeHardwareRow = (index) => {
+        if (hardwareRows.length <= 1) return;
+        setHardwareRows((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const updateHardwareRow = (index, field, value) => {
+        const updated = [...hardwareRows];
+        updated[index][field] = value;
+
+        if (field === 'material_id') {
+            if (value) {
+                const selectedMat = materials.find((m) => m.id === parseInt(value) || m.id === value);
+                if (selectedMat) {
+                    updated[index].label = selectedMat.name;
+                    updated[index].unit = selectedMat.base_unit || 'pcs';
+                    if (selectedMat.variants && selectedMat.variants.length > 0) {
+                        updated[index].material_variant_id = selectedMat.variants[0].id;
+                    } else {
+                        updated[index].material_variant_id = null;
+                    }
+                }
+            } else {
+                updated[index].material_variant_id = null;
+            }
+        }
+
+        setHardwareRows(updated);
     };
 
     const submit = (e) => {
         e.preventDefault();
+
+        // Combine leather rows + hardware rows into single unified materials array
+        const combined = [
+            ...leatherRows.filter((r) => r.material_id && r.label),
+            ...hardwareRows.filter((r) => r.material_id && r.label),
+        ];
+
+        transform((formData) => ({
+            ...formData,
+            materials: combined.length > 0 ? combined : [
+                {
+                    material_id: leatherMaterials[0]?.id || materials[0]?.id || null,
+                    material_type: 'LEATHER',
+                    label: 'Main Leather Shell',
+                    quantity_min: '1',
+                    unit: 'sq_ft',
+                }
+            ],
+        }));
+
         post(route('products.store'));
     };
 
@@ -92,23 +173,24 @@ export default function Create({ materials = [] }) {
 
             <PageHeader
                 title="Create New Product"
-                description="Define product specifications, upload craft photo, and build Bill of Materials (BOM)"
+                description="Define product specifications, craft notes, leather cutting BOM (Sq. Ft), and hardware specifications"
                 action={
                     <Link href={route('products.index')}>
                         <Button variant="outline" size="sm">
-                            <ArrowLeft className="w-4 h-4" /> Back to Products
+                            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Products
                         </Button>
                     </Link>
                 }
             />
 
             <form onSubmit={submit} className="w-full space-y-6">
-                {/* 1. General Product Specifications */}
-                <Card>
+
+                {/* 1. General Product Specifications & Craft Notes */}
+                <Card className="border-neutral-200/90 shadow-2xs">
                     <div className="mb-5 pb-3 border-b border-neutral-200">
                         <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
                             <Tag className="w-5 h-5 text-brand-600" />
-                            1. General Product Specifications
+                            1. General Product Specifications & Craft Notes
                         </h3>
                         <p className="text-xs text-neutral-500 mt-0.5">
                             Enter the product code, category, craft specifications, and upload an article photo.
@@ -116,7 +198,6 @@ export default function Create({ materials = [] }) {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        {/* Left Specifications (8 cols) */}
                         <div className="lg:col-span-8 space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Input
@@ -150,12 +231,11 @@ export default function Create({ materials = [] }) {
                                 rows={4}
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
-                                placeholder="Add dimensions, leather tanning specs, lining requirements, or stitching instructions..."
+                                placeholder="Add dimensions, leather tanning specs, lining requirements, skiving notes, or stitching instructions..."
                                 error={errors.description}
                             />
                         </div>
 
-                        {/* Right Photo Upload Box (4 cols) */}
                         <div className="lg:col-span-4 flex flex-col">
                             <ImageUpload
                                 label="Product Photo (Optional)"
@@ -167,15 +247,140 @@ export default function Create({ materials = [] }) {
                     </div>
                 </Card>
 
-                {/* 2. Dynamic BOM Builder */}
-                <Card>
-                    <div className="mb-4 pb-2 border-b border-neutral-200">
+                {/* 2. DEDICATED LEATHER SPECIFICATIONS & CUTTING BOM */}
+                <Card className="border-brand-200/80 bg-gradient-to-b from-brand-50/20 to-white shadow-2xs">
+                    <div className="mb-4 pb-3 border-b border-brand-200/80 flex items-center justify-between">
+                        <div>
+                            <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
+                                <Scissors className="w-5 h-5 text-brand-700" />
+                                2. Leather Specifications & Cutting BOM (Sq. Ft)
+                            </h3>
+                            <p className="text-xs text-neutral-500 mt-0.5">
+                                Specify leather hides, color shades, and exact cutting square footage required per piece.
+                            </p>
+                        </div>
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-brand-100/70 text-brand-900 border border-brand-300/60">
+                            <Scissors className="w-3.5 h-3.5" /> Leather Cutting Section
+                        </span>
+                    </div>
+
+                    {leatherMaterials.length === 0 ? (
+                        <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Info className="w-4 h-4 shrink-0 text-amber-600" />
+                                <span>No leather hides registered yet. You can create leather hides in the <strong>Leather Stock</strong> tab.</span>
+                            </div>
+                            <Link href={route('leather.index')}>
+                                <Button type="button" variant="outline" size="xs">
+                                    + Add Leather Hide
+                                </Button>
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {leatherRows.map((row, idx) => {
+                                const selectedMat = leatherMaterials.find((m) => m.id === parseInt(row.material_id) || m.id === row.material_id);
+                                const variants = selectedMat?.variants || [];
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="p-3.5 rounded-lg border border-brand-200/70 bg-white relative space-y-2.5 shadow-2xs"
+                                    >
+                                        <div className="flex items-center justify-between text-xs font-bold text-brand-900 uppercase">
+                                            <span>Leather Component #{idx + 1}</span>
+                                            {leatherRows.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeLeatherRow(idx)}
+                                                    className="text-neutral-400 hover:text-danger-500 p-1 cursor-pointer transition-colors"
+                                                    title="Remove leather row"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                                            <div className="sm:col-span-4">
+                                                <Select
+                                                    label="Leather Hide / Tannage"
+                                                    value={row.material_id}
+                                                    onChange={(e) => updateLeatherRow(idx, 'material_id', e.target.value)}
+                                                >
+                                                    <option value="">— Select Leather Hide —</option>
+                                                    {leatherMaterials.map((m) => (
+                                                        <option key={m.id} value={m.id}>
+                                                            {m.name} ({m.category} — {m.base_unit})
+                                                        </option>
+                                                    ))}
+                                                </Select>
+                                            </div>
+
+                                            {variants.length > 0 && (
+                                                <div className="sm:col-span-3">
+                                                    <Select
+                                                        label="Color Shade & Thickness"
+                                                        value={row.material_variant_id || ''}
+                                                        onChange={(e) => updateLeatherRow(idx, 'material_variant_id', e.target.value)}
+                                                    >
+                                                        {variants.map((v) => (
+                                                            <option key={v.id} value={v.id}>
+                                                                {v.name} {v.sku ? `(${v.sku})` : ''}
+                                                            </option>
+                                                        ))}
+                                                    </Select>
+                                                </div>
+                                            )}
+
+                                            <div className={variants.length > 0 ? "sm:col-span-3" : "sm:col-span-6"}>
+                                                <Input
+                                                    label="Leather Part / Component"
+                                                    required
+                                                    value={row.label}
+                                                    onChange={(e) => updateLeatherRow(idx, 'label', e.target.value)}
+                                                    placeholder="e.g. Outer Body Shell, Gusset, Card Slots"
+                                                />
+                                            </div>
+
+                                            <div className="sm:col-span-2">
+                                                <Input
+                                                    label={`Qty (${row.unit || 'sq_ft'})`}
+                                                    type="number"
+                                                    step="0.001"
+                                                    required
+                                                    value={row.quantity_min}
+                                                    onChange={(e) => updateLeatherRow(idx, 'quantity_min', e.target.value)}
+                                                    placeholder="e.g. 1.25"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            <button
+                                type="button"
+                                onClick={addLeatherRow}
+                                className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-brand-300 hover:border-brand-500 bg-brand-50/40 hover:bg-brand-50 text-brand-800 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                            >
+                                <Plus className="w-4 h-4 text-brand-700" />
+                                <span>+ Add Another Leather Part / Cut (Sq. Ft)</span>
+                            </button>
+                        </div>
+                    )}
+                    <div ref={leatherBottomRef} />
+                </Card>
+
+                {/* 3. HARDWARE, LINING & CONSUMABLES BOM */}
+                <Card className="border-neutral-200/90 shadow-2xs">
+                    <div className="mb-4 pb-3 border-b border-neutral-200">
                         <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
-                            <Layers className="w-5 h-5 text-brand-600" />
-                            2. Bill of Materials (BOM) & Process Specifications
+                            <Boxes className="w-5 h-5 text-neutral-700" />
+                            3. Hardware, Lining & Consumables BOM
                         </h3>
                         <p className="text-xs text-neutral-500 mt-0.5">
-                            Add raw materials (leather, thread, glue, hardware) required per single product unit.
+                            Add threads, zips, buckles, rivets, edge paint, and reinforcement materials per product piece.
                         </p>
                     </div>
 
@@ -185,24 +390,24 @@ export default function Create({ materials = [] }) {
                         </Alert>
                     )}
 
-                    <div className="space-y-4">
-                        {data.materials.map((row, idx) => {
+                    <div className="space-y-3">
+                        {hardwareRows.map((row, idx) => {
                             const selectedMat = materials.find((m) => m.id === parseInt(row.material_id) || m.id === row.material_id);
                             const variants = selectedMat?.variants || [];
 
                             return (
                                 <div
                                     key={idx}
-                                    className="p-4 rounded-md border border-neutral-200 bg-neutral-50/60 relative space-y-3"
+                                    className="p-3.5 rounded-lg border border-neutral-200 bg-neutral-50/60 relative space-y-2.5 shadow-2xs"
                                 >
                                     <div className="flex items-center justify-between text-xs font-bold text-neutral-500 uppercase">
-                                        <span>Item #{idx + 1}</span>
-                                        {data.materials.length > 1 && (
+                                        <span>Hardware Item #{idx + 1}</span>
+                                        {hardwareRows.length > 1 && (
                                             <button
                                                 type="button"
-                                                onClick={() => removeBomRow(idx)}
-                                                className="text-neutral-400 hover:text-danger-500 p-1"
-                                                title="Remove row"
+                                                onClick={() => removeHardwareRow(idx)}
+                                                className="text-neutral-400 hover:text-danger-500 p-1 cursor-pointer transition-colors"
+                                                title="Remove hardware row"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -214,9 +419,9 @@ export default function Create({ materials = [] }) {
                                             <Select
                                                 label="Material Master"
                                                 value={row.material_id}
-                                                onChange={(e) => updateBomRow(idx, 'material_id', e.target.value)}
+                                                onChange={(e) => updateHardwareRow(idx, 'material_id', e.target.value)}
                                             >
-                                                <option value="">— Select Raw Material —</option>
+                                                <option value="">— Select Hardware / Consumable —</option>
                                                 {materials.map((m) => (
                                                     <option key={m.id} value={m.id}>
                                                         {m.name} ({m.category} — {m.base_unit})
@@ -230,7 +435,7 @@ export default function Create({ materials = [] }) {
                                                 <Select
                                                     label="Variation"
                                                     value={row.material_variant_id || ''}
-                                                    onChange={(e) => updateBomRow(idx, 'material_variant_id', e.target.value)}
+                                                    onChange={(e) => updateHardwareRow(idx, 'material_variant_id', e.target.value)}
                                                 >
                                                     {variants.map((v) => (
                                                         <option key={v.id} value={v.id}>
@@ -242,11 +447,11 @@ export default function Create({ materials = [] }) {
                                         ) : (
                                             <div className="sm:col-span-3">
                                                 <Input
-                                                    label="Component / Part Label"
+                                                    label="Component / Fitting Label"
                                                     required
                                                     value={row.label}
-                                                    onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
-                                                    placeholder="e.g. Exterior Shell"
+                                                    onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
+                                                    placeholder="e.g. YKK #5 Antique Brass Zipper"
                                                 />
                                             </div>
                                         )}
@@ -257,8 +462,8 @@ export default function Create({ materials = [] }) {
                                                     label="Component"
                                                     required
                                                     value={row.label}
-                                                    onChange={(e) => updateBomRow(idx, 'label', e.target.value)}
-                                                    placeholder="e.g. Shell"
+                                                    onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
+                                                    placeholder="e.g. Buckle"
                                                 />
                                             </div>
                                         )}
@@ -270,8 +475,8 @@ export default function Create({ materials = [] }) {
                                                 step="0.001"
                                                 required
                                                 value={row.quantity_min}
-                                                onChange={(e) => updateBomRow(idx, 'quantity_min', e.target.value)}
-                                                placeholder="e.g. 1.5"
+                                                onChange={(e) => updateHardwareRow(idx, 'quantity_min', e.target.value)}
+                                                placeholder="e.g. 1"
                                             />
                                         </div>
 
@@ -279,7 +484,7 @@ export default function Create({ materials = [] }) {
                                             <Select
                                                 label="Unit"
                                                 value={row.unit || 'pcs'}
-                                                onChange={(e) => updateBomRow(idx, 'unit', e.target.value)}
+                                                onChange={(e) => updateHardwareRow(idx, 'unit', e.target.value)}
                                             >
                                                 {BASE_UNITS.map((u) => (
                                                     <option key={u.value} value={u.value}>
@@ -295,25 +500,22 @@ export default function Create({ materials = [] }) {
                                 </div>
                             );
                         })}
+
+                        <button
+                            type="button"
+                            onClick={addHardwareRow}
+                            className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-neutral-50 text-neutral-600 hover:text-brand-700 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                        >
+                            <Plus className="w-4 h-4 text-neutral-600" />
+                            <span>+ Add Another Hardware / Consumable Item</span>
+                        </button>
                     </div>
 
-                    {/* Bottom Add Row Dashed Button */}
-                    <button
-                        type="button"
-                        onClick={addBomRow}
-                        className="w-full mt-4 py-3 px-4 rounded-lg border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-brand-50/50 text-neutral-600 hover:text-brand-700 text-sm font-semibold flex items-center justify-center gap-2 transition-all group shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                    >
-                        <div className="w-6 h-6 rounded-full bg-neutral-100 group-hover:bg-brand-100 flex items-center justify-center transition-colors">
-                            <Plus className="w-4 h-4 text-neutral-600 group-hover:text-brand-600" />
-                        </div>
-                        <span>Add Another Material / BOM Item</span>
-                    </button>
-
-                    <div ref={bomBottomRef} />
+                    <div ref={hardwareBottomRef} />
                 </Card>
 
-                {/* Controls */}
-                <div className="flex items-center justify-end gap-3">
+                {/* Submit Controls */}
+                <div className="flex items-center justify-end gap-3 pt-2">
                     <Link href={route('products.index')}>
                         <Button type="button" variant="outline">
                             Cancel

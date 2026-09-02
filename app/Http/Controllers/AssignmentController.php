@@ -7,6 +7,7 @@ use App\Models\Assignment;
 use App\Models\Labour;
 use App\Models\Product;
 use App\Services\AssignmentService;
+use App\Services\LeatherIssuePdfService;
 use App\Services\WorkOrderPdfService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class AssignmentController extends Controller
 {
@@ -26,8 +28,8 @@ class AssignmentController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('assignment_no', 'like', "%{$search}%")
-                  ->orWhereHas('product', fn ($pq) => $pq->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%"))
-                  ->orWhereHas('labour', fn ($lq) => $lq->where('name', 'like', "%{$search}%"));
+                  ->orWhereHas('product', fn($pq) => $pq->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%"))
+                  ->orWhereHas('labour', fn($lq) => $lq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -35,38 +37,42 @@ class AssignmentController extends Controller
             $query->where('status', $request->status);
         }
 
-        $assignments = $query->orderBy('created_at', 'desc')->paginate($request->pageSize ?? 10)->withQueryString();
+        $sortColumn = $request->sort ?? 'created_at';
+        $sortDirection = $request->direction ?? 'desc';
+        $query->orderBy($sortColumn, $sortDirection);
+
+        $assignments = $query->paginate($request->pageSize ?? 10)->withQueryString();
 
         return Inertia::render('Assignments/Index', [
             'assignments' => $assignments,
-            'filters' => $request->only(['search', 'status', 'pageSize']),
+            'filters' => $request->only(['search', 'status', 'sort', 'direction', 'pageSize']),
         ]);
     }
 
     public function create(): Response
     {
-        $products = Product::where('is_active', true)->with('materials.material.inventory')->orderBy('code')->get();
-        $labour = Labour::where('is_active', true)->orderBy('name')->get();
+        $products = Product::with(['materials.material.variants.inventory', 'materials.variant.inventory'])->where('is_active', true)->orderBy('name')->get();
+        $labours = Labour::where('is_active', true)->orderBy('name')->get();
 
         return Inertia::render('Assignments/Create', [
             'products' => $products,
-            'labour' => $labour,
+            'labours'  => $labours,
         ]);
     }
 
-    /**
-     * Pre-check stock availability dry-run endpoint.
-     */
     public function preCheck(Request $request, AssignmentService $assignmentService): JsonResponse
     {
         $request->validate([
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'quantity' => ['required', 'integer', 'min:1', 'max:100000'],
+            'product_id' => ['required', 'exists:products,id'],
+            'quantity'   => ['required', 'integer', 'min:1'],
         ]);
 
-        $check = $assignmentService->checkStockAvailability($request->product_id, (int) $request->quantity);
+        $result = $assignmentService->checkStockAvailability(
+            $request->product_id,
+            (int) $request->quantity
+        );
 
-        return response()->json($check);
+        return response()->json($result);
     }
 
     public function store(StoreAssignmentRequest $request, AssignmentService $assignmentService, WorkOrderPdfService $pdfService): RedirectResponse
@@ -89,16 +95,15 @@ class AssignmentController extends Controller
                 return redirect()->route('assignments.index')->with('warning', "Assignment #{$assignment->assignment_no} created and stock deducted, but PDF generation failed. You can retry generating PDF from the assignments list.");
             }
 
-            return redirect()->route('assignments.index')->with('success', "Work Order #{$assignment->assignment_no} successfully assigned! Materials auto-deducted from stock.");
-
-        } catch (\App\Exceptions\InsufficientStockException $ex) {
-            return back()->withErrors(['quantity' => $ex->getMessage()])->withInput();
+            return redirect()->route('assignments.index')->with('success', "Work Order #{$assignment->assignment_no} assigned successfully. Raw materials and leather hides deducted.");
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
         }
     }
 
     public function show(Assignment $assignment): Response
     {
-        $assignment->load(['product.materials.material', 'labour', 'materials', 'assigner', 'pdfs']);
+        $assignment->load(['product.materials.material', 'labour', 'materials.material', 'materials.variant', 'assigner', 'pdfs']);
 
         return Inertia::render('Assignments/Show', [
             'assignment' => $assignment,
@@ -117,6 +122,12 @@ class AssignmentController extends Controller
 
         $fullPath = Storage::disk('public')->path($pdf->file_path);
         return response()->download($fullPath, "Work_Order_{$assignment->assignment_no}.pdf");
+    }
+
+    public function downloadLeatherPdf(Assignment $assignment, LeatherIssuePdfService $leatherPdfService): HttpResponse
+    {
+        $pdf = $leatherPdfService->generatePdf($assignment, auth()->id());
+        return $pdf->download("Leather_Issue_Slip_{$assignment->assignment_no}.pdf");
     }
 
     public function updateStatus(Request $request, Assignment $assignment, AssignmentService $assignmentService): RedirectResponse

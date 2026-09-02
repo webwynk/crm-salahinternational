@@ -3,6 +3,7 @@
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LabourController;
+use App\Http\Controllers\LeatherController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -18,7 +19,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Products & BOM Management
     Route::resource('products', ProductController::class);
 
-    // Materials Master & Inventory
+    // Dedicated Leather Stock & Hides Management (Sq. Ft)
+    Route::get('/leather', [LeatherController::class, 'index'])->name('leather.index');
+    Route::middleware('role:ADMIN')->group(function () {
+        Route::post('/leather', [LeatherController::class, 'store'])->name('leather.store');
+        Route::put('/leather/{material}', [LeatherController::class, 'update'])->name('leather.update');
+        Route::post('/leather/{material}/restock', [LeatherController::class, 'restock'])->name('leather.restock');
+        Route::delete('/leather/{material}', [LeatherController::class, 'destroy'])->name('leather.destroy');
+        Route::post('/leather/{material}/variants', [LeatherController::class, 'storeVariant'])->name('leather.variants.store');
+        Route::post('/leather/variants/{variant}/restock', [LeatherController::class, 'restockVariant'])->name('leather.variants.restock');
+        Route::delete('/leather/variants/{variant}', [LeatherController::class, 'destroyVariant'])->name('leather.variants.destroy');
+    });
+
+    // Materials Master & Inventory (Hardware, Zips, Threads)
     Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
     Route::middleware('role:ADMIN')->group(function () {
         Route::post('/materials', [MaterialController::class, 'store'])->name('materials.store');
@@ -41,6 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
     Route::patch('/assignments/{assignment}/status', [AssignmentController::class, 'updateStatus'])->name('assignments.status');
     Route::get('/assignments/{assignment}/pdf', [AssignmentController::class, 'downloadPdf'])->name('assignments.pdf');
+    Route::get('/assignments/{assignment}/leather-pdf', [AssignmentController::class, 'downloadLeatherPdf'])->name('assignments.leather-pdf');
 
     // User Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

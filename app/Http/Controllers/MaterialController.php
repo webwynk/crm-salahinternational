@@ -21,7 +21,7 @@ class MaterialController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = Material::query()->with(['variants.inventory', 'inventory']);
+        $query = Material::query()->materialsOnly()->with(['variants.inventory', 'inventory']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -39,7 +39,7 @@ class MaterialController extends Controller
         }
 
         $materials = $query->orderBy('name')->paginate($request->pageSize ?? 10)->withQueryString();
-        $categories = Material::distinct()->pluck('category');
+        $categories = Material::materialsOnly()->distinct()->pluck('category');
 
         return Inertia::render('Materials/Index', [
             'materials' => $materials,

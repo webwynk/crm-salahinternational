@@ -46,10 +46,12 @@ class ProductController extends Controller
 
     public function create(): Response
     {
-        $materials = Material::with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
+        $leatherMaterials = Material::leather()->with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
+        $materials = Material::materialsOnly()->with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
 
         return Inertia::render('Products/Create', [
-            'materials' => $materials,
+            'leatherMaterials'  => $leatherMaterials,
+            'materials'         => $materials,
         ]);
     }
 
@@ -85,11 +87,13 @@ class ProductController extends Controller
     public function edit(Product $product): Response
     {
         $product->load('materials.variant');
-        $materials = Material::with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
+        $leatherMaterials = Material::leather()->with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
+        $materials = Material::materialsOnly()->with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
 
         return Inertia::render('Products/Edit', [
-            'product' => $product,
-            'materials' => $materials,
+            'product'           => $product,
+            'leatherMaterials'  => $leatherMaterials,
+            'materials'         => $materials,
         ]);
     }
 

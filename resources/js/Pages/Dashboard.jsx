@@ -21,6 +21,7 @@ import {
     ChevronRight,
     Clock,
     RotateCcw,
+    Scissors,
 } from 'lucide-react';
 
 export default function Dashboard({
@@ -62,12 +63,12 @@ export default function Dashboard({
             href: route('products.index'),
         },
         {
-            title: 'Raw Materials & Stock',
-            value: stats.total_materials,
-            unit: 'Materials',
-            icon: Layers,
+            title: 'Leather Stock Balance',
+            value: (stats.total_leather_sq_ft || 0).toLocaleString(),
+            unit: 'Sq. Ft',
+            icon: Scissors,
             accentBg: 'bg-amber-500/10 text-amber-800 border-amber-200/80',
-            href: route('materials.index'),
+            href: route('leather.index'),
         },
         {
             title: 'Artisans on Floor',
@@ -89,6 +90,7 @@ export default function Dashboard({
 
     const quickActions = [
         { label: '+ New Work Order', href: route('assignments.create'), primary: true },
+        { label: '+ Add Leather Hide', href: route('leather.index') },
         { label: '+ Add Raw Material', href: route('materials.index') },
         { label: '+ New Product BOM', href: route('products.create') },
         { label: '+ Register Artisan', href: route('labour.index') },
@@ -209,6 +211,7 @@ export default function Dashboard({
                                 ) : (
                                     <div className="space-y-3">
                                         {low_stock_materials.map((inv) => {
+                                            const isLeather = Boolean(inv.material?.is_leather);
                                             const reorder = parseFloat(inv.variant?.reorder_level ?? inv.material?.reorder_level ?? 0);
                                             const current = parseFloat(inv.quantity_on_hand || 0);
                                             const ratio = reorder > 0 ? Math.min(100, Math.round((current / reorder) * 100)) : 0;
@@ -225,6 +228,11 @@ export default function Dashboard({
                                                                 <span className="font-bold text-xs text-neutral-900 truncate">
                                                                     {inv.material?.name}
                                                                 </span>
+                                                                {isLeather && (
+                                                                    <span className="px-1.5 py-0.2 text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-300/80 rounded uppercase tracking-wider">
+                                                                        Leather Hide
+                                                                    </span>
+                                                                )}
                                                                 {inv.variant && inv.variant.name !== 'Standard' && (
                                                                     <span className="px-1.5 py-0.2 text-[10px] font-semibold bg-neutral-200/80 text-neutral-700 rounded">
                                                                         {inv.variant.name}
@@ -257,13 +265,13 @@ export default function Dashboard({
                                                                 style={{ width: `${ratio}%` }}
                                                             />
                                                         </div>
-                                                        <Link href={route('materials.index', { search: inv.material?.name })}>
+                                                        <Link href={route(isLeather ? 'leather.index' : 'materials.index', { search: inv.material?.name })}>
                                                             <button
                                                                 type="button"
                                                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-brand-50 text-brand-800 hover:bg-brand-100 border border-brand-200 transition-colors shrink-0 cursor-pointer"
                                                             >
                                                                 <RotateCcw className="w-3 h-3" /> Restock
-                                                            </button>
+                                                             </button>
                                                         </Link>
                                                     </div>
                                                 </div>
@@ -364,6 +372,14 @@ export default function Dashboard({
                                                                     title="Download PDF Work Order"
                                                                 >
                                                                     <FileText className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </a>
+                                                            <a href={route('assignments.leather-pdf', wo.id)} target="_blank" rel="noreferrer">
+                                                                <button
+                                                                    className="p-1 text-neutral-400 hover:text-brand-700 hover:bg-neutral-100 rounded transition-colors cursor-pointer"
+                                                                    title="Download Leather Cutting Slip PDF"
+                                                                >
+                                                                    <Scissors className="w-3.5 h-3.5" />
                                                                 </button>
                                                             </a>
                                                         </div>

@@ -6,7 +6,7 @@ import DataTable from '@/Components/ui/DataTable';
 import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
 import Badge from '@/Components/ui/Badge';
-import { Plus, Eye, FileText } from 'lucide-react';
+import { Plus, Eye, FileText, Scissors } from 'lucide-react';
 
 export default function Index({ assignments, filters = {} }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -24,109 +24,112 @@ export default function Index({ assignments, filters = {} }) {
 
     const columns = [
         {
-            header: 'Work Order #',
-            accessor: 'assignment_no',
+            key: 'assignment_no',
+            label: 'Work Order #',
             sortable: true,
-            render: (row) => (
-                <span className="font-bold text-xs text-brand-700 bg-brand-50 px-2.5 py-1 rounded border border-brand-200">
-                    {row.assignment_no}
+            render: (val, row) => (
+                <Link href={route('assignments.show', row.id)} className="font-sans font-bold text-brand-700 hover:text-brand-900 underline text-xs">
+                    {val}
+                </Link>
+            ),
+        },
+        {
+            key: 'product',
+            label: 'Product Target',
+            render: (_, row) => (
+                <div>
+                    <span className="font-semibold text-neutral-900 block text-xs">{row.product?.name}</span>
+                    <span className="text-[11px] text-neutral-500 font-sans">{row.product?.code}</span>
+                </div>
+            ),
+        },
+        {
+            key: 'labour',
+            label: 'Artisan Worker',
+            render: (_, row) => (
+                <span className="text-xs text-neutral-700 font-medium">
+                    {row.labour ? row.labour.name : '—'}
                 </span>
             ),
         },
         {
-            header: 'Product Definition',
-            accessor: 'product',
-            render: (row) => (
-                <div>
-                    <span className="font-semibold text-neutral-900 block">{row.product?.name}</span>
-                    <span className="text-xs text-neutral-500 font-sans">Code: {row.product?.code}</span>
-                </div>
+            key: 'quantity',
+            label: 'Target Qty',
+            sortable: true,
+            render: (val) => (
+                <strong className="text-brand-700 text-xs font-sans tabular-nums">{val} Pcs</strong>
             ),
         },
         {
-            header: 'Assigned Artisan',
-            accessor: 'labour',
-            render: (row) => (
-                <div>
-                    <span className="font-semibold text-neutral-900 block">{row.labour?.name}</span>
-                    <span className="text-xs text-neutral-500">{row.labour?.phone}</span>
-                </div>
-            ),
-        },
-        {
-            header: 'Quantity',
-            accessor: 'quantity',
-            render: (row) => <span className="font-bold text-neutral-900">{row.quantity} Pcs</span>,
-        },
-        {
-            header: 'Status',
-            accessor: 'status',
-            render: (row) => {
-                const statusVariants = {
+            key: 'status',
+            label: 'Status',
+            sortable: true,
+            render: (val) => {
+                const variants = {
                     ASSIGNED: 'brand',
+                    IN_PROGRESS: 'brand',
                     COMPLETED: 'success',
                     CANCELLED: 'danger',
                 };
-                return <Badge variant={statusVariants[row.status] || 'neutral'}>{row.status}</Badge>;
+                return <Badge variant={variants[val] || 'neutral'} size="sm">{val}</Badge>;
             },
         },
         {
-            header: 'Assigned Date',
-            accessor: 'created_at',
-            render: (row) => (
-                <span className="text-xs text-neutral-500">
-                    {new Date(row.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+            key: 'created_at',
+            label: 'Assigned Date',
+            sortable: true,
+            render: (val) => (
+                <span className="text-xs text-neutral-500 font-sans">
+                    {new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </span>
             ),
         },
     ];
 
-    const statuses = ['ASSIGNED', 'COMPLETED', 'CANCELLED'];
+    const statusOptions = [
+        { value: '', label: 'All Statuses' },
+        { value: 'ASSIGNED', label: 'Assigned' },
+        { value: 'COMPLETED', label: 'Completed' },
+        { value: 'CANCELLED', label: 'Cancelled' },
+    ];
 
     return (
         <AppLayout>
-            <Head title="Work Order Assignments - Leather CRM" />
+            <Head title="Work Order Assignments — Leather CRM" />
 
             <PageHeader
                 title="Work Order Assignments"
-                description="Assign products to labour artisans with automatic stock deduction and PDF work order generation"
+                description="Track production assignments, deduct stock automatically, and print artisan job cards"
                 action={
                     <Link href={route('assignments.create')}>
-                        <Button variant="primary">
-                            <Plus className="w-4 h-4 mr-1.5" /> New Assignment Work Order
+                        <Button variant="primary" size="sm">
+                            <Plus className="w-4 h-4" /> New Work Order
                         </Button>
                     </Link>
                 }
             />
 
-            {/* Status filter chips */}
             <FilterChips
-                options={statuses.map((st) => ({ label: st.replace('_', ' '), value: st }))}
-                value={selectedStatus}
+                chips={statusOptions}
+                activeValue={selectedStatus}
                 onChange={handleStatusFilter}
-                allLabel="All Statuses"
-                className="mb-4"
             />
 
             <DataTable
                 columns={columns}
                 data={assignments.data}
                 pagination={assignments}
-                search={search}
-                onSearchChange={handleSearch}
-                searchPlaceholder="Search by work order #, product, or artisan..."
+                searchPlaceholder="Search by Work Order #, product name, or artisan worker..."
+                onSearch={handleSearch}
                 emptyTitle="No work orders found"
-                emptyDescription="Create your first production assignment to start tracking manufacturing batches."
-                emptyActionLabel="New Assignment Work Order"
-                onEmptyAction={() => router.visit(route('assignments.create'))}
-                renderRowActions={(row) => (
-                    <div className="flex items-center justify-end gap-2">
+                emptyDescription="Assign your first product to an artisan worker to start tracking production."
+                actions={(row) => (
+                    <div className="flex items-center gap-1.5 justify-end">
                         {row.status === 'ASSIGNED' ? (
                             <select
                                 value={row.status}
                                 onChange={(e) => {
                                     const val = e.target.value;
-                                    if (!val || val === row.status) return;
                                     if (val === 'CANCELLED') {
                                         if (confirm(`Cancel Work Order #${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
                                             router.patch(route('assignments.status', row.id), { status: val });
@@ -135,7 +138,7 @@ export default function Index({ assignments, filters = {} }) {
                                         router.patch(route('assignments.status', row.id), { status: val });
                                     }
                                 }}
-                                className="text-xs border border-brand-300 rounded-md px-2.5 py-1 bg-brand-50/50 font-bold text-brand-800 hover:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-colors"
+                                className="text-xs border border-brand-300 rounded-md px-2 py-1 bg-brand-50/50 font-bold text-brand-800 hover:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-colors"
                             >
                                 <option value="ASSIGNED">ASSIGNED</option>
                                 <option value="COMPLETED">COMPLETED</option>
@@ -147,9 +150,14 @@ export default function Index({ assignments, filters = {} }) {
                                 <Eye className="w-4 h-4" />
                             </button>
                         </Link>
-                        <a href={route('assignments.pdf', row.id)} target="_blank" rel="noreferrer">
-                            <Button variant="outline" size="sm">
-                                <FileText className="w-3.5 h-3.5 mr-1" /> PDF Work Order
+                        <a href={route('assignments.pdf', row.id)} target="_blank" rel="noreferrer" title="Download Full Work Order PDF">
+                            <Button variant="outline" size="sm" className="text-xs">
+                                <FileText className="w-3.5 h-3.5 mr-1" /> Work Order
+                            </Button>
+                        </a>
+                        <a href={route('assignments.leather-pdf', row.id)} target="_blank" rel="noreferrer" title="Download Leather Cutting Voucher PDF">
+                            <Button variant="secondary" size="sm" className="text-xs">
+                                <Scissors className="w-3.5 h-3.5 mr-1 text-brand-700" /> Leather Slip
                             </Button>
                         </a>
                     </div>

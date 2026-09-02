@@ -5,9 +5,21 @@ import PageHeader from '@/Components/layout/PageHeader';
 import Card from '@/Components/ui/Card';
 import Badge from '@/Components/ui/Badge';
 import Button from '@/Components/ui/Button';
-import { FileText, ArrowLeft, Download, UserCheck, Layers } from 'lucide-react';
+import { FileText, ArrowLeft, Download, UserCheck, Layers, Scissors } from 'lucide-react';
 
 export default function Show({ assignment }) {
+    const leatherMaterials = assignment.materials?.filter((m) => {
+        const isLeatherFlag = m.material && m.material.is_leather;
+        const isLeatherUnit = ['sq_ft', 'sq_dm', 'sq_m', 'hides'].includes((m.unit || '').toLowerCase());
+        return isLeatherFlag || isLeatherUnit;
+    }) || [];
+
+    const otherMaterials = assignment.materials?.filter((m) => {
+        const isLeatherFlag = m.material && m.material.is_leather;
+        const isLeatherUnit = ['sq_ft', 'sq_dm', 'sq_m', 'hides'].includes((m.unit || '').toLowerCase());
+        return !isLeatherFlag && !isLeatherUnit;
+    }) || [];
+
     return (
         <AppLayout>
             <Head title={`Work Order ${assignment.assignment_no} - Leather CRM`} />
@@ -23,8 +35,13 @@ export default function Show({ assignment }) {
                             </Button>
                         </Link>
                         <a href={route('assignments.pdf', assignment.id)} target="_blank" rel="noreferrer">
+                            <Button variant="outline" size="sm">
+                                <FileText className="w-4 h-4 mr-1.5" /> PDF Work Order
+                            </Button>
+                        </a>
+                        <a href={route('assignments.leather-pdf', assignment.id)} target="_blank" rel="noreferrer">
                             <Button variant="primary" size="sm">
-                                <FileText className="w-4 h-4 mr-1.5" /> Download PDF Work Order
+                                <Scissors className="w-4 h-4 mr-1.5" /> Leather Slip PDF
                             </Button>
                         </a>
                     </div>
@@ -81,23 +98,65 @@ export default function Show({ assignment }) {
                     </Card>
                 </div>
 
-                {/* Deducted Raw Materials Ledger Table */}
+                {/* 1. Deducted Leather Hides Ledger */}
+                {leatherMaterials.length > 0 && (
+                    <Card className="border-brand-200/90 shadow-2xs">
+                        <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-brand-200 flex items-center justify-between">
+                            <span className="flex items-center gap-2">
+                                <Scissors className="w-5 h-5 text-brand-700" /> Issued Leather Hides Ledger (Sq. Ft Auto-Deducted)
+                            </span>
+                            <span className="text-xs font-bold text-brand-800 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200">
+                                Leather Cutting Issue
+                            </span>
+                        </h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-brand-50/40 text-xs font-semibold text-brand-900 uppercase border-b border-brand-200">
+                                    <tr>
+                                        <th className="px-3 py-2">#</th>
+                                        <th className="px-3 py-2">Leather Component / Part</th>
+                                        <th className="px-3 py-2">Hide Tannage & Variant</th>
+                                        <th className="px-3 py-2">Issued Qty</th>
+                                        <th className="px-3 py-2">Unit</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-200">
+                                    {leatherMaterials.map((mat, idx) => (
+                                        <tr key={mat.id} className="hover:bg-brand-50/20">
+                                            <td className="px-3 py-2.5 text-neutral-400 tabular-nums">{idx + 1}</td>
+                                            <td className="px-3 py-2.5 font-semibold text-neutral-900">{mat.label}</td>
+                                            <td className="px-3 py-2.5 text-neutral-700">
+                                                {mat.material?.name || 'Leather Hide'} {mat.variant ? `(${mat.variant.name})` : ''}
+                                            </td>
+                                            <td className="px-3 py-2.5 font-bold text-brand-800 tabular-nums">
+                                                -{parseFloat(mat.quantity_used).toLocaleString()}
+                                            </td>
+                                            <td className="px-3 py-2.5 text-neutral-500">{mat.unit}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
+                {/* 2. Deducted Hardware & Consumables Table */}
                 <Card>
                     <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-neutral-200 flex items-center gap-2">
-                        <Layers className="w-5 h-5 text-brand-500" /> Deducted Raw Materials Ledger (Auto-Deducted)
+                        <Layers className="w-5 h-5 text-neutral-700" /> Deducted Hardware & Consumables
                     </h3>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-neutral-50 text-xs font-semibold text-neutral-500 uppercase border-b border-neutral-200">
                                 <tr>
                                     <th className="px-3 py-2">#</th>
-                                    <th className="px-3 py-2">Material Description</th>
+                                    <th className="px-3 py-2">Fitting / Component Description</th>
                                     <th className="px-3 py-2">Deducted Qty</th>
                                     <th className="px-3 py-2">Unit</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200">
-                                {assignment.materials?.map((mat, idx) => (
+                                {(otherMaterials.length > 0 ? otherMaterials : assignment.materials)?.map((mat, idx) => (
                                     <tr key={mat.id} className="hover:bg-neutral-50">
                                         <td className="px-3 py-2.5 text-neutral-400 tabular-nums">{idx + 1}</td>
                                         <td className="px-3 py-2.5 font-semibold text-neutral-900">{mat.label}</td>

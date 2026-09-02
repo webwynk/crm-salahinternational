@@ -26,7 +26,7 @@ class StoreMaterialRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:120', 'unique:materials,name'],
             'category' => ['required', 'string', 'max:40'],
-            'base_unit' => ['required', 'string', Rule::in(['pcs', 'm', 'cm', 'in', 'yard', 'feet', 'sq m', 'cm2', 'g'])],
+            'base_unit' => ['required', 'string', Rule::in(['pcs', 'm', 'cm', 'in', 'yard', 'feet', 'sq m', 'sq_ft', 'sq ft', 'sq_dm', 'sq_m', 'hides', 'cm2', 'g'])],
             'reorder_level' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'initial_stock' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'variants' => ['nullable', 'array'],

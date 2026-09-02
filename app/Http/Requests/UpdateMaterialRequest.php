@@ -28,7 +28,7 @@ class UpdateMaterialRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:120', Rule::unique('materials', 'name')->ignore($materialId)],
             'category' => ['required', 'string', 'max:40'],
-            'base_unit' => ['required', 'string', Rule::in(['pcs', 'm', 'cm', 'in', 'yard', 'feet', 'sq m', 'cm2', 'g'])],
+            'base_unit' => ['required', 'string', Rule::in(['pcs', 'm', 'cm', 'in', 'yard', 'feet', 'sq m', 'sq_ft', 'sq ft', 'sq_dm', 'sq_m', 'hides', 'cm2', 'g'])],
             'reorder_level' => ['required', 'numeric', 'min:0', 'max:9999999'],
             'is_active' => ['required', 'boolean'],
         ];

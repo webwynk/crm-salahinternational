@@ -27,14 +27,32 @@ class Material extends Model
         'name',
         'category',
         'base_unit',
+        'is_leather',
         'reorder_level',
         'is_active',
     ];
 
     protected $casts = [
         'reorder_level' => 'decimal:3',
-        'is_active' => 'boolean',
+        'is_leather'    => 'boolean',
+        'is_active'     => 'boolean',
     ];
+
+    /**
+     * Scope query to only leather items.
+     */
+    public function scopeLeather($query)
+    {
+        return $query->where('is_leather', true);
+    }
+
+    /**
+     * Scope query to only non-leather materials.
+     */
+    public function scopeMaterialsOnly($query)
+    {
+        return $query->where('is_leather', false);
+    }
 
     /**
      * @return HasMany<MaterialVariant, $this>

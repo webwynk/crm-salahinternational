@@ -37,6 +37,11 @@ class DashboardController extends Controller
         $lowStockCount = (clone $lowStockQuery)->count();
         $lowStockMaterials = $lowStockQuery->select('inventory.*')->take(6)->get();
 
+        $totalLeatherSqFt = (float) Inventory::join('materials', 'inventory.material_id', '=', 'materials.id')
+            ->where('materials.is_leather', true)
+            ->where('materials.is_active', true)
+            ->sum('inventory.quantity_on_hand');
+
         $recentAssignments = Assignment::with(['product', 'labour', 'pdfs'])
             ->orderBy('created_at', 'desc')
             ->limit(15)
@@ -47,6 +52,7 @@ class DashboardController extends Controller
                 'total_products' => $totalProducts,
                 'total_materials' => $totalMaterials,
                 'total_variants' => $totalVariants,
+                'total_leather_sq_ft' => $totalLeatherSqFt,
                 'total_labour' => $totalLabour,
                 'active_assignments' => $activeAssignments,
                 'total_units_in_production' => (int) $totalUnitsInProduction,
