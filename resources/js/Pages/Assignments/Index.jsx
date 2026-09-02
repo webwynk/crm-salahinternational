@@ -24,70 +24,70 @@ export default function Index({ assignments, filters = {} }) {
 
     const columns = [
         {
-            key: 'assignment_no',
-            label: 'Work Order #',
+            header: 'Work Order #',
+            accessor: 'assignment_no',
             sortable: true,
-            render: (val, row) => (
+            render: (row) => (
                 <Link href={route('assignments.show', row.id)} className="font-sans font-bold text-brand-700 hover:text-brand-900 underline text-xs">
-                    {val}
+                    {row.assignment_no}
                 </Link>
             ),
         },
         {
-            key: 'product',
-            label: 'Product Target',
-            render: (_, row) => (
+            header: 'Product Target',
+            accessor: 'product',
+            render: (row) => (
                 <div>
-                    <span className="font-semibold text-neutral-900 block text-xs">{row.product?.name}</span>
-                    <span className="text-[11px] text-neutral-500 font-sans">{row.product?.code}</span>
+                    <span className="font-semibold text-neutral-900 block text-xs">{row.product?.name ?? '—'}</span>
+                    <span className="text-[11px] text-neutral-500 font-sans">{row.product?.code ?? ''}</span>
                 </div>
             ),
         },
         {
-            key: 'labour',
-            label: 'Artisan Worker',
-            render: (_, row) => (
+            header: 'Artisan Worker',
+            accessor: 'labour',
+            render: (row) => (
                 <span className="text-xs text-neutral-700 font-medium">
                     {row.labour ? row.labour.name : '—'}
                 </span>
             ),
         },
         {
-            key: 'quantity',
-            label: 'Target Qty',
+            header: 'Target Qty',
+            accessor: 'quantity',
             sortable: true,
-            render: (val) => (
-                <strong className="text-brand-700 text-xs font-sans tabular-nums">{val} Pcs</strong>
+            numeric: true,
+            render: (row) => (
+                <strong className="text-brand-700 text-xs font-sans tabular-nums">{row.quantity} Pcs</strong>
             ),
         },
         {
-            key: 'status',
-            label: 'Status',
+            header: 'Status',
+            accessor: 'status',
             sortable: true,
-            render: (val) => {
+            render: (row) => {
                 const variants = {
                     ASSIGNED: 'brand',
                     IN_PROGRESS: 'brand',
                     COMPLETED: 'success',
                     CANCELLED: 'danger',
                 };
-                return <Badge variant={variants[val] || 'neutral'} size="sm">{val}</Badge>;
+                return <Badge variant={variants[row.status] || 'neutral'} size="sm">{row.status}</Badge>;
             },
         },
         {
-            key: 'created_at',
-            label: 'Assigned Date',
+            header: 'Assigned Date',
+            accessor: 'created_at',
             sortable: true,
-            render: (val) => (
+            render: (row) => (
                 <span className="text-xs text-neutral-500 font-sans">
-                    {new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                 </span>
             ),
         },
     ];
 
     const statusOptions = [
-        { value: '', label: 'All Statuses' },
         { value: 'ASSIGNED', label: 'Assigned' },
         { value: 'COMPLETED', label: 'Completed' },
         { value: 'CANCELLED', label: 'Cancelled' },
@@ -103,27 +103,32 @@ export default function Index({ assignments, filters = {} }) {
                 action={
                     <Link href={route('assignments.create')}>
                         <Button variant="primary" size="sm">
-                            <Plus className="w-4 h-4" /> New Work Order
+                            <Plus className="w-4 h-4 mr-1.5" /> New Work Order
                         </Button>
                     </Link>
                 }
             />
 
             <FilterChips
-                chips={statusOptions}
-                activeValue={selectedStatus}
+                options={statusOptions}
+                value={selectedStatus}
                 onChange={handleStatusFilter}
+                allLabel="All Statuses"
+                className="mb-4"
             />
 
             <DataTable
                 columns={columns}
-                data={assignments.data}
+                data={assignments?.data || []}
                 pagination={assignments}
+                search={search}
+                onSearchChange={handleSearch}
                 searchPlaceholder="Search by Work Order #, product name, or artisan worker..."
-                onSearch={handleSearch}
                 emptyTitle="No work orders found"
                 emptyDescription="Assign your first product to an artisan worker to start tracking production."
-                actions={(row) => (
+                emptyActionLabel="New Work Order"
+                onEmptyAction={() => router.get(route('assignments.create'))}
+                renderRowActions={(row) => (
                     <div className="flex items-center gap-1.5 justify-end">
                         {row.status === 'ASSIGNED' ? (
                             <select
@@ -146,7 +151,7 @@ export default function Index({ assignments, filters = {} }) {
                             </select>
                         ) : null}
                         <Link href={route('assignments.show', row.id)}>
-                            <button className="p-1.5 text-neutral-500 hover:text-brand-600 hover:bg-neutral-100 rounded" title="View details">
+                            <button className="p-1.5 text-neutral-500 hover:text-brand-600 hover:bg-neutral-100 rounded cursor-pointer" title="View details">
                                 <Eye className="w-4 h-4" />
                             </button>
                         </Link>
