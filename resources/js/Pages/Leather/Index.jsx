@@ -46,7 +46,6 @@ export default function Index({
     const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
     const [hasVariations, setHasVariations] = useState(false);
 
-    const [addVariantMaterial, setAddVariantMaterial] = useState(null);
     const [restockVariant, setRestockVariant] = useState(null);
     const [editMaterial, setEditMaterial] = useState(null);
 
@@ -60,14 +59,6 @@ export default function Index({
         variants: [
             { name: 'Standard', sku: '', reorder_level: '50', initial_stock: '0' },
         ],
-    });
-
-    // Add Color Variation Form
-    const newVariantForm = useForm({
-        name: '',
-        sku: '',
-        reorder_level: '50',
-        initial_stock: '0',
     });
 
     // Restock Leather Form
@@ -148,18 +139,6 @@ export default function Index({
         addForm.post(route('leather.store'), {
             onSuccess: () => {
                 handleCloseDrawer();
-            },
-        });
-    };
-
-    const handleCreateVariantSubmit = (e) => {
-        e.preventDefault();
-        if (!addVariantMaterial) return;
-
-        newVariantForm.post(route('leather.variants.store', addVariantMaterial.id), {
-            onSuccess: () => {
-                newVariantForm.reset();
-                setAddVariantMaterial(null);
             },
         });
     };
@@ -475,17 +454,8 @@ export default function Index({
                                                                 type="button"
                                                                 variant="outline"
                                                                 size="sm"
-                                                                onClick={() => setAddVariantMaterial(material)}
-                                                                className="text-xs"
-                                                            >
-                                                                <Plus className="w-3 h-3 mr-1" /> Add Color Shade
-                                                            </Button>
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="sm"
                                                                 onClick={() => handleOpenEdit(material)}
-                                                                className="text-xs text-neutral-600 hover:text-neutral-900"
+                                                                className="text-xs"
                                                             >
                                                                 Edit
                                                             </Button>
@@ -828,68 +798,7 @@ export default function Index({
                 </form>
             </Drawer>
 
-            {/* 5. ADD COLOR VARIANT DRAWER */}
-            <Drawer
-                isOpen={Boolean(addVariantMaterial)}
-                onClose={() => setAddVariantMaterial(null)}
-                title={`Add Color Shade for ${addVariantMaterial?.name}`}
-                description="Create an additional color shade, thickness grade, or roll batch for this leather hide."
-                size="md"
-            >
-                {addVariantMaterial && (
-                    <form onSubmit={handleCreateVariantSubmit} className="space-y-4">
-                        <Input
-                            label="Color Shade & Thickness"
-                            required
-                            placeholder="e.g. Midnight Black (1.6mm), Olive Green (1.2mm)"
-                            value={newVariantForm.data.name}
-                            onChange={(e) => newVariantForm.setData('name', e.target.value)}
-                            error={newVariantForm.errors.name}
-                        />
-
-                        <Input
-                            label="Roll / SKU (Optional)"
-                            placeholder="e.g. LTH-BLK-04"
-                            value={newVariantForm.data.sku}
-                            onChange={(e) => newVariantForm.setData('sku', e.target.value)}
-                            error={newVariantForm.errors.sku}
-                        />
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input
-                                label={`Initial Stock (${addVariantMaterial.base_unit})`}
-                                type="number"
-                                step="0.01"
-                                placeholder="0"
-                                value={newVariantForm.data.initial_stock}
-                                onChange={(e) => newVariantForm.setData('initial_stock', e.target.value)}
-                                error={newVariantForm.errors.initial_stock}
-                            />
-
-                            <Input
-                                label={`Reorder Buffer (${addVariantMaterial.base_unit})`}
-                                type="number"
-                                step="0.01"
-                                placeholder="50"
-                                value={newVariantForm.data.reorder_level}
-                                onChange={(e) => newVariantForm.setData('reorder_level', e.target.value)}
-                                error={newVariantForm.errors.reorder_level}
-                            />
-                        </div>
-
-                        <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-200">
-                            <Button type="button" variant="outline" onClick={() => setAddVariantMaterial(null)}>
-                                Cancel
-                            </Button>
-                            <Button type="submit" variant="primary" isLoading={newVariantForm.processing}>
-                                Save Color Shade
-                            </Button>
-                        </div>
-                    </form>
-                )}
-            </Drawer>
-
-            {/* 6. RESTOCK LEATHER DRAWER */}
+            {/* 5. RESTOCK LEATHER DRAWER */}
             <Drawer
                 isOpen={Boolean(restockVariant)}
                 onClose={() => setRestockVariant(null)}
