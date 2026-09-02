@@ -233,7 +233,7 @@ export default function Index({
                 description="Manage raw leather hides, tannage types, color variations, and stock balances in Sq. Ft"
                 action={
                     <Button variant="primary" size="sm" onClick={() => setIsAddDrawerOpen(true)}>
-                        <Plus className="w-4 h-4 mr-1.5" /> + Add Leather Hide
+                        <Plus className="w-4 h-4 mr-1.5" /> Add Leather Hide
                     </Button>
                 }
             />
@@ -390,7 +390,7 @@ export default function Index({
                             <EmptyState
                                 title="No leather hides found"
                                 description="Add full-grain, vegetable tanned, pull-up, or suede leather hides to manage Sq. Ft cutting stock."
-                                actionLabel="+ Add Leather Hide"
+                                actionLabel="Add Leather Hide"
                                 onAction={() => setIsAddDrawerOpen(true)}
                             />
                         </div>
@@ -492,7 +492,7 @@ export default function Index({
                                                                 onClick={() => setAddVariantMaterial(material)}
                                                                 className="text-xs"
                                                             >
-                                                                <Plus className="w-3 h-3 mr-1" /> + Add Color Shade
+                                                                <Plus className="w-3 h-3 mr-1" /> Add Color Shade
                                                             </Button>
                                                             <Button
                                                                 type="button"
@@ -777,7 +777,7 @@ export default function Index({
                             onClick={handleAddVariantRow}
                             className="w-full py-2 rounded-lg border border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-brand-50/50 text-neutral-600 hover:text-brand-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                         >
-                            <Plus className="w-3.5 h-3.5" /> + Add Another Color Shade
+                            <Plus className="w-3.5 h-3.5" /> Add Another Color Shade
                         </button>
                     </div>
 

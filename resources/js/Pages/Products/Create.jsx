@@ -272,7 +272,7 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                             </div>
                             <Link href={route('leather.index')}>
                                 <Button type="button" variant="outline" size="xs">
-                                    + Add Leather Hide
+                                    Add Leather Hide
                                 </Button>
                             </Link>
                         </div>
