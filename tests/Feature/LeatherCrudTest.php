@@ -179,4 +179,121 @@ class LeatherCrudTest extends TestCase
         $response->assertOk();
         $this->assertEquals('application/pdf', $response->headers->get('content-type'));
     }
+
+    public function test_admin_can_create_simple_leather_hide_without_variations(): void
+    {
+        $response = $this->actingAs($this->admin)->post(route('leather.store'), [
+            'name'          => 'Simple Heavy Harness Leather',
+            'category'      => 'Vegetable Tanned',
+            'base_unit'     => 'sq_ft',
+            'is_leather'    => true,
+            'reorder_level' => 35,
+            'initial_stock' => 120,
+            'variants'      => [],
+        ]);
+
+        $response->assertRedirect(route('leather.index'));
+
+        $this->assertDatabaseHas('materials', [
+            'name'       => 'Simple Heavy Harness Leather',
+            'category'   => 'VEGETABLE TANNED',
+            'base_unit'  => 'sq_ft',
+            'is_leather' => true,
+        ]);
+
+        $this->assertDatabaseHas('material_variants', [
+            'name' => 'Standard',
+        ]);
+
+        $this->assertDatabaseHas('inventory', [
+            'quantity_on_hand' => 120,
+            'unit'             => 'sq_ft',
+        ]);
+    }
+
+    public function test_admin_can_create_leather_with_custom_category(): void
+    {
+        $response = $this->actingAs($this->admin)->post(route('leather.store'), [
+            'name'          => 'Horween Chromexcel Hide',
+            'category'      => 'custom hot stuffed pull-up',
+            'base_unit'     => 'sq_ft',
+            'is_leather'    => true,
+            'reorder_level' => 50,
+            'initial_stock' => 0,
+            'variants'      => [
+                [
+                    'name'          => 'Natural CXL (2.0mm)',
+                    'sku'           => 'CXL-NAT-20',
+                    'reorder_level' => 20,
+                    'initial_stock' => 80,
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect(route('leather.index'));
+
+        $this->assertDatabaseHas('materials', [
+            'name'     => 'Horween Chromexcel Hide',
+            'category' => 'CUSTOM HOT STUFFED PULL-UP',
+        ]);
+    }
+
+    public function test_admin_can_update_leather_master(): void
+    {
+        $leather = Material::create([
+            'name'          => 'Old Veg-Tan Name',
+            'category'      => 'VEGETABLE TANNED',
+            'base_unit'     => 'sq_ft',
+            'is_leather'    => true,
+            'reorder_level' => 20,
+            'is_active'     => true,
+        ]);
+
+        $response = $this->actingAs($this->admin)->put(route('leather.update', $leather->id), [
+            'name'          => 'Premium Italian Veg-Tan',
+            'category'      => 'BRIDLE LEATHER',
+            'base_unit'     => 'sq_ft',
+            'reorder_level' => 30,
+        ]);
+
+        $response->assertRedirect(route('leather.index'));
+
+        $this->assertDatabaseHas('materials', [
+            'id'       => $leather->id,
+            'name'     => 'Premium Italian Veg-Tan',
+            'category' => 'BRIDLE LEATHER',
+        ]);
+    }
+
+    public function test_admin_can_delete_unused_leather_hide(): void
+    {
+        $leather = Material::create([
+            'name'          => 'Temporary Sample Hide',
+            'category'      => 'SUEDE',
+            'base_unit'     => 'sq_ft',
+            'is_leather'    => true,
+            'reorder_level' => 10,
+            'is_active'     => true,
+        ]);
+
+        $variant = MaterialVariant::create([
+            'material_id'   => $leather->id,
+            'name'          => 'Sand Suede',
+            'is_active'     => true,
+        ]);
+
+        Inventory::create([
+            'material_id'         => $leather->id,
+            'material_variant_id' => $variant->id,
+            'quantity_on_hand'    => 10,
+            'unit'                => 'sq_ft',
+        ]);
+
+        $response = $this->actingAs($this->admin)->delete(route('leather.destroy', $leather->id));
+        $response->assertRedirect(route('leather.index'));
+
+        $this->assertDatabaseMissing('materials', [
+            'id' => $leather->id,
+        ]);
+    }
 }
