@@ -139,13 +139,13 @@
         .meta-strip-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 6px;
-            margin-bottom: 6px;
+            margin-top: 11px;
+            margin-bottom: 11px;
             border: 1px solid #e2e8f0;
             background: #ffffff;
         }
         .meta-strip-cell {
-            padding: 4px 10px 5px 10px;
+            padding: 7px 12px 8px 12px;
             vertical-align: top;
             border-right: 1px solid #e2e8f0;
         }
@@ -163,28 +163,28 @@
             background: #ffffff;
         }
         .meta-kicker {
-            font-size: 9.5px;
+            font-size: 11px;
             font-weight: bold;
             color: #b45309;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
+            letter-spacing: 0.8px;
             display: block;
             line-height: 1.0;
             margin-top: 0;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
         .meta-val-color {
-            font-size: 12.5px;
+            font-size: 14px;
             font-weight: bold;
             color: #b45309;
-            line-height: 1.15;
+            line-height: 1.2;
             display: block;
         }
         .meta-val-standard {
-            font-size: 11px;
+            font-size: 12.5px;
             font-weight: bold;
             color: #64748b;
-            line-height: 1.15;
+            line-height: 1.2;
             display: block;
         }
 
@@ -233,12 +233,12 @@
             line-height: 1.15;
         }
         .manual-space {
-            min-height: 14px;
-            height: 14px;
-            border-bottom: 1px dashed #cbd5e1;
-            margin-top: 2px;
+            min-height: 20px;
+            height: 20px;
+            border-bottom: 1.5px dashed #cbd5e1;
+            margin-top: 3px;
             margin-bottom: 0;
-            font-size: 11px;
+            font-size: 13px;
             color: #64748b;
             font-weight: bold;
             line-height: 1.0;
@@ -280,7 +280,7 @@
             width: 100%;
             border: 1px solid #e2e8f0;
             background: #fafaf9;
-            margin: 6px 0;
+            margin: 11px 0;
             border-collapse: collapse;
         }
         .product-main {
@@ -346,7 +346,8 @@
         /* ================= SECTION 2: RAW MATERIALS TABLE ================= */
         .table-wrap {
             border: 1px solid #e4e4e7;
-            margin-bottom: 8px;
+            margin-top: 11px;
+            margin-bottom: 12px;
         }
         .bom-table {
             width: 100%;
@@ -545,7 +546,7 @@
                 <td class="meta-strip-cell meta-strip-cell-rate">
                     <span class="meta-kicker">Rate</span>
                     <div class="manual-space">
-                        <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 11px; font-weight: bold; color: #64748b;">&#8377;</span>
+                        <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 13px; font-weight: bold; color: #64748b;">&#8377;</span>
                     </div>
                 </td>
                 <td class="meta-strip-cell meta-strip-cell-delivery">
