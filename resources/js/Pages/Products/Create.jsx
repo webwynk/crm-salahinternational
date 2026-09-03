@@ -38,15 +38,8 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
     const [newColorInput, setNewColorInput] = useState('');
     const [activeColorIndex, setActiveColorIndex] = useState(0);
 
-    // Colors state (when hasColors is active)
-    const [colors, setColors] = useState([
-        {
-            color_name: 'Cognac Tan',
-            image_url: '',
-            leatherRows: [createDefaultLeatherRow('Tan Outer Shell')],
-            hardwareRows: [createDefaultHardwareRow('Hardware Fitting')],
-        },
-    ]);
+    // Colors state (starts completely empty; no forced default color on toggle)
+    const [colors, setColors] = useState([]);
 
     // Single BOM state (when hasColors is inactive)
     const [singleLeatherRows, setSingleLeatherRows] = useState([createDefaultLeatherRow('Main Exterior Shell')]);
@@ -74,22 +67,10 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
     // Toggle multi-color mode
     const toggleHasColors = () => {
         if (!hasColors) {
-            // Migrating from single to multi-color: preserve current single rows as Color #1 if not already customized
-            setColors((prev) => {
-                if (prev.length > 0) {
-                    const first = { ...prev[0] };
-                    first.leatherRows = [...singleLeatherRows];
-                    first.hardwareRows = [...singleHardwareRows];
-                    return [first, ...prev.slice(1)];
-                }
-                return [{
-                    color_name: 'Cognac Tan',
-                    image_url: '',
-                    leatherRows: [...singleLeatherRows],
-                    hardwareRows: [...singleHardwareRows],
-                }];
-            });
             setHasColors(true);
+            if (colors.length > 0) {
+                setActiveColorIndex(0);
+            }
         } else {
             setHasColors(false);
         }
@@ -298,6 +279,11 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
         e.preventDefault();
 
         if (hasColors) {
+            if (colors.length === 0) {
+                alert('Please add at least one colorway variation before saving, or switch off multi-color mode.');
+                return;
+            }
+
             // Validate multi-color payload
             const formattedColors = colors.map((c, idx) => {
                 const cMaterials = [
@@ -436,8 +422,14 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                     Does this product have multi-color variations?
                                 </span>
                                 {hasColors && (
-                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-brand-100 text-brand-700 rounded border border-brand-200">
-                                        Active ({colors.length} {colors.length === 1 ? 'Colorway' : 'Colorways'})
+                                    <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded border ${
+                                        colors.length > 0
+                                            ? 'bg-brand-100 text-brand-700 border-brand-200'
+                                            : 'bg-amber-100 text-amber-800 border-amber-200'
+                                    }`}>
+                                        {colors.length > 0
+                                            ? `Active (${colors.length} ${colors.length === 1 ? 'Colorway' : 'Colorways'})`
+                                            : 'Active (0 Colorways)'}
                                     </span>
                                 )}
                             </div>
@@ -521,7 +513,7 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                 </Card>
 
                 {/* COLOR TABS BAR (Directly Above Section 2) */}
-                {hasColors && (
+                {hasColors && colors.length > 0 && (
                     <div className="rounded-xl border border-brand-300/80 bg-white p-4 shadow-xs space-y-4">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100">
                             <div className="flex items-center gap-2">
@@ -581,17 +573,6 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                 );
                             })}
                         </div>
-
-                        {/* Colorway Workspace Guidance Notice */}
-                        <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-500">
-                            <span className="flex items-center gap-1.5 font-medium text-brand-900">
-                                <Palette className="w-3.5 h-3.5 text-brand-600" />
-                                Active Workspace: <strong className="text-brand-800 font-bold">{colors[activeColorIndex]?.color_name}</strong>
-                            </span>
-                            <span className="text-[11px] text-neutral-500 hidden sm:inline">
-                                Leather cuts and hardware added in Sections 2 & 3 below apply strictly to this colorway.
-                            </span>
-                        </div>
                     </div>
                 )}
 
@@ -602,7 +583,7 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                             <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
                                 <Scissors className="w-5 h-5 text-brand-700" />
                                 2. Leather Specifications & Cutting BOM (Sq. Ft)
-                                {hasColors && (
+                                {hasColors && colors[activeColorIndex] && (
                                     <span className="text-xs font-semibold text-brand-700 bg-brand-100/80 px-2 py-0.5 rounded ml-2">
                                         Colorway: {colors[activeColorIndex]?.color_name}
                                     </span>
@@ -612,16 +593,21 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                 Specify leather hides, color shades, and exact cutting square footage required per piece.
                             </p>
                         </div>
-                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-brand-100/70 text-brand-900 border border-brand-300/60">
-                            <Scissors className="w-3.5 h-3.5" /> Leather Cutting Section
-                        </span>
                     </div>
 
-                    {leatherMaterials.length === 0 ? (
+                    {hasColors && colors.length === 0 ? (
+                        <div className="p-6 rounded-xl bg-brand-50/50 border border-brand-200 text-center space-y-2.5">
+                            <Palette className="w-7 h-7 text-brand-600 mx-auto" />
+                            <h4 className="text-xs font-bold text-neutral-900">No Colorway Created Yet</h4>
+                            <p className="text-xs text-neutral-600 max-w-md mx-auto">
+                                Type a custom color name above and click <strong>"+ Add Color"</strong> (or pick a quick suggestion like <em>+ Tan</em>, <em>+ Black</em>) to start configuring leather cuts for it.
+                            </p>
+                        </div>
+                    ) : leatherMaterials.length === 0 ? (
                         <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Info className="w-4 h-4 shrink-0 text-amber-600" />
-                                <span>No leather hides registered yet. You can create leather hides in the <strong>Leather Stock</strong> tab.</span>
+                                <span>No leather hides registered yet.</span>
                             </div>
                             <Link href={route('leather.index')}>
                                 <Button type="button" variant="outline" size="xs">
@@ -643,7 +629,6 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                         <div className="flex items-center justify-between text-xs font-bold text-brand-900 uppercase">
                                             <span>
                                                 Leather Component #{idx + 1}
-                                                {hasColors && ` (${colors[activeColorIndex]?.color_name})`}
                                             </span>
                                             {currentLeatherRows.length > 1 && (
                                                 <button
@@ -721,9 +706,7 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                 className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-brand-300 hover:border-brand-500 bg-brand-50/40 hover:bg-brand-50 text-brand-800 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
                             >
                                 <Plus className="w-4 h-4 text-brand-700" />
-                                <span>
-                                    + Add Leather Cut ({hasColors ? colors[activeColorIndex]?.color_name : 'Sq. Ft'})
-                                </span>
+                                <span>+ Add Leather Cut</span>
                             </button>
                         </div>
                     )}
@@ -736,14 +719,14 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                         <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
                             <Boxes className="w-5 h-5 text-neutral-700" />
                             3. Hardware, Lining & Consumables BOM
-                            {hasColors && (
+                            {hasColors && colors[activeColorIndex] && (
                                 <span className="text-xs font-semibold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded ml-2">
                                     Colorway: {colors[activeColorIndex]?.color_name}
                                 </span>
                             )}
                         </h3>
                         <p className="text-xs text-neutral-500 mt-0.5">
-                            Add threads, zips, buckles, rivets, edge paint, and reinforcement materials per product piece.
+                            Specify metallic hardware, zippers, sliders, reinforcement sheets, and inner backing components.
                         </p>
                     </div>
 
@@ -753,125 +736,137 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                         </Alert>
                     )}
 
-                    <div className="space-y-3">
-                        {currentHardwareRows.map((row, idx) => {
-                            const selectedMat = materials.find((m) => m.id === parseInt(row.material_id) || m.id === row.material_id);
-                            const variants = selectedMat?.variants || [];
+                    {hasColors && colors.length === 0 ? (
+                        <div className="p-6 rounded-xl bg-neutral-50 border border-neutral-200 text-center space-y-2.5">
+                            <Boxes className="w-7 h-7 text-neutral-500 mx-auto" />
+                            <h4 className="text-xs font-bold text-neutral-900">No Colorway Created Yet</h4>
+                            <p className="text-xs text-neutral-600 max-w-md mx-auto">
+                                Hardware, lining, and consumables will become configurable as soon as you create your first colorway above.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {currentHardwareRows.map((row, idx) => {
+                                const selectedMat = materials.find((m) => m.id === parseInt(row.material_id) || m.id === row.material_id);
+                                const variants = selectedMat?.variants || [];
 
-                            return (
-                                <div
-                                    key={idx}
-                                    className="p-3.5 rounded-lg border border-neutral-200 bg-neutral-50/60 relative space-y-2.5 shadow-2xs"
-                                >
-                                    <div className="flex items-center justify-between text-xs font-bold text-neutral-500 uppercase">
-                                        <span>
-                                            Hardware Item #{idx + 1}
-                                            {hasColors && ` (${colors[activeColorIndex]?.color_name})`}
-                                        </span>
-                                        {currentHardwareRows.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeHardwareRow(idx)}
-                                                className="text-neutral-400 hover:text-danger-500 p-1 cursor-pointer transition-colors"
-                                                title="Remove hardware row"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                                        <div className="sm:col-span-4">
-                                            <Select
-                                                label="Material Master"
-                                                value={row.material_id}
-                                                onChange={(e) => updateHardwareRow(idx, 'material_id', e.target.value)}
-                                            >
-                                                <option value="">— Select Hardware / Consumable —</option>
-                                                {materials.map((m) => (
-                                                    <option key={m.id} value={m.id}>
-                                                        {m.name} ({m.category} — {m.base_unit})
-                                                    </option>
-                                                ))}
-                                            </Select>
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="p-3.5 rounded-lg border border-neutral-200 bg-neutral-50/60 relative space-y-2.5 shadow-2xs"
+                                    >
+                                        <div className="flex items-center justify-between text-xs font-bold text-neutral-500 uppercase">
+                                            <span>
+                                                Hardware Item #{idx + 1}
+                                                {hasColors && colors[activeColorIndex] && ` (${colors[activeColorIndex].color_name})`}
+                                            </span>
+                                            {currentHardwareRows.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeHardwareRow(idx)}
+                                                    className="text-neutral-400 hover:text-danger-500 p-1 cursor-pointer transition-colors"
+                                                    title="Remove hardware row"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </div>
 
-                                        {variants.length > 1 ? (
-                                            <>
+                                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                                            <div className="sm:col-span-4">
+                                                <Select
+                                                    label="Material Master"
+                                                    value={row.material_id}
+                                                    onChange={(e) => updateHardwareRow(idx, 'material_id', e.target.value)}
+                                                >
+                                                    <option value="">— Select Hardware / Consumable —</option>
+                                                    {materials.map((m) => (
+                                                        <option key={m.id} value={m.id}>
+                                                            {m.name} ({m.category} — {m.base_unit})
+                                                        </option>
+                                                    ))}
+                                                </Select>
+                                            </div>
+
+                                            {selectedMat && variants.length > 1 && (
                                                 <div className="sm:col-span-3">
                                                     <Select
-                                                        label="Variation"
+                                                        label="Variation / Tone"
                                                         value={row.material_variant_id || ''}
                                                         onChange={(e) => updateHardwareRow(idx, 'material_variant_id', e.target.value)}
                                                     >
                                                         {variants.map((v) => (
                                                             <option key={v.id} value={v.id}>
-                                                                {v.name} {v.sku ? `(${v.sku})` : ''}
+                                                                {v.name}
                                                             </option>
                                                         ))}
                                                     </Select>
                                                 </div>
-                                                <div className="sm:col-span-3">
-                                                    <Input
-                                                        label="Component"
-                                                        required
-                                                        value={row.label}
-                                                        onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
-                                                        placeholder="e.g. Buckle, Ring, Zipper"
-                                                    />
-                                                </div>
-                                                <div className="sm:col-span-2">
-                                                    <Input
-                                                        label={`Qty (${row.unit || 'pcs'})`}
-                                                        type="number"
-                                                        step="0.001"
-                                                        required
-                                                        value={row.quantity_min}
-                                                        onChange={(e) => updateHardwareRow(idx, 'quantity_min', e.target.value)}
-                                                        placeholder="e.g. 1"
-                                                    />
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="sm:col-span-5">
-                                                    <Input
-                                                        label="Component / Fitting Label"
-                                                        required
-                                                        value={row.label}
-                                                        onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
-                                                        placeholder="e.g. YKK #5 Antique Brass Zipper"
-                                                    />
-                                                </div>
-                                                <div className="sm:col-span-3">
-                                                    <Input
-                                                        label={`Qty (${row.unit || 'pcs'})`}
-                                                        type="number"
-                                                        step="0.001"
-                                                        required
-                                                        value={row.quantity_min}
-                                                        onChange={(e) => updateHardwareRow(idx, 'quantity_min', e.target.value)}
-                                                        placeholder="e.g. 1"
-                                                    />
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                            )}
 
-                        <button
-                            type="button"
-                            onClick={addHardwareRow}
-                            className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-neutral-50 text-neutral-600 hover:text-brand-700 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
-                        >
-                            <Plus className="w-4 h-4 text-neutral-600" />
-                            <span>
-                                + Add Hardware / Consumable Item ({hasColors ? colors[activeColorIndex]?.color_name : 'Single BOM'})
-                            </span>
-                        </button>
-                    </div>
+                                            {selectedMat ? (
+                                                <>
+                                                    <div className={variants.length > 1 ? 'sm:col-span-3' : 'sm:col-span-6'}>
+                                                        <Input
+                                                            label="Component / Fitting Note"
+                                                            value={row.label}
+                                                            onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
+                                                            placeholder="e.g. Buckle, Ring, Zipper"
+                                                        />
+                                                    </div>
+                                                    <div className="sm:col-span-2">
+                                                        <Input
+                                                            label={`Qty (${row.unit || 'pcs'})`}
+                                                            type="number"
+                                                            step="0.001"
+                                                            required
+                                                            value={row.quantity_min}
+                                                            onChange={(e) => updateHardwareRow(idx, 'quantity_min', e.target.value)}
+                                                            placeholder="e.g. 1"
+                                                        />
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="sm:col-span-5">
+                                                        <Input
+                                                            label="Component / Fitting Label"
+                                                            required
+                                                            value={row.label}
+                                                            onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
+                                                            placeholder="e.g. YKK #5 Antique Brass Zipper"
+                                                        />
+                                                    </div>
+                                                    <div className="sm:col-span-3">
+                                                        <Input
+                                                            label={`Qty (${row.unit || 'pcs'})`}
+                                                            type="number"
+                                                            step="0.001"
+                                                            required
+                                                            value={row.quantity_min}
+                                                            onChange={(e) => updateHardwareRow(idx, 'quantity_min', e.target.value)}
+                                                            placeholder="e.g. 1"
+                                                        />
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            <button
+                                type="button"
+                                onClick={addHardwareRow}
+                                className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-white hover:bg-neutral-50 text-neutral-600 hover:text-brand-700 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                            >
+                                <Plus className="w-4 h-4 text-neutral-600" />
+                                <span>
+                                    + Add Hardware / Consumable Item {hasColors && colors[activeColorIndex] ? `(${colors[activeColorIndex].color_name})` : ''}
+                                </span>
+                            </button>
+                        </div>
+                    )}
 
                     <div ref={hardwareBottomRef} />
                 </Card>
