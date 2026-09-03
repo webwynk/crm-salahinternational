@@ -223,14 +223,21 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <div className="lg:col-span-8 space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="lg:col-span-8">
+                            <div className="grid grid-cols-1 md:grid-cols-[5fr_11fr_4fr] gap-4">
                                 <Input
                                     label="Product Code / SKU"
                                     required
                                     value={data.code}
                                     onChange={(e) => setData('code', e.target.value.toUpperCase())}
                                     error={errors.code}
+                                />
+                                <Input
+                                    label="Product Name"
+                                    required
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    error={errors.name}
                                 />
                                 <Input
                                     label="Category"
@@ -240,14 +247,6 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
                                     error={errors.category}
                                 />
                             </div>
-
-                            <Input
-                                label="Product Name"
-                                required
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                error={errors.name}
-                            />
                         </div>
 
                         <div className="lg:col-span-4 flex flex-col">

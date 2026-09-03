@@ -197,8 +197,8 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <div className="lg:col-span-8 space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="lg:col-span-8">
+                            <div className="grid grid-cols-1 md:grid-cols-[5fr_11fr_4fr] gap-4">
                                 <Input
                                     label="Product Code / SKU"
                                     required
@@ -208,6 +208,14 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                     error={errors.code}
                                 />
                                 <Input
+                                    label="Product Name"
+                                    required
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    placeholder="e.g. Minimalist Bifold Leather Wallet"
+                                    error={errors.name}
+                                />
+                                <Input
                                     label="Category"
                                     placeholder="e.g. Wallet, Bag, Belt, Cardholder"
                                     value={data.category}
@@ -215,15 +223,6 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                     error={errors.category}
                                 />
                             </div>
-
-                            <Input
-                                label="Product Name"
-                                required
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                placeholder="e.g. Minimalist Bifold Leather Wallet"
-                                error={errors.name}
-                            />
                         </div>
 
                         <div className="lg:col-span-4 flex flex-col">
