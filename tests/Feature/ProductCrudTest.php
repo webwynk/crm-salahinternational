@@ -344,4 +344,23 @@ class ProductCrudTest extends TestCase
             'label' => 'Updated Tan Shell',
         ]);
     }
+
+    public function test_multi_color_product_requires_at_least_one_color_variation(): void
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->post('/products', [
+            'code' => 'WAL-NO-COLOR',
+            'name' => 'Zero Color Product',
+            'category' => 'Wallet',
+            'has_colors' => true,
+            'colors' => [],
+        ]);
+
+        $response->assertSessionHasErrors('colors');
+        $this->assertDatabaseMissing('products', [
+            'code' => 'WAL-NO-COLOR',
+        ]);
+    }
 }
+
