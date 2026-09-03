@@ -184,4 +184,113 @@ class AssignmentStatusTest extends TestCase
         $response->assertOk();
         $this->assertEquals('application/pdf', $response->headers->get('content-type'));
     }
+
+    public function test_admin_can_create_assignment_for_specific_color_variant_and_deduct_stock(): void
+    {
+        $this->actingAs($this->admin);
+
+        // Multi-color product
+        $product = Product::create([
+            'code' => 'BAG-MC-TEST',
+            'name' => 'Multi-Color Duffle Bag',
+            'has_colors' => true,
+            'created_by' => $this->admin->id,
+        ]);
+
+        $tanColor = $product->colors()->create([
+            'color_name' => 'Tan',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $blackColor = $product->colors()->create([
+            'color_name' => 'Black',
+            'sort_order' => 2,
+            'is_active' => true,
+        ]);
+
+        // Materials: Tan leather vs Black leather
+        $tanLeather = Material::create([
+            'name' => 'Tan Veg Leather',
+            'category' => 'LEATHER',
+            'base_unit' => 'sq ft',
+            'reorder_level' => 10,
+        ]);
+        $tanInv = Inventory::create([
+            'material_id' => $tanLeather->id,
+            'quantity_on_hand' => 50.0,
+            'unit' => 'sq ft',
+        ]);
+
+        $blackLeather = Material::create([
+            'name' => 'Black Nappa Leather',
+            'category' => 'LEATHER',
+            'base_unit' => 'sq ft',
+            'reorder_level' => 10,
+        ]);
+        $blackInv = Inventory::create([
+            'material_id' => $blackLeather->id,
+            'quantity_on_hand' => 50.0,
+            'unit' => 'sq ft',
+        ]);
+
+        // Tan BOM uses 2.0 sq ft of Tan Leather
+        $product->materials()->create([
+            'product_color_id' => $tanColor->id,
+            'material_id' => $tanLeather->id,
+            'material_type' => 'LEATHER',
+            'label' => 'Tan Shell',
+            'quantity_min' => 2.0,
+            'unit' => 'sq ft',
+            'sort_order' => 1,
+        ]);
+
+        // Black BOM uses 3.0 sq ft of Black Leather
+        $product->materials()->create([
+            'product_color_id' => $blackColor->id,
+            'material_id' => $blackLeather->id,
+            'material_type' => 'LEATHER',
+            'label' => 'Black Shell',
+            'quantity_min' => 3.0,
+            'unit' => 'sq ft',
+            'sort_order' => 1,
+        ]);
+
+        // Pre-check for Tan color
+        $preCheckResponse = $this->get(route('assignments.pre-check', [
+            'product_id' => $product->id,
+            'product_color_id' => $tanColor->id,
+            'quantity' => 10,
+        ]));
+        $preCheckResponse->assertOk();
+        $this->assertTrue($preCheckResponse->json('can_assign'));
+        $this->assertEquals(20.0, $preCheckResponse->json('items.0.needed'));
+
+        // Assign 10 pcs of Tan
+        $response = $this->post('/assignments', [
+            'product_id' => $product->id,
+            'product_color_id' => $tanColor->id,
+            'labour_id' => $this->labour->id,
+            'quantity' => 10,
+        ]);
+
+        $response->assertRedirect('/assignments');
+
+        // Verify Tan leather decremented (50 - 20 = 30), Black leather untouched (50)
+        $this->assertEquals(30.0, (float) $tanInv->fresh()->quantity_on_hand);
+        $this->assertEquals(50.0, (float) $blackInv->fresh()->quantity_on_hand);
+
+        // Verify assignment recorded product_color_id
+        $this->assertDatabaseHas('assignments', [
+            'product_id' => $product->id,
+            'product_color_id' => $tanColor->id,
+            'quantity' => 10,
+        ]);
+
+        // Verify Work Order PDF generates and downloads for multi-color assignment
+        $assignedWo = Assignment::where('product_id', $product->id)->first();
+        $pdfResponse = $this->get("/assignments/{$assignedWo->id}/pdf");
+        $pdfResponse->assertOk();
+        $this->assertEquals('application/pdf', $pdfResponse->headers->get('content-type'));
+    }
 }

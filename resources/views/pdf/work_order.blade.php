@@ -229,6 +229,11 @@
             font-weight: bold;
             color: #0f172a;
         }
+        .product-color-lead {
+            font-size: 13.5px;
+            font-weight: bold;
+            color: #b45309;
+        }
         .product-qty-box {
             width: 22%;
             padding: 5px 10px;
@@ -466,6 +471,11 @@
                     <span class="product-code-lead">{{ $product->code }}</span>
                     <span class="product-title-sep">|</span>
                     <span class="product-title-text">{{ $product->name }}</span>
+                    @if($assignment->color || (isset($color) && $color))
+                        @php $activeColor = $assignment->color ?? $color; @endphp
+                        <span class="product-title-sep">|</span>
+                        <span class="product-color-lead">Color: {{ $activeColor->color_name }}</span>
+                    @endif
                 </td>
                 <td class="product-qty-box">
                     <span class="qty-label">Total Qty</span>

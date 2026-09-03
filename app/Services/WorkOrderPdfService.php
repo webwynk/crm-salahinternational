@@ -16,6 +16,7 @@ class WorkOrderPdfService
     {
         $assignment->load([
             'product.materials.material',
+            'color',
             'labour',
             'materials.material',
             'materials.variant',
@@ -30,6 +31,7 @@ class WorkOrderPdfService
         $pdf = Pdf::loadView('pdf.work_order', [
             'assignment' => $assignment,
             'product'    => $assignment->product,
+            'color'      => $assignment->color,
             'labour'     => $assignment->labour,
             'materials'  => $assignment->materials,
             'logoBase64' => $logoBase64,

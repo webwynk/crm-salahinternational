@@ -236,4 +236,112 @@ class ProductCrudTest extends TestCase
         $response->assertRedirect('/products');
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }
+
+    public function test_authenticated_user_can_create_product_with_color_variations(): void
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->post('/products', [
+            'code' => 'WAL-MC-001',
+            'name' => 'Multi-Color Snapfold Wallet',
+            'category' => 'Wallet',
+            'has_colors' => true,
+            'colors' => [
+                [
+                    'color_name' => 'Cognac Tan',
+                    'image_url' => 'https://example.com/tan.jpg',
+                    'materials' => [
+                        [
+                            'material_id' => $this->material->id,
+                            'material_type' => 'LEATHER',
+                            'label' => 'Tan Outer Shell',
+                            'quantity_min' => 1.25,
+                            'unit' => 'sq_ft',
+                        ],
+                    ],
+                ],
+                [
+                    'color_name' => 'Midnight Black',
+                    'image_url' => 'https://example.com/black.jpg',
+                    'materials' => [
+                        [
+                            'material_id' => $this->material->id,
+                            'material_type' => 'LEATHER',
+                            'label' => 'Black Outer Shell',
+                            'quantity_min' => 1.25,
+                            'unit' => 'sq_ft',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/products');
+        $this->assertDatabaseHas('products', [
+            'code' => 'WAL-MC-001',
+            'has_colors' => 1,
+        ]);
+        $this->assertDatabaseHas('product_colors', [
+            'color_name' => 'Cognac Tan',
+        ]);
+        $this->assertDatabaseHas('product_colors', [
+            'color_name' => 'Midnight Black',
+        ]);
+        $this->assertDatabaseHas('product_materials', [
+            'label' => 'Tan Outer Shell',
+        ]);
+        $this->assertDatabaseHas('product_materials', [
+            'label' => 'Black Outer Shell',
+        ]);
+    }
+
+    public function test_authenticated_user_can_update_product_color_variations(): void
+    {
+        $this->actingAs($this->user);
+
+        $product = Product::create([
+            'code' => 'WAL-MC-UPDATE',
+            'name' => 'Updatable Multi-Color Wallet',
+            'has_colors' => true,
+            'created_by' => $this->user->id,
+        ]);
+
+        $color = $product->colors()->create([
+            'color_name' => 'Old Color',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $response = $this->put("/products/{$product->id}", [
+            'code' => 'WAL-MC-UPDATE',
+            'name' => 'Updated Multi-Color Wallet',
+            'category' => 'Wallet',
+            'has_colors' => true,
+            'colors' => [
+                [
+                    'id' => $color->id,
+                    'color_name' => 'Updated Cognac Tan',
+                    'materials' => [
+                        [
+                            'material_id' => $this->material->id,
+                            'material_type' => 'LEATHER',
+                            'label' => 'Updated Tan Shell',
+                            'quantity_min' => 1.30,
+                            'unit' => 'sq_ft',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/products');
+        $this->assertDatabaseHas('product_colors', [
+            'id' => $color->id,
+            'color_name' => 'Updated Cognac Tan',
+        ]);
+        $this->assertDatabaseHas('product_materials', [
+            'product_color_id' => $color->id,
+            'label' => 'Updated Tan Shell',
+        ]);
+    }
 }

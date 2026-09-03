@@ -27,6 +27,7 @@ class ProductMaterial extends Model
 
     protected $fillable = [
         'product_id',
+        'product_color_id',
         'material_id',
         'material_variant_id',
         'material_type',
@@ -50,6 +51,14 @@ class ProductMaterial extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    /**
+     * @return BelongsTo<ProductColor, $this>
+     */
+    public function color(): BelongsTo
+    {
+        return $this->belongsTo(ProductColor::class, 'product_color_id');
     }
 
     /**

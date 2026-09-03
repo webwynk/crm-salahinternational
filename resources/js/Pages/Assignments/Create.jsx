@@ -25,7 +25,8 @@ import {
     ShieldCheck,
     FileText,
     Sparkles,
-    Check
+    Check,
+    Palette
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -50,6 +51,7 @@ export default function Create({ products = [], labours = [], labour = [], categ
 
     const { data, setData, post, processing, errors } = useForm({
         product_id: '',
+        product_color_id: '',
         labour_id: '',
         quantity: 10,
         notes: '',
@@ -79,10 +81,21 @@ export default function Create({ products = [], labours = [], labour = [], categ
     const handleSelectProduct = (p) => {
         if (!p) return;
         setSelectedProduct(p);
-        setData('product_id', p.id);
+        const defaultColorId = (p.has_colors && p.colors && p.colors.length > 0)
+            ? p.colors[0].id
+            : '';
+        setData((prev) => ({
+            ...prev,
+            product_id: p.id,
+            product_color_id: defaultColorId,
+        }));
         setPreCheckResult(null);
         setPreCheckError(null);
     };
+
+    const selectedColor = (selectedProduct?.has_colors && selectedProduct?.colors)
+        ? selectedProduct.colors.find((c) => String(c.id) === String(data.product_color_id)) || selectedProduct.colors[0]
+        : null;
 
     // Fast Quantity Adjusters
     const adjustQuantity = (delta) => {
@@ -110,6 +123,7 @@ export default function Create({ products = [], labours = [], labour = [], categ
             axios.get(route('assignments.pre-check'), {
                 params: {
                     product_id: data.product_id,
+                    product_color_id: data.product_color_id || null,
                     quantity: data.quantity,
                 },
             })
@@ -125,7 +139,7 @@ export default function Create({ products = [], labours = [], labour = [], categ
         }, 200);
 
         return () => clearTimeout(timer);
-    }, [data.product_id, data.quantity]);
+    }, [data.product_id, data.product_color_id, data.quantity]);
 
     const handleFinalSubmit = () => {
         setIsConfirmModalOpen(false);
@@ -285,6 +299,66 @@ export default function Create({ products = [], labours = [], labour = [], categ
                             )}
                         </div>
                     </Card>
+
+                    {/* COLORWAY SELECTION (Visible when selected product has multi-color variations) */}
+                    {selectedProduct?.has_colors && selectedProduct.colors?.length > 0 && (
+                        <div className="p-4 bg-brand-50/70 rounded-xl border border-brand-300 ring-1 ring-brand-200 shadow-2xs space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold text-brand-900 flex items-center gap-1.5">
+                                    <Palette className="w-4 h-4 text-brand-700" />
+                                    Select Production Colorway <span className="text-danger-500">*</span>
+                                </label>
+                                <span className="text-[11px] font-semibold text-brand-700 bg-brand-100 px-2 py-0.5 rounded-full border border-brand-200">
+                                    {selectedProduct.colors.length} Available Colorways
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                                {selectedProduct.colors.map((color) => {
+                                    const isSelected = String(data.product_color_id) === String(color.id);
+                                    return (
+                                        <div
+                                            key={color.id}
+                                            onClick={() => setData('product_color_id', color.id)}
+                                            className={`p-2.5 rounded-lg border transition-all cursor-pointer flex items-center gap-2.5 ${
+                                                isSelected
+                                                    ? 'bg-brand-600 text-white border-brand-700 shadow-xs ring-2 ring-brand-500/30'
+                                                    : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-800'
+                                            }`}
+                                        >
+                                            {color.image_url ? (
+                                                <img
+                                                    src={color.image_url}
+                                                    alt={color.color_name}
+                                                    className="w-9 h-9 rounded object-cover border border-white/20 shrink-0"
+                                                />
+                                            ) : (
+                                                <div className={`w-9 h-9 rounded flex items-center justify-center font-bold text-xs shrink-0 ${
+                                                    isSelected ? 'bg-brand-700 text-white' : 'bg-brand-100 text-brand-800'
+                                                }`}>
+                                                    <Palette className="w-4 h-4" />
+                                                </div>
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-xs font-bold truncate">
+                                                    {color.color_name}
+                                                </p>
+                                                <p className={`text-[10px] truncate ${isSelected ? 'text-brand-100' : 'text-neutral-500'}`}>
+                                                    {color.materials ? `${color.materials.length} BOM items` : 'Custom BOM'}
+                                                </p>
+                                            </div>
+                                            {isSelected && (
+                                                <Check className="w-4 h-4 text-white shrink-0" />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            {errors.product_color_id && (
+                                <p className="text-xs text-danger-600 font-medium">{errors.product_color_id}</p>
+                            )}
+                        </div>
+                    )}
 
                     {/* SECTION 2: Artisan & Production Targets */}
                     <Card>
@@ -499,6 +573,15 @@ export default function Create({ products = [], labours = [], labour = [], categ
                                         <span className="text-neutral-600">Product:</span>
                                         <strong className="text-neutral-900 font-sans font-bold">{selectedProduct.code} ({selectedProduct.name})</strong>
                                     </div>
+                                    {selectedProduct.has_colors && selectedColor && (
+                                        <div className="flex justify-between">
+                                            <span className="text-neutral-600">Colorway:</span>
+                                            <strong className="text-brand-800 font-bold flex items-center gap-1">
+                                                <Palette className="w-3.5 h-3.5 text-brand-600" />
+                                                {selectedColor.color_name}
+                                            </strong>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between">
                                         <span className="text-neutral-600">Batch Target:</span>
                                         <strong className="text-neutral-900 font-bold">{data.quantity} pcs</strong>
@@ -568,6 +651,11 @@ export default function Create({ products = [], labours = [], labour = [], categ
                                     </div>
                                     <p className="font-sans text-[15px] font-bold text-brand-700 mt-0.5">
                                         Code: {selectedProduct?.code || 'NO-CODE'}
+                                        {selectedProduct?.has_colors && selectedColor && (
+                                            <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded bg-brand-100 text-brand-800 border border-brand-200">
+                                                Color: {selectedColor.color_name}
+                                            </span>
+                                        )}
                                     </p>
                                 </div>
                             </div>

@@ -26,13 +26,23 @@ class Product extends Model
         'category',
         'description',
         'image_url',
+        'has_colors',
         'is_active',
         'created_by',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'is_active'  => 'boolean',
+        'has_colors' => 'boolean',
     ];
+
+    /**
+     * @return HasMany<ProductColor, $this>
+     */
+    public function colors(): HasMany
+    {
+        return $this->hasMany(ProductColor::class, 'product_id')->orderBy('sort_order', 'asc');
+    }
 
     /**
      * @return HasMany<ProductMaterial, $this>

@@ -28,6 +28,7 @@ class Assignment extends Model
     protected $fillable = [
         'assignment_no',
         'product_id',
+        'product_color_id',
         'labour_id',
         'quantity',
         'status',
@@ -49,6 +50,14 @@ class Assignment extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    /**
+     * @return BelongsTo<ProductColor, $this>
+     */
+    public function color(): BelongsTo
+    {
+        return $this->belongsTo(ProductColor::class, 'product_color_id');
     }
 
     /**

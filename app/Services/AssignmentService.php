@@ -18,11 +18,18 @@ class AssignmentService
      *
      * @return array{can_assign: bool, items: list<array{material_id: int|null, material_variant_id: int|null, label: string, unit: string, needed: float, available: float, is_sufficient: bool, shortage: float}>}
      */
-    public function checkStockAvailability(int|string $productId, int $quantity): array
+    public function checkStockAvailability(int|string $productId, int $quantity, int|string|null $productColorId = null): array
     {
-        $product = Product::with(['materials.material.variants.inventory', 'materials.variant.inventory'])->findOrFail($productId);
+        $product = Product::with(['materials.material.variants.inventory', 'materials.variant.inventory', 'colors'])->findOrFail($productId);
         /** @var \Illuminate\Database\Eloquent\Collection<int, ProductMaterial> $bom */
-        $bom = $product->materials->filter(fn($m) => !is_null($m->material_id));
+        if ($productColorId) {
+            $bom = $product->materials->where('product_color_id', (int) $productColorId)->filter(fn($m) => !is_null($m->material_id));
+        } elseif ($product->has_colors && $product->colors->isNotEmpty()) {
+            $firstColor = $product->colors->first();
+            $bom = $product->materials->where('product_color_id', $firstColor->id)->filter(fn($m) => !is_null($m->material_id));
+        } else {
+            $bom = $product->materials->whereNull('product_color_id')->filter(fn($m) => !is_null($m->material_id));
+        }
 
         $items = [];
         $hasInsufficient = false;
@@ -69,12 +76,26 @@ class AssignmentService
     /**
      * Create work order assignment with transactional row-level locked stock deduction.
      */
-    public function createAssignment(int|string $productId, int|string $labourId, int $quantity, int|string $assignedByUserId, ?string $notes = null): Assignment
-    {
-        return DB::transaction(function () use ($productId, $labourId, $quantity, $assignedByUserId, $notes) {
-            $product = Product::with(['materials.material.variants', 'materials.variant'])->findOrFail($productId);
+    public function createAssignment(
+        int|string $productId,
+        int|string $labourId,
+        int $quantity,
+        int|string $assignedByUserId,
+        ?string $notes = null,
+        int|string|null $productColorId = null
+    ): Assignment {
+        return DB::transaction(function () use ($productId, $labourId, $quantity, $assignedByUserId, $notes, $productColorId) {
+            $product = Product::with(['materials.material.variants', 'materials.variant', 'colors'])->findOrFail($productId);
             /** @var \Illuminate\Database\Eloquent\Collection<int, ProductMaterial> $bom */
-            $bom = $product->materials->filter(fn($m) => !is_null($m->material_id));
+            if ($productColorId) {
+                $bom = $product->materials->where('product_color_id', (int) $productColorId)->filter(fn($m) => !is_null($m->material_id));
+            } elseif ($product->has_colors && $product->colors->isNotEmpty()) {
+                $firstColor = $product->colors->first();
+                $bom = $product->materials->where('product_color_id', $firstColor->id)->filter(fn($m) => !is_null($m->material_id));
+                $productColorId = $firstColor->id;
+            } else {
+                $bom = $product->materials->whereNull('product_color_id')->filter(fn($m) => !is_null($m->material_id));
+            }
 
             // Lock inventory rows FOR UPDATE to prevent race conditions under high concurrency
             $lockedInventory = [];
@@ -133,13 +154,14 @@ class AssignmentService
             $assignmentNo = sprintf('WO-%d-%04d', $year, $seq);
 
             $assignment = Assignment::create([
-                'assignment_no' => $assignmentNo,
-                'product_id'    => $productId,
-                'labour_id'     => $labourId,
-                'quantity'      => $quantity,
-                'assigned_by'   => $assignedByUserId,
-                'status'        => 'ASSIGNED',
-                'notes'         => $notes,
+                'assignment_no'    => $assignmentNo,
+                'product_id'       => $productId,
+                'product_color_id' => $productColorId ? (int) $productColorId : null,
+                'labour_id'        => $labourId,
+                'quantity'         => $quantity,
+                'assigned_by'      => $assignedByUserId,
+                'status'           => 'ASSIGNED',
+                'notes'            => $notes,
             ]);
 
             foreach ($lockedInventory as $data) {

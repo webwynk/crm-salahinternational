@@ -15,6 +15,7 @@ class StoreAssignmentRequest extends FormRequest
     {
         return [
             'product_id' => ['required', 'exists:products,id'],
+            'product_color_id' => ['nullable', 'exists:product_colors,id'],
             'labour_id' => ['required', 'exists:labour,id'],
             'quantity' => ['required', 'integer', 'min:1', 'max:100000'],
             'notes' => ['nullable', 'string', 'max:1000'],

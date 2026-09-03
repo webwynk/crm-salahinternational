@@ -22,7 +22,7 @@ class AssignmentController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = Assignment::query()->with(['product', 'labour', 'assigner', 'pdfs']);
+        $query = Assignment::query()->with(['product', 'color', 'labour', 'assigner', 'pdfs']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -51,7 +51,12 @@ class AssignmentController extends Controller
 
     public function create(): Response
     {
-        $products = Product::with(['materials.material.variants.inventory', 'materials.variant.inventory'])->where('is_active', true)->orderBy('name')->get();
+        $products = Product::with([
+            'colors.materials.material.variants.inventory',
+            'colors.materials.variant.inventory',
+            'materials.material.variants.inventory',
+            'materials.variant.inventory',
+        ])->where('is_active', true)->orderBy('name')->get();
         $labours = Labour::where('is_active', true)->orderBy('name')->get();
         $categories = Product::whereNotNull('category')->where('is_active', true)->distinct()->pluck('category');
 
@@ -65,13 +70,15 @@ class AssignmentController extends Controller
     public function preCheck(Request $request, AssignmentService $assignmentService): JsonResponse
     {
         $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
-            'quantity'   => ['required', 'integer', 'min:1'],
+            'product_id'       => ['required', 'exists:products,id'],
+            'product_color_id' => ['nullable', 'exists:product_colors,id'],
+            'quantity'         => ['required', 'integer', 'min:1'],
         ]);
 
         $result = $assignmentService->checkStockAvailability(
             $request->product_id,
-            (int) $request->quantity
+            (int) $request->quantity,
+            $request->product_color_id
         );
 
         return response()->json($result);
@@ -87,7 +94,8 @@ class AssignmentController extends Controller
                 $validated['labour_id'],
                 (int) $validated['quantity'],
                 $request->user()->id,
-                $validated['notes'] ?? null
+                $validated['notes'] ?? null,
+                $validated['product_color_id'] ?? null
             );
 
             // Auto-generate Work Order PDF
