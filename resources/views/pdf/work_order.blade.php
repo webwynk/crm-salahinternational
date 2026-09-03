@@ -99,7 +99,7 @@
             height: 52px;
             width: auto;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         .brand-tagline {
             font-size: 11.5px;
@@ -107,18 +107,20 @@
             color: #92400e;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            margin-bottom: 4px;
+            margin-bottom: 1px;
+            line-height: 1.15;
         }
         .brand-address {
-            font-size: 11.5px;
+            font-size: 11px;
             color: #374151;
-            line-height: 1.38;
-            margin-bottom: 6px;
+            line-height: 1.18;
+            margin-bottom: 2px;
         }
         .brand-gstin-pill {
             display: inline-block;
-            font-size: 10.5px;
-            margin-top: 3px;
+            font-size: 10px;
+            margin-top: 1px;
+            line-height: 1.15;
         }
         .gstin-label {
             font-size: 9px;
@@ -130,20 +132,20 @@
         .gstin-code {
             font-weight: bold;
             color: #0f172a;
-            font-size: 10.5px;
+            font-size: 10px;
         }
 
         /* Production Metadata Strip (Rate, Delivery Date, Color) */
         .meta-strip-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
-            margin-bottom: 8px;
+            margin-top: 6px;
+            margin-bottom: 6px;
             border: 1px solid #e2e8f0;
             background: #ffffff;
         }
         .meta-strip-cell {
-            padding: 5px 10px;
+            padding: 4px 8px;
             vertical-align: middle;
             border-right: 1px solid #e2e8f0;
         }
@@ -161,16 +163,16 @@
             background: #ffffff;
         }
         .meta-kicker {
-            font-size: 8px;
+            font-size: 9.5px;
             font-weight: bold;
             color: #b45309;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         .meta-val-color {
-            font-size: 12px;
+            font-size: 12.5px;
             font-weight: bold;
             color: #b45309;
         }
@@ -200,11 +202,11 @@
             width: 45%;
         }
         .kicker {
-            font-size: 8.5px;
+            font-size: 9.5px;
             font-weight: bold;
             color: #b45309;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             display: block;
             margin-bottom: 1px;
         }
@@ -215,7 +217,7 @@
             display: block;
         }
         .val-date {
-            font-size: 11.5px;
+            font-size: 13.5px;
             font-weight: bold;
             color: #0f172a;
             display: block;
@@ -510,12 +512,12 @@
                     <div class="manual-space"></div>
                 </td>
                 <td class="meta-strip-cell meta-strip-cell-color">
-                    <span class="meta-kicker">Production Colorway</span>
+                    <span class="meta-kicker">Color</span>
                     @if($assignment->color || (isset($color) && $color))
                         @php $activeColor = $assignment->color ?? $color; @endphp
-                        <span class="meta-val-color">Color: {{ $activeColor->color_name }}</span>
+                        <span class="meta-val-color">{{ $activeColor->color_name }}</span>
                     @else
-                        <span class="meta-val-standard">Color: Standard (Single Color)</span>
+                        <span class="meta-val-standard">Standard</span>
                     @endif
                 </td>
             </tr>
