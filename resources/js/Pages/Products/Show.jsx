@@ -59,7 +59,6 @@ export default function Show({ product }) {
                                 <StatusPill status={product.is_active ? 'ACTIVE' : 'INACTIVE'} />
                             </div>
                             <h2 className="text-xl font-bold text-neutral-900">{product.name}</h2>
-                            <p className="text-sm text-neutral-600 mt-2">{product.description || 'No craft notes provided.'}</p>
                         </div>
                     </div>
                 </Card>

@@ -203,12 +203,6 @@
             font-weight: bold;
             color: #0f172a;
         }
-        .product-notes {
-            font-size: 11px;
-            color: #334155;
-            line-height: 1.35;
-            margin-top: 3px;
-        }
         .product-qty-box {
             width: 22%;
             padding: 5px 10px;
@@ -443,14 +437,9 @@
         <table class="product-card">
             <tr>
                 <td class="product-main">
-                    <div>
-                        <span class="product-code-lead">{{ $product->code }}</span>
-                        <span class="product-title-sep">|</span>
-                        <span class="product-title-text">{{ $product->name }}</span>
-                    </div>
-                    <div class="product-notes">
-                        <strong>Craft Notes:</strong> {{ $product->description ?? 'Follow master craftsman guidelines revision 2.' }}
-                    </div>
+                    <span class="product-code-lead">{{ $product->code }}</span>
+                    <span class="product-title-sep">|</span>
+                    <span class="product-title-text">{{ $product->name }}</span>
                 </td>
                 <td class="product-qty-box">
                     <span class="qty-label">Total Qty</span>

@@ -69,7 +69,6 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
         code: product.code || '',
         name: product.name || '',
         category: product.category || '',
-        description: product.description || '',
         image_url: product.image_url || '',
         materials: [],
     });
@@ -199,7 +198,7 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
 
             <PageHeader
                 title={`Edit Product: ${product.name}`}
-                description="Modify product specifications, craft notes, leather cutting BOM (Sq. Ft), and hardware components"
+                description="Modify product specifications, leather cutting BOM (Sq. Ft), and hardware components"
                 action={
                     <Link href={route('products.index')}>
                         <Button variant="outline" size="sm">
@@ -211,15 +210,15 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
 
             <form onSubmit={submit} className="w-full space-y-6">
 
-                {/* 1. General Product Specifications & Craft Notes */}
+                {/* 1. General Product Specifications */}
                 <Card className="border-neutral-200/90 shadow-2xs">
                     <div className="mb-5 pb-3 border-b border-neutral-200">
                         <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
                             <Tag className="w-5 h-5 text-brand-600" />
-                            1. General Product Specifications & Craft Notes
+                            1. General Product Specifications
                         </h3>
                         <p className="text-xs text-neutral-500 mt-0.5">
-                            Modify product code, category, craft notes, or replace product craft photo.
+                            Modify product code, category, or replace product craft photo.
                         </p>
                     </div>
 
@@ -248,15 +247,6 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
                                 error={errors.name}
-                            />
-
-                            <Textarea
-                                label="Description / Craft Notes"
-                                rows={4}
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
-                                placeholder="Add dimensions, leather tanning specs, lining requirements, skiving notes, or stitching instructions..."
-                                error={errors.description}
                             />
                         </div>
 

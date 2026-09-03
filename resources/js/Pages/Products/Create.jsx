@@ -43,7 +43,6 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
         code: '',
         name: '',
         category: 'Wallet',
-        description: '',
         image_url: '',
         materials: [],
     });
@@ -173,7 +172,7 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
 
             <PageHeader
                 title="Create New Product"
-                description="Define product specifications, craft notes, leather cutting BOM (Sq. Ft), and hardware specifications"
+                description="Define product specifications, leather cutting BOM (Sq. Ft), and hardware specifications"
                 action={
                     <Link href={route('products.index')}>
                         <Button variant="outline" size="sm">
@@ -185,15 +184,15 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
 
             <form onSubmit={submit} className="w-full space-y-6">
 
-                {/* 1. General Product Specifications & Craft Notes */}
+                {/* 1. General Product Specifications */}
                 <Card className="border-neutral-200/90 shadow-2xs">
                     <div className="mb-5 pb-3 border-b border-neutral-200">
                         <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
                             <Tag className="w-5 h-5 text-brand-600" />
-                            1. General Product Specifications & Craft Notes
+                            1. General Product Specifications
                         </h3>
                         <p className="text-xs text-neutral-500 mt-0.5">
-                            Enter the product code, category, craft specifications, and upload an article photo.
+                            Enter the product code, category, and upload an article photo.
                         </p>
                     </div>
 
@@ -224,15 +223,6 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                 onChange={(e) => setData('name', e.target.value)}
                                 placeholder="e.g. Minimalist Bifold Leather Wallet"
                                 error={errors.name}
-                            />
-
-                            <Textarea
-                                label="Description / Craft Notes"
-                                rows={4}
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
-                                placeholder="Add dimensions, leather tanning specs, lining requirements, skiving notes, or stitching instructions..."
-                                error={errors.description}
                             />
                         </div>
 
