@@ -83,9 +83,9 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
                 material_id: leatherMaterials[0]?.id || '',
                 material_variant_id: leatherMaterials[0]?.variants?.[0]?.id || null,
                 material_type: 'LEATHER',
-                label: '',
+                label: leatherMaterials[0]?.name || '',
                 quantity_min: '',
-                unit: 'sq_ft',
+                unit: leatherMaterials[0]?.base_unit || 'sq_ft',
             },
         ]);
         setTimeout(() => {
@@ -106,6 +106,7 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
             if (value) {
                 const selectedMat = leatherMaterials.find((m) => m.id === parseInt(value) || m.id === value);
                 if (selectedMat) {
+                    updated[index].label = selectedMat.name;
                     updated[index].unit = selectedMat.base_unit || 'sq_ft';
                     if (selectedMat.variants && selectedMat.variants.length > 0) {
                         updated[index].material_variant_id = selectedMat.variants[0].id;
@@ -327,11 +328,11 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
                                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
                                             <div className="sm:col-span-4">
                                                 <Select
-                                                    label="Leather Hide / Tannage"
+                                                    label="Leather Item"
                                                     value={row.material_id}
                                                     onChange={(e) => updateLeatherRow(idx, 'material_id', e.target.value)}
                                                 >
-                                                    <option value="">— Select Leather Hide —</option>
+                                                    <option value="">— Select Leather Item —</option>
                                                     {leatherMaterials.map((m) => (
                                                         <option key={m.id} value={m.id}>
                                                             {m.name} ({m.category} — {m.base_unit})
