@@ -8,7 +8,8 @@ import Input from '@/Components/ui/Input';
 import Select from '@/Components/ui/Select';
 import ImageUpload from '@/Components/ui/ImageUpload';
 import Alert from '@/Components/ui/Alert';
-import { Plus, Trash2, ArrowLeft, Tag, Scissors, Boxes, Info, Palette, X } from 'lucide-react';
+import Modal from '@/Components/ui/Modal';
+import { Plus, Trash2, ArrowLeft, Tag, Scissors, Boxes, Info, Palette, X, AlertTriangle } from 'lucide-react';
 
 export default function Create({ leatherMaterials = [], materials = [] }) {
     const leatherBottomRef = useRef(null);
@@ -37,6 +38,7 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
     const [hasColors, setHasColors] = useState(false);
     const [newColorInput, setNewColorInput] = useState('');
     const [activeColorIndex, setActiveColorIndex] = useState(0);
+    const [colorToDelete, setColorToDelete] = useState(null);
 
     // Colors state (starts completely empty; no forced default color on toggle)
     const [colors, setColors] = useState([]);
@@ -98,17 +100,21 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
         setNewColorInput('');
     };
 
-    const removeColor = (indexToRemove) => {
-        if (colors.length <= 1) {
-            alert('A multi-color product must have at least one color variation. Disable multi-color if this product has only one standard color.');
-            return;
-        }
+    const initiateDeleteColor = (index, color) => {
+        setColorToDelete({ index, color });
+    };
 
+    const confirmDeleteColor = () => {
+        if (!colorToDelete) return;
+        const indexToRemove = colorToDelete.index;
         const updated = colors.filter((_, i) => i !== indexToRemove);
         setColors(updated);
-        if (activeColorIndex >= updated.length) {
+        if (updated.length === 0) {
+            setActiveColorIndex(0);
+        } else if (activeColorIndex >= updated.length) {
             setActiveColorIndex(updated.length - 1);
         }
+        setColorToDelete(null);
     };
 
     // Leather Row Handlers
@@ -548,27 +554,20 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                     >
                                         <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-brand-500'}`} />
                                         <span>{c.color_name}</span>
-                                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
-                                            isActive ? 'bg-brand-700/60 text-white' : 'bg-neutral-200 text-neutral-600'
-                                        }`}>
-                                            {c.leatherRows.filter((r) => r.material_id).length} Cuts · {c.hardwareRows.filter((r) => r.material_id).length} Hardware
-                                        </span>
 
-                                        {colors.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removeColor(idx);
-                                                }}
-                                                className={`p-0.5 rounded hover:bg-red-500 hover:text-white transition-colors ml-1 ${
-                                                    isActive ? 'text-white/80' : 'text-neutral-400'
-                                                }`}
-                                                title={`Remove ${c.color_name}`}
-                                            >
-                                                <X className="w-3.5 h-3.5" />
-                                            </button>
-                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                initiateDeleteColor(idx, c);
+                                            }}
+                                            className={`p-0.5 rounded hover:bg-red-500 hover:text-white transition-colors ml-1 ${
+                                                isActive ? 'text-white/80' : 'text-neutral-400'
+                                            }`}
+                                            title={`Remove ${c.color_name}`}
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
                                     </div>
                                 );
                             })}
@@ -883,6 +882,67 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                     </Button>
                 </div>
             </form>
+
+            {/* Delete Colorway Double-Verification Modal */}
+            <Modal
+                isOpen={Boolean(colorToDelete)}
+                onClose={() => setColorToDelete(null)}
+                title="Delete Colorway"
+                maxWidth="max-w-md"
+            >
+                <div className="space-y-4">
+                    <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                            <AlertTriangle className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-1.5 min-w-0 flex-1">
+                            <h4 className="text-sm font-bold text-neutral-900">
+                                Delete Colorway &ldquo;{colorToDelete?.color?.color_name}&rdquo;?
+                            </h4>
+                            <p className="text-xs text-neutral-600 leading-relaxed">
+                                Are you sure you want to delete this colorway? It may contain configured leather cuts and hardware materials.
+                            </p>
+                            {colorToDelete?.color && (
+                                <div className="mt-2 p-2.5 rounded-lg bg-neutral-50 border border-neutral-200 text-xs space-y-1 text-neutral-700">
+                                    <div className="flex items-center justify-between font-medium">
+                                        <span>Leather Cutting Components:</span>
+                                        <span className="font-bold text-neutral-900">
+                                            {colorToDelete.color.leatherRows?.filter((r) => r.material_id).length || 0}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between font-medium">
+                                        <span>Hardware & Fittings:</span>
+                                        <span className="font-bold text-neutral-900">
+                                            {colorToDelete.color.hardwareRows?.filter((r) => r.material_id).length || 0}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-neutral-100">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setColorToDelete(null)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="danger"
+                            size="sm"
+                            onClick={confirmDeleteColor}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" />
+                            Delete Colorway
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </AppLayout>
     );
 }
