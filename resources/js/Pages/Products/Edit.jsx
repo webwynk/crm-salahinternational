@@ -469,6 +469,7 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
                         <div className="lg:col-span-4 flex flex-col">
                             <ImageUpload
                                 label="Primary Product Photo (Optional)"
+                                compact={true}
                                 value={data.image_url}
                                 onChange={(url) => setData('image_url', url)}
                                 error={errors.image_url}
