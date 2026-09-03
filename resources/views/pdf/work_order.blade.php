@@ -117,22 +117,67 @@
         }
         .brand-gstin-pill {
             display: inline-block;
-            background: #fafaf9;
-            border: 1px solid #e4e4e7;
-            padding: 2px 7px;
-            font-size: 10px;
+            font-size: 10.5px;
+            margin-top: 3px;
         }
         .gstin-label {
-            font-size: 8.5px;
+            font-size: 9px;
             font-weight: bold;
-            color: #6b7280;
+            color: #64748b;
             text-transform: uppercase;
             margin-right: 4px;
         }
         .gstin-code {
             font-weight: bold;
-            color: #111827;
-            font-size: 10px;
+            color: #0f172a;
+            font-size: 10.5px;
+        }
+
+        /* Production Metadata Strip (Rate, Delivery Date, Color) */
+        .meta-strip-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+        .meta-strip-cell {
+            padding: 5px 10px;
+            vertical-align: middle;
+            border-right: 1px solid #e2e8f0;
+        }
+        .meta-strip-cell-rate {
+            width: 28%;
+            background: #fafaf9;
+        }
+        .meta-strip-cell-delivery {
+            width: 36%;
+            background: #fafaf9;
+        }
+        .meta-strip-cell-color {
+            width: 36%;
+            border-right: none;
+            background: #ffffff;
+        }
+        .meta-kicker {
+            font-size: 8px;
+            font-weight: bold;
+            color: #b45309;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .meta-val-color {
+            font-size: 12px;
+            font-weight: bold;
+            color: #b45309;
+        }
+        .meta-val-standard {
+            font-size: 11px;
+            font-weight: bold;
+            color: #64748b;
         }
 
         /* Right Passport Card (Height-Synchronized with Left Box) */
@@ -433,20 +478,7 @@
                                 <span class="val-date">{{ $assignment->assigned_at ? $assignment->assigned_at->format('d M Y') : now()->format('d M Y') }}</span>
                             </td>
                         </tr>
-                        <!-- ROW 2: RATE & DELIVERY DATE (MANUAL HANDWRITING AREA) -->
-                        <tr>
-                            <td class="passport-cell passport-cell-left" style="background: #fafaf9;">
-                                <span class="kicker">Rate</span>
-                                <div class="manual-space">
-                                    <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 11px; font-weight: bold; color: #64748b;">&#8377;</span>
-                                </div>
-                            </td>
-                            <td class="passport-cell passport-cell-right" style="background: #fafaf9;">
-                                <span class="kicker">Delivery Date</span>
-                                <div class="manual-space"></div>
-                            </td>
-                        </tr>
-                        <!-- ROW 3: ASSIGNED FABRICATOR -->
+                        <!-- ROW 2: ASSIGNED FABRICATOR -->
                         <tr>
                             <td colspan="2" class="artisan-box">
                                 <span class="kicker">Assigned Fabricator</span>
@@ -464,6 +496,31 @@
             </tr>
         </table>
 
+        <!-- PRODUCTION METADATA STRIP: RATE, DELIVERY DATE & COLORWAY -->
+        <table class="meta-strip-table">
+            <tr>
+                <td class="meta-strip-cell meta-strip-cell-rate">
+                    <span class="meta-kicker">Rate</span>
+                    <div class="manual-space">
+                        <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 11px; font-weight: bold; color: #64748b;">&#8377;</span>
+                    </div>
+                </td>
+                <td class="meta-strip-cell meta-strip-cell-delivery">
+                    <span class="meta-kicker">Delivery Date</span>
+                    <div class="manual-space"></div>
+                </td>
+                <td class="meta-strip-cell meta-strip-cell-color">
+                    <span class="meta-kicker">Production Colorway</span>
+                    @if($assignment->color || (isset($color) && $color))
+                        @php $activeColor = $assignment->color ?? $color; @endphp
+                        <span class="meta-val-color">Color: {{ $activeColor->color_name }}</span>
+                    @else
+                        <span class="meta-val-standard">Color: Standard (Single Color)</span>
+                    @endif
+                </td>
+            </tr>
+        </table>
+
         <!-- SECTION 1: PRODUCT HERO -->
         <table class="product-card">
             <tr>
@@ -471,11 +528,6 @@
                     <span class="product-code-lead">{{ $product->code }}</span>
                     <span class="product-title-sep">|</span>
                     <span class="product-title-text">{{ $product->name }}</span>
-                    @if($assignment->color || (isset($color) && $color))
-                        @php $activeColor = $assignment->color ?? $color; @endphp
-                        <span class="product-title-sep">|</span>
-                        <span class="product-color-lead">Color: {{ $activeColor->color_name }}</span>
-                    @endif
                 </td>
                 <td class="product-qty-box">
                     <span class="qty-label">Total Qty</span>
