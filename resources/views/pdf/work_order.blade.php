@@ -111,19 +111,19 @@
             line-height: 1.15;
         }
         .brand-address {
-            font-size: 11px;
+            font-size: 12.5px;
             color: #374151;
-            line-height: 1.18;
-            margin-bottom: 2px;
+            line-height: 1.22;
+            margin-bottom: 5px;
         }
         .brand-gstin-pill {
             display: inline-block;
-            font-size: 10px;
-            margin-top: 1px;
+            font-size: 11px;
+            margin-top: 3px;
             line-height: 1.15;
         }
         .gstin-label {
-            font-size: 9px;
+            font-size: 10.5px;
             font-weight: bold;
             color: #64748b;
             text-transform: uppercase;
@@ -132,15 +132,16 @@
         .gstin-code {
             font-weight: bold;
             color: #0f172a;
-            font-size: 10px;
+            font-size: 12px;
+            letter-spacing: 0.4px;
         }
 
         /* Production Metadata Strip (Rate, Delivery Date, Color) */
         .meta-strip-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 11px;
-            margin-bottom: 11px;
+            margin-top: 20px;
+            margin-bottom: 20px;
             border: 1px solid #e2e8f0;
             background: #ffffff;
         }
@@ -280,7 +281,7 @@
             width: 100%;
             border: 1px solid #e2e8f0;
             background: #fafaf9;
-            margin: 11px 0;
+            margin: 20px 0;
             border-collapse: collapse;
         }
         .product-main {
@@ -346,8 +347,8 @@
         /* ================= SECTION 2: RAW MATERIALS TABLE ================= */
         .table-wrap {
             border: 1px solid #e4e4e7;
-            margin-top: 11px;
-            margin-bottom: 12px;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
         .bom-table {
             width: 100%;
