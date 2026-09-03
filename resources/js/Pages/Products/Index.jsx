@@ -7,7 +7,7 @@ import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
 import StatusPill from '@/Components/ui/StatusPill';
 import MobileFAB from '@/Components/ui/MobileFAB';
-import { Plus, Eye, Edit3, Image as ImageIcon } from 'lucide-react';
+import { Plus, Eye, Edit3, Image as ImageIcon, Palette } from 'lucide-react';
 
 export default function Index({ products, categories = [], filters = {} }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -52,9 +52,20 @@ export default function Index({ products, categories = [], filters = {} }) {
                     )}
                     <div className="min-w-0">
                         <span className="font-semibold text-neutral-900 block truncate">{row.name}</span>
-                        <span className="font-sans font-bold text-xs text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200/80 inline-block mt-0.5">
-                            {row.code}
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span className="font-sans font-bold text-xs text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200/80 inline-block">
+                                {row.code}
+                            </span>
+                            {Boolean(row.has_colors && row.colors && row.colors.length > 0) && (
+                                <span
+                                    className="font-sans font-bold text-[11px] text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200/90 inline-flex items-center gap-1 cursor-help hover:bg-purple-100/80 transition-colors shadow-xs"
+                                    title={`Color Variations (${row.colors.length}): ${row.colors.map((c) => c.color_name).join(', ')}`}
+                                >
+                                    <Palette className="w-3 h-3 text-purple-600 shrink-0" strokeWidth={2.2} />
+                                    <span>{row.colors.length} {row.colors.length === 1 ? 'Color' : 'Colors'}</span>
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             ),

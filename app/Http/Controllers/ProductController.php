@@ -16,7 +16,7 @@ class ProductController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = Product::query()->with('materials.material');
+        $query = Product::query()->with(['materials.material', 'colors']);
 
         if ($request->filled('search')) {
             $search = $request->search;

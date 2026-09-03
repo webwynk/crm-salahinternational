@@ -494,5 +494,33 @@ class ProductCrudTest extends TestCase
             'label' => 'Espresso Leather Shell',
         ]);
     }
+
+    public function test_products_index_eager_loads_color_variations(): void
+    {
+        $this->actingAs($this->user);
+
+        $product = Product::create([
+            'code' => 'BAG-VAR-TAG',
+            'name' => 'Color Variation Messenger Bag',
+            'category' => 'Bag',
+            'has_colors' => true,
+        ]);
+
+        $product->colors()->createMany([
+            ['color_name' => 'Tuscan Tan', 'sort_order' => 1, 'is_active' => true],
+            ['color_name' => 'Onyx Black', 'sort_order' => 2, 'is_active' => true],
+        ]);
+
+        $response = $this->get('/products');
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Products/Index')
+            ->has('products.data', 1)
+            ->where('products.data.0.code', 'BAG-VAR-TAG')
+            ->where('products.data.0.has_colors', true)
+            ->has('products.data.0.colors', 2)
+            ->where('products.data.0.colors.0.color_name', 'Tuscan Tan')
+        );
+    }
 }
 
