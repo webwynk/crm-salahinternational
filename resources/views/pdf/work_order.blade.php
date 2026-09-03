@@ -6,7 +6,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 12mm 14mm 10mm 14mm;
+            margin: 10mm 12mm 8mm 12mm;
         }
         * {
             box-sizing: border-box;
@@ -14,10 +14,10 @@
             padding: 0;
         }
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'DejaVu Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #0f172a;
-            font-size: 13px;
-            line-height: 1.4;
+            font-size: 11px;
+            line-height: 1.35;
             background: #ffffff;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -34,7 +34,7 @@
             text-align: center;
             line-height: 20px;
             height: 20px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         /* ================= HEADER ================= */
@@ -56,44 +56,34 @@
 
         /* Brand Left */
         .brand-logo-img {
-            height: 54px;
+            height: 52px;
             width: auto;
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
         .brand-tagline {
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: bold;
             color: #92400e;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .brand-address {
-            font-size: 13px;
+            font-size: 11.5px;
             color: #374151;
-            line-height: 1.4;
+            line-height: 1.38;
             margin-bottom: 6px;
-        }
-        .brand-contacts {
-            font-size: 12.5px;
-            color: #374151;
-            line-height: 1.45;
-            margin-bottom: 6px;
-        }
-        .contact-sep {
-            color: #cbd5e1;
-            margin: 0 5px;
         }
         .brand-gstin-pill {
             display: inline-block;
             background: #fafaf9;
             border: 1px solid #e4e4e7;
-            padding: 2px 8px;
-            font-size: 11px;
+            padding: 2px 7px;
+            font-size: 10px;
         }
         .gstin-label {
-            font-size: 9px;
+            font-size: 8.5px;
             font-weight: bold;
             color: #6b7280;
             text-transform: uppercase;
@@ -102,7 +92,7 @@
         .gstin-code {
             font-weight: bold;
             color: #111827;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         /* Right Passport Card */
@@ -113,7 +103,7 @@
             border-collapse: collapse;
         }
         .passport-cell {
-            padding: 7px 10px;
+            padding: 6px 10px;
             vertical-align: top;
             border-bottom: 1px solid #e2e8f0;
         }
@@ -125,7 +115,7 @@
             width: 45%;
         }
         .kicker {
-            font-size: 9px;
+            font-size: 8.5px;
             font-weight: bold;
             color: #b45309;
             text-transform: uppercase;
@@ -134,39 +124,39 @@
             margin-bottom: 2px;
         }
         .val-large {
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: bold;
             color: #0f172a;
             display: block;
         }
         .val-date {
-            font-size: 12.5px;
+            font-size: 11.5px;
             font-weight: bold;
             color: #0f172a;
             display: block;
         }
         .manual-space {
-            min-height: 24px;
-            height: 24px;
+            min-height: 36px;
+            height: 36px;
             border-bottom: 1px dashed #cbd5e1;
             margin-top: 2px;
-            font-size: 13px;
+            font-size: 11px;
             color: #64748b;
             font-weight: bold;
         }
         .artisan-box {
             background: #ffffff;
-            padding: 7px 10px;
+            padding: 6px 10px;
         }
         .artisan-name {
-            font-size: 13.5px;
+            font-size: 12.5px;
             font-weight: bold;
             color: #0f172a;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
         .artisan-info {
-            font-size: 12px;
-            line-height: 1.35;
+            font-size: 11px;
+            line-height: 1.3;
             color: #1e293b;
         }
 
@@ -175,65 +165,60 @@
             width: 100%;
             border: 1px solid #e2e8f0;
             background: #fafaf9;
-            margin: 10px 0;
+            margin: 8px 0;
             border-collapse: collapse;
         }
         .product-main {
-            padding: 8px 12px;
+            padding: 7px 10px;
             vertical-align: middle;
             width: 78%;
             border-right: 1px solid #e2e8f0;
         }
         .product-code-lead {
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: bold;
             color: #b45309;
         }
         .product-title-sep {
             color: #cbd5e1;
-            margin: 0 6px;
+            margin: 0 5px;
             font-weight: normal;
         }
         .product-title-text {
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: bold;
             color: #0f172a;
         }
-        .product-variation-lead {
-            font-size: 14px;
-            font-weight: bold;
-            color: #b45309;
-        }
         .product-notes {
-            font-size: 12px;
+            font-size: 11px;
             color: #334155;
             line-height: 1.35;
-            margin-top: 4px;
+            margin-top: 3px;
         }
         .product-qty-box {
             width: 22%;
-            padding: 6px 12px;
+            padding: 5px 10px;
             text-align: center;
             vertical-align: middle;
             background: #ffffff;
         }
         .qty-label {
-            font-size: 9.5px;
+            font-size: 9px;
             font-weight: bold;
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         .qty-num {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #0f172a;
             line-height: 1;
         }
         .qty-unit {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             color: #b45309;
             text-transform: uppercase;
@@ -242,21 +227,21 @@
         /* ================= SECTION 2: RAW MATERIALS TABLE ================= */
         .table-wrap {
             border: 1px solid #e4e4e7;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .bom-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 11px;
         }
         .bom-table th {
             background: #b45309;
             color: #ffffff;
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            padding: 7px 12px;
+            padding: 6px 12px;
             text-align: left;
             border-bottom: 1px solid #92400e;
             border-right: 1px solid rgba(255, 255, 255, 0.25);
@@ -280,8 +265,8 @@
             background: #fafaf9;
         }
         .td-sl {
-            width: 50px;
-            font-size: 12px;
+            width: 45px;
+            font-size: 11.5px;
             color: #b45309;
             font-weight: bold;
             text-align: center;
@@ -289,7 +274,7 @@
         .mat-name-lead {
             font-weight: bold;
             color: #0f172a;
-            font-size: 12.5px;
+            font-size: 11.5px;
         }
         .mat-sep {
             color: #cbd5e1;
@@ -299,22 +284,22 @@
         .mat-variation-text {
             font-weight: bold;
             color: #b45309;
-            font-size: 12.5px;
+            font-size: 11.5px;
         }
         .td-qty {
             text-align: right;
-            width: 90px;
-            font-size: 12.5px;
+            width: 85px;
+            font-size: 11.5px;
             font-weight: bold;
             color: #09090b;
         }
         .td-unit {
             text-align: left;
-            width: 70px;
+            width: 65px;
             padding-left: 12px;
         }
         .unit-code {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             color: #b45309;
         }
@@ -323,8 +308,9 @@
         .signatures-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-            margin-bottom: 8px;
+            margin-top: 8px;
+            margin-bottom: 6px;
+            page-break-inside: avoid;
         }
         .sig-cell {
             width: 46%;
@@ -335,12 +321,12 @@
             width: 8%;
         }
         .sig-stamp {
-            height: 22px;
+            height: 18px;
         }
         .sig-line {
             border-top: 1.5px solid #18181b;
-            padding-top: 5px;
-            font-size: 10.5px;
+            padding-top: 4px;
+            font-size: 10px;
             font-weight: bold;
             color: #18181b;
             text-transform: uppercase;
@@ -351,11 +337,12 @@
         /* ================= SECTION 4: JURISDICTION ================= */
         .footer-legal {
             border-top: 1px solid #e4e4e7;
-            padding-top: 7px;
+            padding-top: 5px;
             text-align: center;
+            page-break-inside: avoid;
         }
         .legal-notice {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
             color: #18181b;
             text-transform: uppercase;
@@ -382,14 +369,6 @@
                     31/18 Topsia Road (South), 3rd Floor,<br>
                     Kolkata - 700046, West Bengal, India
                 </div>
-                <div class="brand-contacts">
-                    <div style="margin-bottom: 2px;">
-                        +91 8442925235 / +91 9831694577
-                    </div>
-                    <div>
-                        contact@salahinternational.com <span class="contact-sep">&bull;</span> salahinternational.com
-                    </div>
-                </div>
                 <div class="brand-gstin-pill">
                     <span class="gstin-label">GST NO.</span>
                     <span class="gstin-code">19AEQFS1716K1ZH</span>
@@ -414,7 +393,9 @@
                     <tr>
                         <td class="passport-cell passport-cell-left" style="background: #fafaf9;">
                             <span class="kicker">Rate</span>
-                            <div class="manual-space">&#8377;</div>
+                            <div class="manual-space">
+                                <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 11px; font-weight: bold; color: #64748b;">&#8377;</span>
+                            </div>
                         </td>
                         <td class="passport-cell passport-cell-right" style="background: #fafaf9;">
                             <span class="kicker">Delivery Date</span>
@@ -443,10 +424,6 @@
                     <span class="product-code-lead">{{ $product->code }}</span>
                     <span class="product-title-sep">|</span>
                     <span class="product-title-text">{{ $product->name }}</span>
-                    @if($product->category)
-                        <span class="product-title-sep">|</span>
-                        <span class="product-variation-lead">{{ $product->category }}</span>
-                    @endif
                 </div>
                 <div class="product-notes">
                     <strong>Craft Notes:</strong> {{ $product->description ?? 'Follow master craftsman guidelines revision 2.' }}
@@ -464,10 +441,10 @@
         <table class="bom-table">
             <thead>
                 <tr>
-                    <th style="width: 50px; text-align: center;">SL No.</th>
+                    <th style="width: 45px; text-align: center;">SL No.</th>
                     <th>Description</th>
-                    <th style="text-align: right; width: 90px;">Quantity</th>
-                    <th style="text-align: left; width: 70px; padding-left: 12px;">Unit</th>
+                    <th style="text-align: right; width: 85px;">Quantity</th>
+                    <th style="text-align: left; width: 65px; padding-left: 12px;">Unit</th>
                 </tr>
             </thead>
             <tbody>
