@@ -40,9 +40,9 @@
             margin: 0;
         }
 
-        /* Page Content Wrapper with Standard A4 Margins */
+        /* Page Content Wrapper with Calibrated A4 Margins */
         .page-content {
-            padding: 10mm 14mm 8mm 14mm;
+            padding: 10mm 11mm 8mm 11mm;
         }
 
         /* ================= HEADER ================= */
