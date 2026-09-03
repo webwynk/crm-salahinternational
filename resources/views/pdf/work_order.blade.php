@@ -46,9 +46,17 @@
             padding: 0;
         }
 
-        /* Page Content Wrapper with Calibrated A4 Margins */
+        /* Page Content Wrapper with Calibrated A4 Margins (26mm bottom reserved for pinned footer) */
         .page-content {
-            padding: 10mm 11mm 8mm 11mm;
+            padding: 10mm 11mm 26mm 11mm;
+        }
+
+        /* Bottom-Aligned Footer: Signatures & Legal Jurisdiction */
+        .footer-bottom-wrap {
+            position: fixed;
+            bottom: 8mm;
+            left: 11mm;
+            right: 11mm;
         }
 
         /* ================= HEADER ================= */
@@ -483,7 +491,10 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
+    <!-- BOTTOM-ALIGNED FOOTER: SIGNATURES & JURISDICTION -->
+    <div class="footer-bottom-wrap">
         <!-- SECTION 3: SIGNATURES -->
         <table class="signatures-table">
             <tr>
