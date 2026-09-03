@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
-export default function Create({ products = [], labour = [] }) {
+export default function Create({ products = [], labours = [], labour = [], categories = [] }) {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [productSearch, setProductSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -39,7 +39,14 @@ export default function Create({ products = [], labour = [] }) {
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
     const safeProducts = Array.isArray(products) ? products : (products?.data || []);
-    const safeLabour = Array.isArray(labour) ? labour : (labour?.data || []);
+    const safeLabour = (Array.isArray(labours) && labours.length > 0)
+        ? labours
+        : (Array.isArray(labour) ? labour : (labour?.data || []));
+
+    // Synchronize categories with live product database with client fallback
+    const availableCategories = (Array.isArray(categories) && categories.length > 0)
+        ? categories
+        : Array.from(new Set(safeProducts.map((p) => p.category).filter(Boolean)));
 
     const { data, setData, post, processing, errors } = useForm({
         product_id: '',
@@ -55,7 +62,7 @@ export default function Create({ products = [], labour = [] }) {
         }
     }, [safeProducts]);
 
-    // Filter products safely with null guards
+    // Filter products safely with null guards & case-insensitive matching
     const filteredProducts = safeProducts.filter((p) => {
         if (!p) return false;
         const codeStr = (p.code || '').toLowerCase();
@@ -65,7 +72,7 @@ export default function Create({ products = [], labour = [] }) {
         const matchesCategory =
             selectedCategory === 'ALL' ||
             !selectedCategory ||
-            (p.category && p.category.toUpperCase() === selectedCategory.toUpperCase());
+            (p.category && p.category.trim().toLowerCase() === selectedCategory.trim().toLowerCase());
         return matchesSearch && matchesCategory;
     });
 
@@ -188,18 +195,15 @@ export default function Create({ products = [], labour = [] }) {
                                 />
                             </div>
 
-                            <FilterChips
-                                options={[
-                                    { label: 'Wallets', value: 'WALLETS' },
-                                    { label: 'Bags & Folios', value: 'BAGS' },
-                                    { label: 'Belts & Straps', value: 'BELTS' },
-                                    { label: 'Accessories', value: 'ACCESSORIES' },
-                                ]}
-                                value={selectedCategory === 'ALL' ? '' : selectedCategory}
-                                onChange={(val) => setSelectedCategory(val || 'ALL')}
-                                allLabel="All Products"
-                                className="text-xs"
-                            />
+                            {availableCategories.length > 0 && (
+                                <FilterChips
+                                    options={availableCategories.map((cat) => ({ label: cat, value: cat }))}
+                                    value={selectedCategory === 'ALL' ? '' : selectedCategory}
+                                    onChange={(val) => setSelectedCategory(val || 'ALL')}
+                                    allLabel="All Products"
+                                    className="text-xs"
+                                />
+                            )}
                         </div>
 
                         {errors.product_id && (

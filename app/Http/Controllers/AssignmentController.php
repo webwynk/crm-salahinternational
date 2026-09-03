@@ -53,10 +53,12 @@ class AssignmentController extends Controller
     {
         $products = Product::with(['materials.material.variants.inventory', 'materials.variant.inventory'])->where('is_active', true)->orderBy('name')->get();
         $labours = Labour::where('is_active', true)->orderBy('name')->get();
+        $categories = Product::whereNotNull('category')->where('is_active', true)->distinct()->pluck('category');
 
         return Inertia::render('Assignments/Create', [
-            'products' => $products,
-            'labours'  => $labours,
+            'products'   => $products,
+            'labours'    => $labours,
+            'categories' => $categories,
         ]);
     }
 
