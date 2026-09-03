@@ -362,5 +362,67 @@ class ProductCrudTest extends TestCase
             'code' => 'WAL-NO-COLOR',
         ]);
     }
+
+    public function test_deleting_color_variation_removes_color_and_cascades_materials_from_database(): void
+    {
+        $this->actingAs($this->user);
+
+        $product = Product::create([
+            'code' => 'WAL-MC-DEL',
+            'name' => 'Multi-Color Delete Test',
+            'has_colors' => true,
+            'created_by' => $this->user->id,
+        ]);
+
+        $colorKeep = $product->colors()->create(['color_name' => 'Keep Color', 'sort_order' => 1]);
+        $colorDelete = $product->colors()->create(['color_name' => 'Delete Color', 'sort_order' => 2]);
+
+        $product->materials()->create([
+            'product_color_id' => $colorKeep->id,
+            'material_id' => $this->material->id,
+            'material_type' => 'LEATHER',
+            'label' => 'Keep Leather',
+            'quantity_min' => 1.0,
+            'unit' => 'sq_ft',
+            'sort_order' => 1,
+        ]);
+
+        $product->materials()->create([
+            'product_color_id' => $colorDelete->id,
+            'material_id' => $this->material->id,
+            'material_type' => 'LEATHER',
+            'label' => 'Delete Leather',
+            'quantity_min' => 1.0,
+            'unit' => 'sq_ft',
+            'sort_order' => 1,
+        ]);
+
+        $response = $this->put("/products/{$product->id}", [
+            'code' => 'WAL-MC-DEL',
+            'name' => 'Multi-Color Delete Test',
+            'category' => 'Wallet',
+            'has_colors' => true,
+            'colors' => [
+                [
+                    'id' => $colorKeep->id,
+                    'color_name' => 'Keep Color',
+                    'materials' => [
+                        [
+                            'material_id' => $this->material->id,
+                            'material_type' => 'LEATHER',
+                            'label' => 'Keep Leather',
+                            'quantity_min' => 1.0,
+                            'unit' => 'sq_ft',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/products');
+        $this->assertDatabaseHas('product_colors', ['id' => $colorKeep->id]);
+        $this->assertDatabaseMissing('product_colors', ['id' => $colorDelete->id]);
+        $this->assertDatabaseMissing('product_materials', ['label' => 'Delete Leather']);
+    }
 }
 
