@@ -471,10 +471,12 @@
             page-break-inside: avoid;
         }
         .legal-notice {
-            font-size: 10px;
+            font-size: 12.5px;
             font-weight: bold;
-            color: #18181b;
+            color: #b45309;
             text-transform: uppercase;
+            letter-spacing: 0.6px;
+            line-height: 1.2;
         }
     </style>
 </head>
@@ -637,7 +639,7 @@
 
         <!-- SECTION 4: JURISDICTION LEGAL NOTICE -->
         <div class="footer-legal">
-            <div class="legal-notice">All Disputes Are Subject to Kolkata Jurisdiction.</div>
+            <div class="legal-notice">ALL DISPUTES ARE SUBJECT TO KOLKATA JURISDICTION.</div>
         </div>
     </div>
 
