@@ -10,7 +10,6 @@ import Select from '@/Components/ui/Select';
 import ImageUpload from '@/Components/ui/ImageUpload';
 import Alert from '@/Components/ui/Alert';
 import { Plus, Trash2, ArrowLeft, Layers, Tag, Scissors, Boxes, Info } from 'lucide-react';
-import { BASE_UNITS } from '@/constants/units';
 
 export default function Create({ leatherMaterials = [], materials = [] }) {
     const leatherBottomRef = useRef(null);
@@ -432,71 +431,65 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
                                         </div>
 
                                         {variants.length > 1 ? (
-                                            <div className="sm:col-span-2">
-                                                <Select
-                                                    label="Variation"
-                                                    value={row.material_variant_id || ''}
-                                                    onChange={(e) => updateHardwareRow(idx, 'material_variant_id', e.target.value)}
-                                                >
-                                                    {variants.map((v) => (
-                                                        <option key={v.id} value={v.id}>
-                                                            {v.name} {v.sku ? `(${v.sku})` : ''}
-                                                        </option>
-                                                    ))}
-                                                </Select>
-                                            </div>
+                                            <>
+                                                <div className="sm:col-span-3">
+                                                    <Select
+                                                        label="Variation"
+                                                        value={row.material_variant_id || ''}
+                                                        onChange={(e) => updateHardwareRow(idx, 'material_variant_id', e.target.value)}
+                                                    >
+                                                        {variants.map((v) => (
+                                                            <option key={v.id} value={v.id}>
+                                                                {v.name} {v.sku ? `(${v.sku})` : ''}
+                                                            </option>
+                                                        ))}
+                                                    </Select>
+                                                </div>
+                                                <div className="sm:col-span-3">
+                                                    <Input
+                                                        label="Component"
+                                                        required
+                                                        value={row.label}
+                                                        onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
+                                                        placeholder="e.g. Buckle, Ring, Zipper"
+                                                    />
+                                                </div>
+                                                <div className="sm:col-span-2">
+                                                    <Input
+                                                        label={`Qty (${row.unit || 'pcs'})`}
+                                                        type="number"
+                                                        step="0.001"
+                                                        required
+                                                        value={row.quantity_min}
+                                                        onChange={(e) => updateHardwareRow(idx, 'quantity_min', e.target.value)}
+                                                        placeholder="e.g. 1"
+                                                    />
+                                                </div>
+                                            </>
                                         ) : (
-                                            <div className="sm:col-span-3">
-                                                <Input
-                                                    label="Component / Fitting Label"
-                                                    required
-                                                    value={row.label}
-                                                    onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
-                                                    placeholder="e.g. YKK #5 Antique Brass Zipper"
-                                                />
-                                            </div>
+                                            <>
+                                                <div className="sm:col-span-5">
+                                                    <Input
+                                                        label="Component / Fitting Label"
+                                                        required
+                                                        value={row.label}
+                                                        onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
+                                                        placeholder="e.g. YKK #5 Antique Brass Zipper"
+                                                    />
+                                                </div>
+                                                <div className="sm:col-span-3">
+                                                    <Input
+                                                        label={`Qty (${row.unit || 'pcs'})`}
+                                                        type="number"
+                                                        step="0.001"
+                                                        required
+                                                        value={row.quantity_min}
+                                                        onChange={(e) => updateHardwareRow(idx, 'quantity_min', e.target.value)}
+                                                        placeholder="e.g. 1"
+                                                    />
+                                                </div>
+                                            </>
                                         )}
-
-                                        {variants.length > 1 && (
-                                            <div className="sm:col-span-3">
-                                                <Input
-                                                    label="Component"
-                                                    required
-                                                    value={row.label}
-                                                    onChange={(e) => updateHardwareRow(idx, 'label', e.target.value)}
-                                                    placeholder="e.g. Buckle"
-                                                />
-                                            </div>
-                                        )}
-
-                                        <div className={variants.length > 1 ? "sm:col-span-1" : "sm:col-span-2"}>
-                                            <Input
-                                                label="Qty"
-                                                type="number"
-                                                step="0.001"
-                                                required
-                                                value={row.quantity_min}
-                                                onChange={(e) => updateHardwareRow(idx, 'quantity_min', e.target.value)}
-                                                placeholder="e.g. 1"
-                                            />
-                                        </div>
-
-                                        <div className="sm:col-span-2">
-                                            <Select
-                                                label="Unit"
-                                                value={row.unit || 'pcs'}
-                                                onChange={(e) => updateHardwareRow(idx, 'unit', e.target.value)}
-                                            >
-                                                {BASE_UNITS.map((u) => (
-                                                    <option key={u.value} value={u.value}>
-                                                        {u.label}
-                                                    </option>
-                                                ))}
-                                                {row.unit && !BASE_UNITS.some((u) => u.value === row.unit) && (
-                                                    <option value={row.unit}>{row.unit}</option>
-                                                )}
-                                            </Select>
-                                        </div>
                                     </div>
                                 </div>
                             );
