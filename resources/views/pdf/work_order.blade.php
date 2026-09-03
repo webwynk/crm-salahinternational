@@ -96,10 +96,10 @@
 
         /* Brand Left */
         .brand-logo-img {
-            height: 52px;
+            height: 55px;
             width: auto;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
         .brand-tagline {
             font-size: 11.5px;
@@ -114,7 +114,7 @@
             font-size: 12.5px;
             color: #374151;
             line-height: 1.22;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
         .brand-gstin-pill {
             display: inline-block;
@@ -164,7 +164,7 @@
             background: #ffffff;
         }
         .meta-kicker {
-            font-size: 11px;
+            font-size: 11.5px;
             font-weight: bold;
             color: #b45309;
             text-transform: uppercase;
@@ -353,7 +353,7 @@
         .bom-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 13.5px;
         }
         .bom-table th {
             background: #b45309;
@@ -471,7 +471,7 @@
             page-break-inside: avoid;
         }
         .legal-notice {
-            font-size: 12.5px;
+            font-size: 13px;
             font-weight: bold;
             color: #b45309;
             text-transform: uppercase;
