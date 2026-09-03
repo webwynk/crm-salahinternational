@@ -326,19 +326,11 @@ export default function Create({ products = [], labours = [], labour = [], categ
                                                     : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-800'
                                             }`}
                                         >
-                                            {color.image_url ? (
-                                                <img
-                                                    src={color.image_url}
-                                                    alt={color.color_name}
-                                                    className="w-9 h-9 rounded object-cover border border-white/20 shrink-0"
-                                                />
-                                            ) : (
-                                                <div className={`w-9 h-9 rounded flex items-center justify-center font-bold text-xs shrink-0 ${
-                                                    isSelected ? 'bg-brand-700 text-white' : 'bg-brand-100 text-brand-800'
-                                                }`}>
-                                                    <Palette className="w-4 h-4" />
-                                                </div>
-                                            )}
+                                            <div className={`w-8 h-8 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${
+                                                isSelected ? 'bg-brand-700 text-white' : 'bg-brand-100 text-brand-800'
+                                            }`}>
+                                                <Palette className="w-4 h-4" />
+                                            </div>
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-xs font-bold truncate">
                                                     {color.color_name}

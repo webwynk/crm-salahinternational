@@ -170,7 +170,6 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
         const newColor = {
             id: null,
             color_name: name,
-            image_url: '',
             leatherRows: [createDefaultLeatherRow(`${name} Outer Shell`)],
             hardwareRows: [createDefaultHardwareRow()],
         };
@@ -192,16 +191,6 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
         if (activeColorIndex >= updated.length) {
             setActiveColorIndex(updated.length - 1);
         }
-    };
-
-    const updateActiveColorPhoto = (url) => {
-        setColors((prev) => {
-            const updated = [...prev];
-            if (updated[activeColorIndex]) {
-                updated[activeColorIndex].image_url = url;
-            }
-            return updated;
-        });
     };
 
     // Leather Row Handlers
@@ -658,19 +647,15 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
                             })}
                         </div>
 
-                        {/* Dedicated Color Craft Photo Upload */}
-                        <div className="pt-2 border-t border-neutral-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="max-w-md w-full">
-                                <ImageUpload
-                                    label={`${colors[activeColorIndex]?.color_name} Craft Photo (Optional)`}
-                                    helperText="Upload specific photo for this colorway (or leave blank to use main product photo)"
-                                    value={colors[activeColorIndex]?.image_url || ''}
-                                    onChange={(url) => updateActiveColorPhoto(url)}
-                                />
-                            </div>
-                            <div className="text-[11px] text-neutral-400 sm:text-right">
-                                <span>Any leather components or hardware added below will apply strictly to <strong>{colors[activeColorIndex]?.color_name}</strong>.</span>
-                            </div>
+                        {/* Colorway Workspace Guidance Notice */}
+                        <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-500">
+                            <span className="flex items-center gap-1.5 font-medium text-brand-900">
+                                <Palette className="w-3.5 h-3.5 text-brand-600" />
+                                Active Workspace: <strong className="text-brand-800 font-bold">{colors[activeColorIndex]?.color_name}</strong>
+                            </span>
+                            <span className="text-[11px] text-neutral-500 hidden sm:inline">
+                                Leather cuts and hardware added in Sections 2 & 3 below apply strictly to this colorway.
+                            </span>
                         </div>
                     </div>
                 )}
