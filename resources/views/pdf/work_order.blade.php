@@ -361,7 +361,7 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            padding: 5px 12px;
+            padding: 7px 12px;
             text-align: left;
             border-bottom: 1px solid #92400e;
             border-right: 1px solid rgba(255, 255, 255, 0.25);
@@ -371,7 +371,7 @@
             border-right: none;
         }
         .bom-table td {
-            padding: 4.5px 12px 6px 12px;
+            padding: 6.5px 12px 8px 12px;
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
             vertical-align: middle;
