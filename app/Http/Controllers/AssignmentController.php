@@ -115,9 +115,14 @@ class AssignmentController extends Controller
     public function downloadPdf(Request $request, Assignment $assignment): BinaryFileResponse|RedirectResponse
     {
         $pdf = $assignment->pdfs()->latest()->first();
+        $viewPath = resource_path('views/pdf/work_order.blade.php');
+        $viewMtime = file_exists($viewPath) ? filemtime($viewPath) : 0;
+        $pdfMtime = ($pdf && Storage::disk('public')->exists($pdf->file_path))
+            ? Storage::disk('public')->lastModified($pdf->file_path)
+            : 0;
 
-        if (!$pdf || !Storage::disk('public')->exists($pdf->file_path) || $request->boolean('regenerate')) {
-            // Regenerate PDF if missing or requested
+        if (!$pdf || !Storage::disk('public')->exists($pdf->file_path) || $request->boolean('regenerate') || $pdfMtime < $viewMtime) {
+            // Regenerate PDF if missing, requested, or if the blade template is newer
             $pdfService = new WorkOrderPdfService();
             $pdf = $pdfService->generatePdf($assignment, auth()->id());
         }

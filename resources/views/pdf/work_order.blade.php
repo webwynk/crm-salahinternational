@@ -6,7 +6,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 10mm 12mm 8mm 12mm;
+            margin: 0;
         }
         * {
             box-sizing: border-box;
@@ -19,12 +19,15 @@
             font-size: 11px;
             line-height: 1.35;
             background: #ffffff;
+            margin: 0;
+            padding: 0;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        /* Top Bar: Fabricator Copy */
+        /* Top Bar: Full-Bleed Fabricator Copy */
         .header-top-bar {
+            width: 100%;
             background: #b45309;
             color: #ffffff;
             font-size: 10px;
@@ -32,9 +35,14 @@
             text-transform: uppercase;
             letter-spacing: 1.5px;
             text-align: center;
-            line-height: 20px;
-            height: 20px;
-            margin-bottom: 10px;
+            line-height: 22px;
+            height: 22px;
+            margin: 0;
+        }
+
+        /* Page Content Wrapper with Standard A4 Margins */
+        .page-content {
+            padding: 10mm 14mm 8mm 14mm;
         }
 
         /* ================= HEADER ================= */
@@ -95,7 +103,7 @@
             font-size: 10px;
         }
 
-        /* Right Passport Card */
+        /* Right Passport Card (Height-Synchronized with Left Box) */
         .passport-card {
             width: 100%;
             background: #fafaf9;
@@ -103,7 +111,7 @@
             border-collapse: collapse;
         }
         .passport-cell {
-            padding: 6px 10px;
+            padding: 4px 8px;
             vertical-align: top;
             border-bottom: 1px solid #e2e8f0;
         }
@@ -121,7 +129,7 @@
             text-transform: uppercase;
             letter-spacing: 0.8px;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         .val-large {
             font-size: 13.5px;
@@ -136,27 +144,27 @@
             display: block;
         }
         .manual-space {
-            min-height: 36px;
-            height: 36px;
+            min-height: 16px;
+            height: 16px;
             border-bottom: 1px dashed #cbd5e1;
-            margin-top: 2px;
+            margin-top: 1px;
             font-size: 11px;
             color: #64748b;
             font-weight: bold;
         }
         .artisan-box {
             background: #ffffff;
-            padding: 6px 10px;
+            padding: 4px 8px;
         }
         .artisan-name {
             font-size: 12.5px;
             font-weight: bold;
             color: #0f172a;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         .artisan-info {
             font-size: 11px;
-            line-height: 1.3;
+            line-height: 1.25;
             color: #1e293b;
         }
 
@@ -265,7 +273,7 @@
             background: #fafaf9;
         }
         .td-sl {
-            width: 45px;
+            width: 50px;
             font-size: 11.5px;
             color: #b45309;
             font-weight: bold;
@@ -308,7 +316,7 @@
         .signatures-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            margin-top: 10px;
             margin-bottom: 6px;
             page-break-inside: avoid;
         }
@@ -351,145 +359,157 @@
 </head>
 <body>
 
-    <!-- TOP BAR: FABRICATOR COPY -->
+    <!-- TOP BAR: FULL-BLEED FABRICATOR COPY -->
     <div class="header-top-bar">Fabricator Copy</div>
 
-    <!-- HEADER: COMPANY ON LEFT, JOB PASSPORT ON RIGHT -->
-    <table class="header-table">
-        <tr>
-            <!-- COMPANY DETAILS LEFT -->
-            <td class="header-left">
-                @if($logoBase64)
-                    <img src="{{ $logoBase64 }}" class="brand-logo-img" alt="Salah International">
-                @else
-                    <div style="font-size: 18px; font-weight: bold; color: #b45309; margin-bottom: 4px;">SALAH INTERNATIONAL</div>
-                @endif
-                <div class="brand-tagline">Exporter &amp; Manufacturer of Leather Goods</div>
-                <div class="brand-address">
-                    31/18 Topsia Road (South), 3rd Floor,<br>
-                    Kolkata - 700046, West Bengal, India
-                </div>
-                <div class="brand-gstin-pill">
-                    <span class="gstin-label">GST NO.</span>
-                    <span class="gstin-code">19AEQFS1716K1ZH</span>
-                </div>
-            </td>
+    <div class="page-content">
+        <!-- HEADER: COMPANY ON LEFT, JOB PASSPORT ON RIGHT -->
+        <table class="header-table">
+            <tr>
+                <!-- COMPANY DETAILS LEFT -->
+                <td class="header-left">
+                    @if($logoBase64)
+                        <img src="{{ $logoBase64 }}" class="brand-logo-img" alt="Salah International">
+                    @else
+                        <div style="font-size: 18px; font-weight: bold; color: #b45309; margin-bottom: 4px;">SALAH INTERNATIONAL</div>
+                    @endif
+                    <div class="brand-tagline">Exporter &amp; Manufacturer of Leather Goods</div>
+                    <div class="brand-address">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: -1px; margin-right: 3px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        31/18 Topsia Road (South), 3rd Floor,<br>
+                        <span style="padding-left: 14px;">Kolkata - 700046, West Bengal, India</span>
+                    </div>
+                    <div class="brand-gstin-pill">
+                        <span class="gstin-label">GST NO.</span>
+                        <span class="gstin-code">19AEQFS1716K1ZH</span>
+                    </div>
+                </td>
 
-            <!-- PASSPORT CARD RIGHT -->
-            <td class="header-right">
-                <table class="passport-card">
-                    <!-- ROW 1: WO NO & ISSUE DATE -->
-                    <tr>
-                        <td class="passport-cell passport-cell-left">
-                            <span class="kicker">Work Order No.</span>
-                            <span class="val-large">#{{ $assignment->assignment_no }}</span>
-                        </td>
-                        <td class="passport-cell passport-cell-right">
-                            <span class="kicker">Issue Date</span>
-                            <span class="val-date">{{ $assignment->assigned_at ? $assignment->assigned_at->format('d M Y') : now()->format('d M Y') }}</span>
-                        </td>
-                    </tr>
-                    <!-- ROW 2: RATE & DELIVERY DATE (MANUAL HANDWRITING AREA) -->
-                    <tr>
-                        <td class="passport-cell passport-cell-left" style="background: #fafaf9;">
-                            <span class="kicker">Rate</span>
-                            <div class="manual-space">
-                                <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 11px; font-weight: bold; color: #64748b;">&#8377;</span>
-                            </div>
-                        </td>
-                        <td class="passport-cell passport-cell-right" style="background: #fafaf9;">
-                            <span class="kicker">Delivery Date</span>
-                            <div class="manual-space"></div>
-                        </td>
-                    </tr>
-                    <!-- ROW 3: ASSIGNED FABRICATOR -->
-                    <tr>
-                        <td colspan="2" class="artisan-box">
-                            <span class="kicker">Assigned Fabricator</span>
-                            <div class="artisan-name">{{ $labour->name }}</div>
-                            <div class="artisan-info">{{ $labour->phone }}</div>
-                            <div class="artisan-info">{{ $labour->address ?? 'Topsia Atelier, Kolkata - 700046' }}</div>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-
-    <!-- SECTION 1: PRODUCT HERO -->
-    <table class="product-card">
-        <tr>
-            <td class="product-main">
-                <div>
-                    <span class="product-code-lead">{{ $product->code }}</span>
-                    <span class="product-title-sep">|</span>
-                    <span class="product-title-text">{{ $product->name }}</span>
-                </div>
-                <div class="product-notes">
-                    <strong>Craft Notes:</strong> {{ $product->description ?? 'Follow master craftsman guidelines revision 2.' }}
-                </div>
-            </td>
-            <td class="product-qty-box">
-                <span class="qty-label">Total Qty</span>
-                <span class="qty-num">{{ $assignment->quantity }} <span class="qty-unit">Pcs</span></span>
-            </td>
-        </tr>
-    </table>
-
-    <!-- SECTION 2: RAW MATERIALS TABLE (BOM LEDGER) -->
-    <div class="table-wrap">
-        <table class="bom-table">
-            <thead>
-                <tr>
-                    <th style="width: 45px; text-align: center;">SL No.</th>
-                    <th>Description</th>
-                    <th style="text-align: right; width: 85px;">Quantity</th>
-                    <th style="text-align: left; width: 65px; padding-left: 12px;">Unit</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($materials as $mat)
-                <tr>
-                    <td class="td-sl">{{ sprintf('%02d', $loop->iteration) }}</td>
-                    <td>
-                        <span class="mat-name-lead">{{ $mat->material?->name ?? $mat->label }}</span>
-                        @if($mat->variant && $mat->variant->name !== 'Standard')
-                            <span class="mat-sep">|</span>
-                            <span class="mat-variation-text">{{ $mat->variant->name }}</span>
-                        @endif
-                    </td>
-                    <td class="td-qty">{{ number_format($mat->quantity_used, 2) }}</td>
-                    <td class="td-unit"><span class="unit-code">{{ $mat->unit ?? $mat->material?->base_unit ?? 'pcs' }}</span></td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="4" style="text-align: center; padding: 12px; color: #64748b;">
-                        No allocated raw materials recorded for this batch.
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
+                <!-- PASSPORT CARD RIGHT -->
+                <td class="header-right">
+                    <table class="passport-card">
+                        <!-- ROW 1: WO NO & ISSUE DATE -->
+                        <tr>
+                            <td class="passport-cell passport-cell-left">
+                                <span class="kicker">Work Order No.</span>
+                                <span class="val-large">#{{ $assignment->assignment_no }}</span>
+                            </td>
+                            <td class="passport-cell passport-cell-right">
+                                <span class="kicker">Issue Date</span>
+                                <span class="val-date">{{ $assignment->assigned_at ? $assignment->assigned_at->format('d M Y') : now()->format('d M Y') }}</span>
+                            </td>
+                        </tr>
+                        <!-- ROW 2: RATE & DELIVERY DATE (MANUAL HANDWRITING AREA) -->
+                        <tr>
+                            <td class="passport-cell passport-cell-left" style="background: #fafaf9;">
+                                <span class="kicker">Rate</span>
+                                <div class="manual-space">
+                                    <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 11px; font-weight: bold; color: #64748b;">&#8377;</span>
+                                </div>
+                            </td>
+                            <td class="passport-cell passport-cell-right" style="background: #fafaf9;">
+                                <span class="kicker">Delivery Date</span>
+                                <div class="manual-space"></div>
+                            </td>
+                        </tr>
+                        <!-- ROW 3: ASSIGNED FABRICATOR -->
+                        <tr>
+                            <td colspan="2" class="artisan-box">
+                                <span class="kicker">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: -1px; margin-right: 2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    Assigned Fabricator
+                                </span>
+                                <div class="artisan-name">{{ $labour->name }}</div>
+                                <div class="artisan-info">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: -1px; margin-right: 2px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                    {{ $labour->phone }}
+                                </div>
+                                <div class="artisan-info">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: -1px; margin-right: 2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                    {{ $labour->address ?? 'Topsia Atelier, Kolkata - 700046' }}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
         </table>
-    </div>
 
-    <!-- SECTION 3: SIGNATURES -->
-    <table class="signatures-table">
-        <tr>
-            <td class="sig-cell">
-                <div class="sig-stamp"></div>
-                <div class="sig-line">Production Supervisor Signature</div>
-            </td>
-            <td class="sig-spacer"></td>
-            <td class="sig-cell">
-                <div class="sig-stamp"></div>
-                <div class="sig-line">Fabricator Signature</div>
-            </td>
-        </tr>
-    </table>
+        <!-- SECTION 1: PRODUCT HERO -->
+        <table class="product-card">
+            <tr>
+                <td class="product-main">
+                    <div>
+                        <span class="product-code-lead">{{ $product->code }}</span>
+                        <span class="product-title-sep">|</span>
+                        <span class="product-title-text">{{ $product->name }}</span>
+                    </div>
+                    <div class="product-notes">
+                        <strong>Craft Notes:</strong> {{ $product->description ?? 'Follow master craftsman guidelines revision 2.' }}
+                    </div>
+                </td>
+                <td class="product-qty-box">
+                    <span class="qty-label">Total Qty</span>
+                    <span class="qty-num">{{ $assignment->quantity }} <span class="qty-unit">Pcs</span></span>
+                </td>
+            </tr>
+        </table>
 
-    <!-- SECTION 4: JURISDICTION LEGAL NOTICE -->
-    <div class="footer-legal">
-        <div class="legal-notice">All Disputes Are Subject to Kolkata Jurisdiction.</div>
+        <!-- SECTION 2: RAW MATERIALS TABLE (BOM LEDGER) -->
+        <div class="table-wrap">
+            <table class="bom-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">SL No.</th>
+                        <th>Description</th>
+                        <th style="text-align: right; width: 85px;">Quantity</th>
+                        <th style="text-align: left; width: 65px; padding-left: 12px;">Unit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($materials as $mat)
+                    <tr>
+                        <td class="td-sl">{{ sprintf('%02d', $loop->iteration) }}</td>
+                        <td>
+                            <span class="mat-name-lead">{{ $mat->material?->name ?? $mat->label }}</span>
+                            @if($mat->variant && $mat->variant->name !== 'Standard')
+                                <span class="mat-sep">|</span>
+                                <span class="mat-variation-text">{{ $mat->variant->name }}</span>
+                            @endif
+                        </td>
+                        <td class="td-qty">{{ number_format($mat->quantity_used, 2) }}</td>
+                        <td class="td-unit"><span class="unit-code">{{ $mat->unit ?? $mat->material?->base_unit ?? 'pcs' }}</span></td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 12px; color: #64748b;">
+                            No allocated raw materials recorded for this batch.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SECTION 3: SIGNATURES -->
+        <table class="signatures-table">
+            <tr>
+                <td class="sig-cell">
+                    <div class="sig-stamp"></div>
+                    <div class="sig-line">Production Supervisor Signature</div>
+                </td>
+                <td class="sig-spacer"></td>
+                <td class="sig-cell">
+                    <div class="sig-stamp"></div>
+                    <div class="sig-line">Fabricator Signature</div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- SECTION 4: JURISDICTION LEGAL NOTICE -->
+        <div class="footer-legal">
+            <div class="legal-notice">All Disputes Are Subject to Kolkata Jurisdiction.</div>
+        </div>
     </div>
 
 </body>
