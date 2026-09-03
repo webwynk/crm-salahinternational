@@ -8,13 +8,31 @@
             size: A4 portrait;
             margin: 0;
         }
+        @font-face {
+            font-family: 'DM Sans';
+            src: url('{{ str_replace('\\', '/', storage_path('fonts/dm-sans/DMSans-Regular.ttf')) }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'DM Sans';
+            src: url('{{ str_replace('\\', '/', storage_path('fonts/dm-sans/DMSans-SemiBold.ttf')) }}') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'DM Sans';
+            src: url('{{ str_replace('\\', '/', storage_path('fonts/dm-sans/DMSans-Italic.ttf')) }}') format('truetype');
+            font-weight: normal;
+            font-style: italic;
+        }
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
         body {
-            font-family: 'DejaVu Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'DM Sans', 'DejaVu Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #0f172a;
             font-size: 11px;
             line-height: 1.35;

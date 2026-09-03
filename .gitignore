@@ -8,6 +8,9 @@
 /storage/app/public/work_orders/*
 /storage/app/public/leather_slips/*
 /storage/fonts/*.json
+/storage/fonts/*.ttf
+/storage/fonts/*.ufm
+/storage/fonts/*.afm
 /vendor
 .env
 .env.backup
