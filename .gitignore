@@ -6,6 +6,8 @@
 /storage/*.key
 /storage/pail
 /storage/app/public/work_orders/*
+/storage/app/public/leather_slips/*
+/storage/fonts/*.json
 /vendor
 .env
 .env.backup

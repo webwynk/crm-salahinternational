@@ -1,17 +1,14 @@
 /* ─────────────────────────────────────────────────────────────
-   Self-hosted Inter Variable — font-display: swap
-   File placed at: public/fonts/InterVariable.woff2
-   Download from: https://github.com/rsms/inter/releases
+   Self-hosted DM Sans Variable — font-display: swap
+   File placed at: public/fonts/dm-sans/DMSans-VariableFont_opsz,wght.ttf
+   Download from: https://fonts.google.com/specimen/DM+Sans
    ───────────────────────────────────────────────────────────── */
 @font-face {
-  font-family: 'Inter var';
+  font-family: 'DM Sans';
   font-style:  normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/InterVariable.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
-                 U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122,
-                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url('/fonts/dm-sans/DMSans-VariableFont_opsz,wght.ttf') format('truetype');
 }
 
 @tailwind base;
@@ -28,7 +25,6 @@
 
   html {
     font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
