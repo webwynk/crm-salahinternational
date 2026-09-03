@@ -145,7 +145,7 @@
             background: #ffffff;
         }
         .meta-strip-cell {
-            padding: 4px 8px;
+            padding: 6px 10px;
             vertical-align: middle;
             border-right: 1px solid #e2e8f0;
         }
@@ -169,7 +169,8 @@
             text-transform: uppercase;
             letter-spacing: 0.6px;
             display: block;
-            margin-bottom: 1px;
+            margin-top: 0;
+            margin-bottom: 2px;
         }
         .meta-val-color {
             font-size: 12.5px;
@@ -190,7 +191,7 @@
             border-collapse: collapse;
         }
         .passport-cell {
-            padding: 4px 8px;
+            padding: 6px 8px;
             vertical-align: top;
             border-bottom: 1px solid #e2e8f0;
         }
@@ -208,7 +209,8 @@
             text-transform: uppercase;
             letter-spacing: 0.6px;
             display: block;
-            margin-bottom: 1px;
+            margin-top: 0;
+            margin-bottom: 2px;
         }
         .val-large {
             font-size: 13.5px;
@@ -226,7 +228,8 @@
             min-height: 16px;
             height: 16px;
             border-bottom: 1px dashed #cbd5e1;
-            margin-top: 1px;
+            margin-top: 2px;
+            margin-bottom: 0;
             font-size: 11px;
             color: #64748b;
             font-weight: bold;
@@ -318,12 +321,12 @@
         .bom-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 13px;
         }
         .bom-table th {
             background: #b45309;
             color: #ffffff;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -336,7 +339,7 @@
             border-right: none;
         }
         .bom-table td {
-            padding: 8px 12px;
+            padding: 7px 12px;
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
             vertical-align: middle;
@@ -352,7 +355,7 @@
         }
         .td-sl {
             width: 50px;
-            font-size: 11.5px;
+            font-size: 12.5px;
             color: #b45309;
             font-weight: bold;
             text-align: center;
@@ -360,22 +363,22 @@
         .mat-name-lead {
             font-weight: bold;
             color: #0f172a;
-            font-size: 11.5px;
+            font-size: 13px;
         }
         .mat-sep {
             color: #cbd5e1;
-            margin: 0 4px;
+            margin: 0 5px;
             font-weight: normal;
         }
         .mat-variation-text {
             font-weight: bold;
             color: #b45309;
-            font-size: 11.5px;
+            font-size: 13px;
         }
         .td-qty {
             text-align: right;
             width: 85px;
-            font-size: 11.5px;
+            font-size: 13.5px;
             font-weight: bold;
             color: #09090b;
         }
@@ -385,7 +388,7 @@
             padding-left: 12px;
         }
         .unit-code {
-            font-size: 11px;
+            font-size: 12.5px;
             font-weight: bold;
             color: #b45309;
         }
