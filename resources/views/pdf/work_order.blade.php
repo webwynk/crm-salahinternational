@@ -26,18 +26,24 @@
         }
 
         /* Top Bar: Full-Bleed Fabricator Copy */
-        .header-top-bar {
+        table.header-top-bar {
             width: 100%;
+            border-collapse: collapse;
             background: #b45309;
+            margin: 0;
+            padding: 0;
+        }
+        table.header-top-bar td {
+            height: 22px;
+            vertical-align: middle;
+            text-align: center;
             color: #ffffff;
             font-size: 10px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            text-align: center;
-            line-height: 22px;
-            height: 22px;
-            margin: 0;
+            line-height: 1;
+            padding: 0;
         }
 
         /* Page Content Wrapper with Calibrated A4 Margins */
@@ -360,7 +366,11 @@
 <body>
 
     <!-- TOP BAR: FULL-BLEED FABRICATOR COPY -->
-    <div class="header-top-bar">Fabricator Copy</div>
+    <table class="header-top-bar" cellpadding="0" cellspacing="0">
+        <tr>
+            <td>Fabricator Copy</td>
+        </tr>
+    </table>
 
     <div class="page-content">
         <!-- HEADER: COMPANY ON LEFT, JOB PASSPORT ON RIGHT -->
