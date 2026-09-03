@@ -65,7 +65,7 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
         ]
     );
 
-    const { data, setData, put, processing, errors, transform } = useForm({
+    const { data, setData, post, processing, errors, transform } = useForm({
         code: product.code || '',
         name: product.name || '',
         category: product.category || '',
@@ -178,6 +178,7 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
 
         transform((formData) => ({
             ...formData,
+            _method: 'PUT',
             materials: combined.length > 0 ? combined : [
                 {
                     material_id: leatherMaterials[0]?.id || materials[0]?.id || null,
@@ -189,7 +190,7 @@ export default function Edit({ product, leatherMaterials = [], materials = [] })
             ],
         }));
 
-        put(route('products.update', product.id));
+        post(route('products.update', product.id));
     };
 
     return (

@@ -156,6 +156,71 @@ class ProductCrudTest extends TestCase
         $this->assertDatabaseHas('products', ['id' => $product->id]);
     }
 
+    public function test_authenticated_user_can_update_product_via_put(): void
+    {
+        $this->actingAs($this->user);
+
+        $product = Product::create([
+            'code' => 'WAL-BF-UPDATE-1',
+            'name' => 'Original Name',
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->put("/products/{$product->id}", [
+            'code' => 'WAL-BF-UPDATE-1',
+            'name' => 'Updated Name via PUT',
+            'category' => 'Wallet',
+            'materials' => [
+                [
+                    'material_id' => $this->material->id,
+                    'material_type' => 'CONSUMABLE',
+                    'label' => 'Updated Shell',
+                    'quantity_min' => 2.0,
+                    'unit' => 'cm2',
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/products');
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'name' => 'Updated Name via PUT',
+        ]);
+    }
+
+    public function test_authenticated_user_can_update_product_via_post(): void
+    {
+        $this->actingAs($this->user);
+
+        $product = Product::create([
+            'code' => 'WAL-BF-UPDATE-2',
+            'name' => 'Original Name',
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->post("/products/{$product->id}", [
+            '_method' => 'PUT',
+            'code' => 'WAL-BF-UPDATE-2',
+            'name' => 'Updated Name via POST',
+            'category' => 'Wallet',
+            'materials' => [
+                [
+                    'material_id' => $this->material->id,
+                    'material_type' => 'CONSUMABLE',
+                    'label' => 'Updated Shell',
+                    'quantity_min' => 1.5,
+                    'unit' => 'cm2',
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/products');
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'name' => 'Updated Name via POST',
+        ]);
+    }
+
     public function test_product_without_assignments_can_be_deleted(): void
     {
         $this->actingAs($this->user);

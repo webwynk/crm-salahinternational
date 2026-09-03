@@ -17,13 +17,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     // Products & BOM Management
-    Route::resource('products', ProductController::class);
+    Route::match(['put', 'patch', 'post'], '/products/{product}', [ProductController::class, 'update'])->name('products.update');
+    Route::resource('products', ProductController::class)->except(['update']);
 
     // Dedicated Leather Stock & Hides Management (Sq. Ft)
     Route::get('/leather', [LeatherController::class, 'index'])->name('leather.index');
     Route::middleware('role:ADMIN')->group(function () {
         Route::post('/leather', [LeatherController::class, 'store'])->name('leather.store');
-        Route::put('/leather/{material}', [LeatherController::class, 'update'])->name('leather.update');
+        Route::match(['put', 'patch', 'post'], '/leather/{material}', [LeatherController::class, 'update'])->name('leather.update');
         Route::post('/leather/{material}/restock', [LeatherController::class, 'restock'])->name('leather.restock');
         Route::delete('/leather/{material}', [LeatherController::class, 'destroy'])->name('leather.destroy');
         Route::post('/leather/{material}/variants', [LeatherController::class, 'storeVariant'])->name('leather.variants.store');
@@ -35,7 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
     Route::middleware('role:ADMIN')->group(function () {
         Route::post('/materials', [MaterialController::class, 'store'])->name('materials.store');
-        Route::put('/materials/{material}', [MaterialController::class, 'update'])->name('materials.update');
+        Route::match(['put', 'patch', 'post'], '/materials/{material}', [MaterialController::class, 'update'])->name('materials.update');
         Route::post('/materials/{material}/restock', [MaterialController::class, 'restock'])->name('materials.restock');
         Route::delete('/materials/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
         Route::post('/materials/{material}/variants', [MaterialController::class, 'storeVariant'])->name('materials.variants.store');
@@ -44,7 +45,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Labour Artisans
-    Route::resource('labour', LabourController::class)->except(['create', 'edit', 'destroy']);
+    Route::match(['put', 'patch', 'post'], '/labour/{labour}', [LabourController::class, 'update'])->name('labour.update');
+    Route::resource('labour', LabourController::class)->except(['create', 'edit', 'destroy', 'update']);
 
     // Assignments & Work Orders
     Route::get('/assignments', [AssignmentController::class, 'index'])->name('assignments.index');
@@ -52,13 +54,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::match(['get', 'post'], '/assignments/pre-check', [AssignmentController::class, 'preCheck'])->name('assignments.pre-check');
     Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
     Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
-    Route::patch('/assignments/{assignment}/status', [AssignmentController::class, 'updateStatus'])->name('assignments.status');
+    Route::match(['patch', 'put', 'post'], '/assignments/{assignment}/status', [AssignmentController::class, 'updateStatus'])->name('assignments.status');
     Route::get('/assignments/{assignment}/pdf', [AssignmentController::class, 'downloadPdf'])->name('assignments.pdf');
     Route::get('/assignments/{assignment}/leather-pdf', [AssignmentController::class, 'downloadLeatherPdf'])->name('assignments.leather-pdf');
 
     // User Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::match(['patch', 'put', 'post'], '/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // System Database Migration Web Route (Admin Only)
