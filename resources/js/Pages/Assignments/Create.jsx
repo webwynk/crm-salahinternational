@@ -30,6 +30,22 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
+const getColorSwatch = (name = '') => {
+    const lower = name.toLowerCase().trim();
+    if (lower.includes('black') || lower.includes('noir') || lower.includes('onyx')) return '#18181b';
+    if (lower.includes('brown') || lower.includes('espresso') || lower.includes('chocolate') || lower.includes('havana')) return '#5c3a21';
+    if (lower.includes('tan') || lower.includes('cognac') || lower.includes('camel') || lower.includes('whiskey')) return '#b47b48';
+    if (lower.includes('white') || lower.includes('blanc') || lower.includes('ivory') || lower.includes('cream')) return '#f4f4f5';
+    if (lower.includes('green') || lower.includes('olive') || lower.includes('emerald') || lower.includes('forest')) return '#2e5a36';
+    if (lower.includes('red') || lower.includes('cherry') || lower.includes('burgundy') || lower.includes('wine')) return '#881337';
+    if (lower.includes('blue') || lower.includes('navy') || lower.includes('indigo') || lower.includes('sapphire')) return '#1e3a8a';
+    if (lower.includes('grey') || lower.includes('gray') || lower.includes('charcoal')) return '#52525b';
+    if (lower.includes('yellow') || lower.includes('mustard') || lower.includes('gold')) return '#ca8a04';
+    if (lower.includes('pink') || lower.includes('rose') || lower.includes('blush')) return '#f472b6';
+    if (lower.includes('orange') || lower.includes('terracotta') || lower.includes('rust')) return '#c2410c';
+    return '#8d6e63'; // authentic leather fallback
+};
+
 export default function Create({ products = [], labours = [], labour = [], categories = [] }) {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [productSearch, setProductSearch] = useState('');
@@ -300,54 +316,59 @@ export default function Create({ products = [], labours = [], labour = [], categ
                         </div>
                     </Card>
 
-                    {/* COLORWAY SELECTION (Visible when selected product has multi-color variations) */}
+                    {/* COMPACT COLORWAY NAVIGATION STRIP */}
                     {selectedProduct?.has_colors && selectedProduct.colors?.length > 0 && (
-                        <div className="p-4 bg-brand-50/70 rounded-xl border border-brand-300 ring-1 ring-brand-200 shadow-2xs space-y-3">
-                            <div className="flex items-center justify-between">
-                                <label className="text-xs font-bold text-brand-900 flex items-center gap-1.5">
-                                    <Palette className="w-4 h-4 text-brand-700" />
-                                    Select Production Colorway <span className="text-danger-500">*</span>
+                        <div className="px-3.5 py-2.5 bg-brand-50/70 rounded-xl border border-brand-300/90 shadow-2xs space-y-2">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <label className="text-xs font-bold text-brand-950 flex items-center gap-1.5">
+                                    <Palette className="w-3.5 h-3.5 text-brand-700 shrink-0" />
+                                    <span>Production Colorway <span className="text-danger-500">*</span></span>
                                 </label>
-                                <span className="text-[11px] font-semibold text-brand-700 bg-brand-100 px-2 py-0.5 rounded-full border border-brand-200">
+                                <span className="text-[11px] font-medium text-brand-700 bg-brand-100/90 px-2 py-0.5 rounded-full border border-brand-200/80">
                                     {selectedProduct.colors.length} Available Colorways
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                            {/* Ultra-compact horizontal interactive pill strip */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin pt-0.5 flex-wrap sm:flex-nowrap">
                                 {selectedProduct.colors.map((color) => {
                                     const isSelected = String(data.product_color_id) === String(color.id);
+                                    const bomCount = color.materials?.length ?? 0;
                                     return (
-                                        <div
+                                        <button
+                                            type="button"
                                             key={color.id}
                                             onClick={() => setData('product_color_id', color.id)}
-                                            className={`p-2.5 rounded-lg border transition-all cursor-pointer flex items-center gap-2.5 ${
+                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all shrink-0 cursor-pointer ${
                                                 isSelected
-                                                    ? 'bg-brand-600 text-white border-brand-700 shadow-xs ring-2 ring-brand-500/30'
-                                                    : 'bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-800'
+                                                    ? 'bg-brand-700 text-white shadow-xs ring-2 ring-brand-500/40 font-bold border border-brand-800'
+                                                    : 'bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200/90 hover:border-brand-400 font-medium'
                                             }`}
                                         >
-                                            <div className={`w-8 h-8 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${
-                                                isSelected ? 'bg-brand-700 text-white' : 'bg-brand-100 text-brand-800'
-                                            }`}>
-                                                <Palette className="w-4 h-4" />
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-xs font-bold truncate">
-                                                    {color.color_name}
-                                                </p>
-                                                <p className={`text-[10px] truncate ${isSelected ? 'text-brand-100' : 'text-neutral-500'}`}>
-                                                    {color.materials ? `${color.materials.length} BOM items` : 'Custom BOM'}
-                                                </p>
-                                            </div>
+                                            <span
+                                                className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0 shadow-2xs"
+                                                style={{ backgroundColor: getColorSwatch(color.color_name) }}
+                                            />
+                                            <span className="truncate max-w-[130px]">{color.color_name}</span>
+                                            <span
+                                                className={`text-[10px] px-1.5 py-0.2 rounded-full font-sans tabular-nums ${
+                                                    isSelected
+                                                        ? 'bg-brand-800/80 text-brand-100 font-medium'
+                                                        : 'bg-neutral-100 text-neutral-500'
+                                                }`}
+                                            >
+                                                {bomCount} specs
+                                            </span>
                                             {isSelected && (
-                                                <Check className="w-4 h-4 text-white shrink-0" />
+                                                <Check className="w-3.5 h-3.5 text-white shrink-0 -mr-0.5" />
                                             )}
-                                        </div>
+                                        </button>
                                     );
                                 })}
                             </div>
+
                             {errors.product_color_id && (
-                                <p className="text-xs text-danger-600 font-medium">{errors.product_color_id}</p>
+                                <p className="text-xs text-danger-600 font-medium pt-0.5">{errors.product_color_id}</p>
                             )}
                         </div>
                     )}
