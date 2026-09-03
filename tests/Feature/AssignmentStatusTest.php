@@ -168,4 +168,20 @@ class AssignmentStatusTest extends TestCase
         $this->assertEquals('COMPLETED', $assignment->fresh()->status);
         $this->assertEquals(95.0, (float) $this->inventory->fresh()->quantity_on_hand);
     }
+
+    public function test_admin_can_download_work_order_pdf(): void
+    {
+        $this->actingAs($this->admin);
+
+        $assignment = $this->service->createAssignment(
+            $this->product->id,
+            $this->labour->id,
+            10,
+            $this->admin->id
+        );
+
+        $response = $this->get("/assignments/{$assignment->id}/pdf");
+        $response->assertOk();
+        $this->assertEquals('application/pdf', $response->headers->get('content-type'));
+    }
 }

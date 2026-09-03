@@ -112,12 +112,12 @@ class AssignmentController extends Controller
         ]);
     }
 
-    public function downloadPdf(Assignment $assignment): BinaryFileResponse|RedirectResponse
+    public function downloadPdf(Request $request, Assignment $assignment): BinaryFileResponse|RedirectResponse
     {
         $pdf = $assignment->pdfs()->latest()->first();
 
-        if (!$pdf || !Storage::disk('public')->exists($pdf->file_path)) {
-            // Regenerate PDF if missing
+        if (!$pdf || !Storage::disk('public')->exists($pdf->file_path) || $request->boolean('regenerate')) {
+            // Regenerate PDF if missing or requested
             $pdfService = new WorkOrderPdfService();
             $pdf = $pdfService->generatePdf($assignment, auth()->id());
         }

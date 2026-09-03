@@ -4,150 +4,515 @@
     <meta charset="UTF-8">
     <title>Work Order {{ $assignment->assignment_no }}</title>
     <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #262523; font-size: 11px; line-height: 1.4; margin: 0; padding: 24px; background: #ffffff; }
-        .brand-bar { background: #d97706; height: 6px; margin-bottom: 20px; border-radius: 2px; }
-        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .header-table td { vertical-align: top; }
-        .company-name { font-size: 18px; font-weight: bold; color: #171717; letter-spacing: -0.5px; }
-        .company-sub { font-size: 10px; color: #736e65; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: 2px; }
-        .wo-badge { background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 8px 14px; border-radius: 4px; text-align: right; display: inline-block; }
-        .wo-title { font-size: 14px; font-weight: bold; color: #92400e; }
-        .wo-number { font-size: 16px; font-weight: bold; font-family: monospace; color: #78350f; }
-        
-        .meta-grid { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .meta-card { background: #f8f7f4; border: 1px solid #e5e3dc; border-radius: 6px; padding: 12px; vertical-align: top; }
-        .meta-label { font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #736e65; margin-bottom: 6px; border-bottom: 1px solid #e5e3dc; padding-bottom: 4px; }
-        .meta-row { margin-bottom: 3px; font-size: 11px; }
-        .meta-row strong { color: #171717; }
-        
-        .target-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 12px; text-align: center; vertical-align: middle; }
-        .target-val { font-size: 26px; font-weight: bold; color: #b45309; }
+        @page {
+            size: A4 portrait;
+            margin: 12mm 14mm 10mm 14mm;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            font-size: 13px;
+            line-height: 1.4;
+            background: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
 
-        .section-title { font-size: 12px; font-weight: bold; text-transform: uppercase; tracking: 0.5px; color: #171717; border-bottom: 2px solid #e5e3dc; padding-bottom: 4px; margin-top: 20px; margin-bottom: 10px; }
-        
-        .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .data-table th { background: #f8f7f4; border: 1px solid #e5e3dc; padding: 8px 10px; font-size: 10px; text-transform: uppercase; text-align: left; color: #524e47; font-weight: bold; }
-        .data-table td { border: 1px solid #e5e3dc; padding: 8px 10px; font-size: 11px; }
-        .data-table tr:nth-child(even) { background: #faf9f6; }
+        /* Top Bar: Fabricator Copy */
+        .header-top-bar {
+            background: #b45309;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-align: center;
+            line-height: 20px;
+            height: 20px;
+            margin-bottom: 12px;
+        }
 
-        .notes-card { background: #f8f7f4; border: 1px solid #e5e3dc; border-radius: 6px; padding: 12px; font-size: 11px; color: #403d39; margin-bottom: 20px; }
-        
-        .signatures { width: 100%; margin-top: 45px; border-collapse: collapse; }
-        .signature-cell { width: 45%; text-align: center; vertical-align: bottom; }
-        .signature-line { border-top: 1px solid #a39e93; margin-top: 40px; padding-top: 6px; font-size: 10px; color: #736e65; font-weight: 500; }
-        .footer-meta { margin-top: 40px; text-align: center; font-size: 9px; color: #a39e93; border-top: 1px solid #e5e3dc; padding-top: 10px; }
+        /* ================= HEADER ================= */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+        .header-left {
+            width: 50%;
+            vertical-align: top;
+            padding-right: 12px;
+        }
+        .header-right {
+            width: 50%;
+            vertical-align: top;
+            padding-left: 12px;
+        }
+
+        /* Brand Left */
+        .brand-logo-img {
+            height: 54px;
+            width: auto;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .brand-tagline {
+            font-size: 12px;
+            font-weight: bold;
+            color: #92400e;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 5px;
+        }
+        .brand-address {
+            font-size: 13px;
+            color: #374151;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+        .brand-contacts {
+            font-size: 12.5px;
+            color: #374151;
+            line-height: 1.45;
+            margin-bottom: 6px;
+        }
+        .contact-sep {
+            color: #cbd5e1;
+            margin: 0 5px;
+        }
+        .brand-gstin-pill {
+            display: inline-block;
+            background: #fafaf9;
+            border: 1px solid #e4e4e7;
+            padding: 2px 8px;
+            font-size: 11px;
+        }
+        .gstin-label {
+            font-size: 9px;
+            font-weight: bold;
+            color: #6b7280;
+            text-transform: uppercase;
+            margin-right: 4px;
+        }
+        .gstin-code {
+            font-weight: bold;
+            color: #111827;
+            font-size: 11px;
+        }
+
+        /* Right Passport Card */
+        .passport-card {
+            width: 100%;
+            background: #fafaf9;
+            border: 1px solid #e2e8f0;
+            border-collapse: collapse;
+        }
+        .passport-cell {
+            padding: 7px 10px;
+            vertical-align: top;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .passport-cell-left {
+            width: 55%;
+            border-right: 1px solid #e2e8f0;
+        }
+        .passport-cell-right {
+            width: 45%;
+        }
+        .kicker {
+            font-size: 9px;
+            font-weight: bold;
+            color: #b45309;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .val-large {
+            font-size: 14px;
+            font-weight: bold;
+            color: #0f172a;
+            display: block;
+        }
+        .val-date {
+            font-size: 12.5px;
+            font-weight: bold;
+            color: #0f172a;
+            display: block;
+        }
+        .manual-space {
+            min-height: 24px;
+            height: 24px;
+            border-bottom: 1px dashed #cbd5e1;
+            margin-top: 2px;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: bold;
+        }
+        .artisan-box {
+            background: #ffffff;
+            padding: 7px 10px;
+        }
+        .artisan-name {
+            font-size: 13.5px;
+            font-weight: bold;
+            color: #0f172a;
+            margin-bottom: 3px;
+        }
+        .artisan-info {
+            font-size: 12px;
+            line-height: 1.35;
+            color: #1e293b;
+        }
+
+        /* ================= SECTION 1: PRODUCT HERO ================= */
+        .product-card {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            background: #fafaf9;
+            margin: 10px 0;
+            border-collapse: collapse;
+        }
+        .product-main {
+            padding: 8px 12px;
+            vertical-align: middle;
+            width: 78%;
+            border-right: 1px solid #e2e8f0;
+        }
+        .product-code-lead {
+            font-size: 14px;
+            font-weight: bold;
+            color: #b45309;
+        }
+        .product-title-sep {
+            color: #cbd5e1;
+            margin: 0 6px;
+            font-weight: normal;
+        }
+        .product-title-text {
+            font-size: 14px;
+            font-weight: bold;
+            color: #0f172a;
+        }
+        .product-variation-lead {
+            font-size: 14px;
+            font-weight: bold;
+            color: #b45309;
+        }
+        .product-notes {
+            font-size: 12px;
+            color: #334155;
+            line-height: 1.35;
+            margin-top: 4px;
+        }
+        .product-qty-box {
+            width: 22%;
+            padding: 6px 12px;
+            text-align: center;
+            vertical-align: middle;
+            background: #ffffff;
+        }
+        .qty-label {
+            font-size: 9.5px;
+            font-weight: bold;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .qty-num {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0f172a;
+            line-height: 1;
+        }
+        .qty-unit {
+            font-size: 12px;
+            font-weight: bold;
+            color: #b45309;
+            text-transform: uppercase;
+        }
+
+        /* ================= SECTION 2: RAW MATERIALS TABLE ================= */
+        .table-wrap {
+            border: 1px solid #e4e4e7;
+            margin-bottom: 10px;
+        }
+        .bom-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .bom-table th {
+            background: #b45309;
+            color: #ffffff;
+            font-size: 10.5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 7px 12px;
+            text-align: left;
+            border-bottom: 1px solid #92400e;
+            border-right: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        .bom-table th:last-child {
+            border-right: none;
+        }
+        .bom-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        .bom-table td:last-child {
+            border-right: none;
+        }
+        .bom-table tr:last-child td {
+            border-bottom: none;
+        }
+        .bom-table tr:nth-child(even) {
+            background: #fafaf9;
+        }
+        .td-sl {
+            width: 50px;
+            font-size: 12px;
+            color: #b45309;
+            font-weight: bold;
+            text-align: center;
+        }
+        .mat-name-lead {
+            font-weight: bold;
+            color: #0f172a;
+            font-size: 12.5px;
+        }
+        .mat-sep {
+            color: #cbd5e1;
+            margin: 0 4px;
+            font-weight: normal;
+        }
+        .mat-variation-text {
+            font-weight: bold;
+            color: #b45309;
+            font-size: 12.5px;
+        }
+        .td-qty {
+            text-align: right;
+            width: 90px;
+            font-size: 12.5px;
+            font-weight: bold;
+            color: #09090b;
+        }
+        .td-unit {
+            text-align: left;
+            width: 70px;
+            padding-left: 12px;
+        }
+        .unit-code {
+            font-size: 12px;
+            font-weight: bold;
+            color: #b45309;
+        }
+
+        /* ================= SECTION 3: SIGNATURES ================= */
+        .signatures-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+        .sig-cell {
+            width: 46%;
+            vertical-align: top;
+            text-align: center;
+        }
+        .sig-spacer {
+            width: 8%;
+        }
+        .sig-stamp {
+            height: 22px;
+        }
+        .sig-line {
+            border-top: 1.5px solid #18181b;
+            padding-top: 5px;
+            font-size: 10.5px;
+            font-weight: bold;
+            color: #18181b;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            text-align: center;
+        }
+
+        /* ================= SECTION 4: JURISDICTION ================= */
+        .footer-legal {
+            border-top: 1px solid #e4e4e7;
+            padding-top: 7px;
+            text-align: center;
+        }
+        .legal-notice {
+            font-size: 11px;
+            font-weight: bold;
+            color: #18181b;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
 
-    <div class="brand-bar"></div>
+    <!-- TOP BAR: FABRICATOR COPY -->
+    <div class="header-top-bar">Fabricator Copy</div>
 
+    <!-- HEADER: COMPANY ON LEFT, JOB PASSPORT ON RIGHT -->
     <table class="header-table">
         <tr>
-            <td>
-                <div class="company-name">SALAH INTERNATIONAL</div>
-                <div class="company-sub">Leather Goods Manufacturing CRM — Production Job Card</div>
-            </td>
-            <td style="text-align: right;">
-                <div class="wo-badge">
-                    <div class="wo-title">WORK ORDER</div>
-                    <div class="wo-number">#{{ $assignment->assignment_no }}</div>
+            <!-- COMPANY DETAILS LEFT -->
+            <td class="header-left">
+                @if($logoBase64)
+                    <img src="{{ $logoBase64 }}" class="brand-logo-img" alt="Salah International">
+                @else
+                    <div style="font-size: 18px; font-weight: bold; color: #b45309; margin-bottom: 4px;">SALAH INTERNATIONAL</div>
+                @endif
+                <div class="brand-tagline">Exporter &amp; Manufacturer of Leather Goods</div>
+                <div class="brand-address">
+                    31/18 Topsia Road (South), 3rd Floor,<br>
+                    Kolkata - 700046, West Bengal, India
+                </div>
+                <div class="brand-contacts">
+                    <div style="margin-bottom: 2px;">
+                        +91 8442925235 / +91 9831694577
+                    </div>
+                    <div>
+                        contact@salahinternational.com <span class="contact-sep">&bull;</span> salahinternational.com
+                    </div>
+                </div>
+                <div class="brand-gstin-pill">
+                    <span class="gstin-label">GST NO.</span>
+                    <span class="gstin-code">19AEQFS1716K1ZH</span>
                 </div>
             </td>
+
+            <!-- PASSPORT CARD RIGHT -->
+            <td class="header-right">
+                <table class="passport-card">
+                    <!-- ROW 1: WO NO & ISSUE DATE -->
+                    <tr>
+                        <td class="passport-cell passport-cell-left">
+                            <span class="kicker">Work Order No.</span>
+                            <span class="val-large">#{{ $assignment->assignment_no }}</span>
+                        </td>
+                        <td class="passport-cell passport-cell-right">
+                            <span class="kicker">Issue Date</span>
+                            <span class="val-date">{{ $assignment->assigned_at ? $assignment->assigned_at->format('d M Y') : now()->format('d M Y') }}</span>
+                        </td>
+                    </tr>
+                    <!-- ROW 2: RATE & DELIVERY DATE (MANUAL HANDWRITING AREA) -->
+                    <tr>
+                        <td class="passport-cell passport-cell-left" style="background: #fafaf9;">
+                            <span class="kicker">Rate</span>
+                            <div class="manual-space">&#8377;</div>
+                        </td>
+                        <td class="passport-cell passport-cell-right" style="background: #fafaf9;">
+                            <span class="kicker">Delivery Date</span>
+                            <div class="manual-space"></div>
+                        </td>
+                    </tr>
+                    <!-- ROW 3: ASSIGNED FABRICATOR -->
+                    <tr>
+                        <td colspan="2" class="artisan-box">
+                            <span class="kicker">Assigned Fabricator</span>
+                            <div class="artisan-name">{{ $labour->name }}</div>
+                            <div class="artisan-info">{{ $labour->phone }}</div>
+                            <div class="artisan-info">{{ $labour->address ?? 'Topsia Atelier, Kolkata - 700046' }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
         </tr>
     </table>
 
-    <table class="meta-grid">
+    <!-- SECTION 1: PRODUCT HERO -->
+    <table class="product-card">
         <tr>
-            <td className="meta-card" width="48%">
-                <div class="meta-label">Work Order Details</div>
-                <div class="meta-row"><strong>Assigned Date:</strong> {{ $assignment->assigned_at ? $assignment->assigned_at->format('d M Y, h:i A') : now()->format('d M Y') }}</div>
-                <div class="meta-row"><strong>Assigned By:</strong> {{ $assignment->assigner?->name ?? 'Admin Supervisor' }}</div>
-                <div class="meta-row"><strong>Status:</strong> {{ $assignment->status }}</div>
+            <td class="product-main">
+                <div>
+                    <span class="product-code-lead">{{ $product->code }}</span>
+                    <span class="product-title-sep">|</span>
+                    <span class="product-title-text">{{ $product->name }}</span>
+                    @if($product->category)
+                        <span class="product-title-sep">|</span>
+                        <span class="product-variation-lead">{{ $product->category }}</span>
+                    @endif
+                </div>
+                <div class="product-notes">
+                    <strong>Craft Notes:</strong> {{ $product->description ?? 'Follow master craftsman guidelines revision 2.' }}
+                </div>
             </td>
-            <td width="4%"></td>
-            <td className="meta-card" width="48%">
-                <div class="meta-label">Assigned Artisan Worker</div>
-                <div class="meta-row"><strong>Artisan:</strong> {{ $labour->name }}</div>
-                <div class="meta-row"><strong>Phone:</strong> {{ $labour->phone }}</div>
-                <div class="meta-row"><strong>Skills:</strong> {{ is_array($labour->skill_tags) ? implode(', ', $labour->skill_tags) : 'Craftsman' }}</div>
-            </td>
-        </tr>
-    </table>
-
-    <div class="section-title">Product & Quantity Specifications</div>
-    <table class="meta-grid">
-        <tr>
-            <td className="meta-card" width="68%">
-                <div class="meta-row"><strong>Product Name:</strong> {{ $product->name }}</div>
-                <div class="meta-row"><strong>Product Code:</strong> <span style="font-family: monospace;">{{ $product->code }}</span></div>
-                <div class="meta-row"><strong>Category:</strong> {{ $product->category ?? 'General Leather Goods' }}</div>
-                <div class="meta-row"><strong>Craft Notes:</strong> {{ $product->description ?? 'Follow master craftsman guidelines' }}</div>
-            </td>
-            <td width="4%"></td>
-            <td class="target-box" width="28%">
-                <div style="font-size: 9px; font-weight: bold; text-transform: uppercase; color: #92400e; margin-bottom: 4px;">TARGET QUANTITY</div>
-                <div class="target-val">{{ $assignment->quantity }} Pcs</div>
+            <td class="product-qty-box">
+                <span class="qty-label">Total Qty</span>
+                <span class="qty-num">{{ $assignment->quantity }} <span class="qty-unit">Pcs</span></span>
             </td>
         </tr>
     </table>
 
-    <div class="section-title">Allocated Raw Materials & Inventory Deduction Ledger</div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th width="8%">#</th>
-                <th width="47%">Material / Component Description</th>
-                <th width="25%">Allocated Qty (Total)</th>
-                <th width="20%">Unit of Measure</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($materials as $idx => $mat)
-            <tr>
-                <td>{{ $idx + 1 }}</td>
-                <td><strong>{{ $mat->label }}</strong></td>
-                <td><strong style="color: #b45309;">{{ number_format($mat->quantity_used, 2) }}</strong></td>
-                <td>{{ $mat->unit }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    @if($bomNotes->count() > 0)
-    <div class="section-title">Process & Stitching Specifications</div>
-    <div class="notes-card">
-        <ul style="margin: 0; padding-left: 18px;">
-            @foreach($bomNotes as $note)
-            <li style="margin-bottom: 4px;">
-                <strong>{{ $note->label }}:</strong> {{ $note->dimension_note ?? 'Follow master craftsman guidelines' }}
-            </li>
-            @endforeach
-        </ul>
+    <!-- SECTION 2: RAW MATERIALS TABLE (BOM LEDGER) -->
+    <div class="table-wrap">
+        <table class="bom-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px; text-align: center;">SL No.</th>
+                    <th>Description</th>
+                    <th style="text-align: right; width: 90px;">Quantity</th>
+                    <th style="text-align: left; width: 70px; padding-left: 12px;">Unit</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($materials as $mat)
+                <tr>
+                    <td class="td-sl">{{ sprintf('%02d', $loop->iteration) }}</td>
+                    <td>
+                        <span class="mat-name-lead">{{ $mat->material?->name ?? $mat->label }}</span>
+                        @if($mat->variant && $mat->variant->name !== 'Standard')
+                            <span class="mat-sep">|</span>
+                            <span class="mat-variation-text">{{ $mat->variant->name }}</span>
+                        @endif
+                    </td>
+                    <td class="td-qty">{{ number_format($mat->quantity_used, 2) }}</td>
+                    <td class="td-unit"><span class="unit-code">{{ $mat->unit ?? $mat->material?->base_unit ?? 'pcs' }}</span></td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 12px; color: #64748b;">
+                        No allocated raw materials recorded for this batch.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-    @endif
 
-    @if($assignment->notes)
-    <div class="section-title">Special Supervisor Instructions</div>
-    <div class="notes-card">
-        {{ $assignment->notes }}
-    </div>
-    @endif
-
-    <table class="signatures">
+    <!-- SECTION 3: SIGNATURES -->
+    <table class="signatures-table">
         <tr>
-            <td class="signature-cell">
-                <div class="signature-line">Production Supervisor Signature</div>
+            <td class="sig-cell">
+                <div class="sig-stamp"></div>
+                <div class="sig-line">Production Supervisor Signature</div>
             </td>
-            <td width="10%"></td>
-            <td class="signature-cell">
-                <div class="signature-line">Assigned Artisan Worker Signature</div>
+            <td class="sig-spacer"></td>
+            <td class="sig-cell">
+                <div class="sig-stamp"></div>
+                <div class="sig-line">Fabricator Signature</div>
             </td>
         </tr>
     </table>
 
-    <div class="footer-meta">
-        Generated by Salah Intl. Leather CRM &bull; Order ID: {{ $assignment->assignment_no }} &bull; Timestamp: {{ now()->format('Y-m-d H:i:s T') }}
+    <!-- SECTION 4: JURISDICTION LEGAL NOTICE -->
+    <div class="footer-legal">
+        <div class="legal-notice">All Disputes Are Subject to Kolkata Jurisdiction.</div>
     </div>
 
 </body>

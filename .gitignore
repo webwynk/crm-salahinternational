@@ -25,3 +25,4 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/public/work_order_preview.html
