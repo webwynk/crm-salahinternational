@@ -98,9 +98,10 @@ class AssignmentController extends Controller
                 $validated['product_color_id'] ?? null
             );
 
-            // Auto-generate Work Order PDF
+            // Auto-generate both Work Order PDF copies: Exporter and Fabricator
             try {
-                $pdfService->generatePdf($assignment, $request->user()->id);
+                $pdfService->generatePdf($assignment, $request->user()->id, 'EXPORTER');
+                $pdfService->generatePdf($assignment, $request->user()->id, 'FABRICATOR');
             } catch (\Exception $pdfEx) {
                 return redirect()->route('assignments.index')->with('warning', "Assignment #{$assignment->assignment_no} created and stock deducted, but PDF generation failed. You can retry generating PDF from the assignments list.");
             }
@@ -122,7 +123,11 @@ class AssignmentController extends Controller
 
     public function downloadPdf(Request $request, Assignment $assignment): BinaryFileResponse|RedirectResponse
     {
-        $pdf = $assignment->pdfs()->latest()->first();
+        $requestedType = strtoupper($request->query('type', 'FABRICATOR'));
+        $copyType = ($requestedType === 'EXPORTER') ? 'EXPORTER' : 'FABRICATOR';
+        $typeLabel = ($copyType === 'EXPORTER') ? 'Exporter' : 'Fabricator';
+
+        $pdf = $assignment->pdfs()->where('copy_type', $copyType)->latest()->first();
         $viewPath = resource_path('views/pdf/work_order.blade.php');
         $viewMtime = file_exists($viewPath) ? filemtime($viewPath) : 0;
         $pdfMtime = ($pdf && Storage::disk('public')->exists($pdf->file_path))
@@ -132,11 +137,11 @@ class AssignmentController extends Controller
         if (!$pdf || !Storage::disk('public')->exists($pdf->file_path) || $request->boolean('regenerate') || $pdfMtime < $viewMtime) {
             // Regenerate PDF if missing, requested, or if the blade template is newer
             $pdfService = new WorkOrderPdfService();
-            $pdf = $pdfService->generatePdf($assignment, auth()->id());
+            $pdf = $pdfService->generatePdf($assignment, auth()->id(), $copyType);
         }
 
         $fullPath = Storage::disk('public')->path($pdf->file_path);
-        return response()->download($fullPath, "Work_Order_{$assignment->assignment_no}.pdf");
+        return response()->download($fullPath, "Work_Order_{$assignment->assignment_no}_{$typeLabel}.pdf");
     }
 
     public function downloadLeatherPdf(Assignment $assignment, LeatherIssuePdfService $leatherPdfService): HttpResponse

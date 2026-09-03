@@ -482,10 +482,10 @@
 </head>
 <body>
 
-    <!-- TOP BAR: FULL-BLEED FABRICATOR COPY -->
+    <!-- TOP BAR: FULL-BLEED COPY BANNER (EXPORTER COPY / FABRICATOR COPY) -->
     <table class="header-top-bar" cellpadding="0" cellspacing="0">
         <tr>
-            <td>Fabricator Copy</td>
+            <td>{{ $copyType ?? 'Fabricator Copy' }}</td>
         </tr>
     </table>
 

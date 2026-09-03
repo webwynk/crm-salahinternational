@@ -287,10 +287,32 @@ class AssignmentStatusTest extends TestCase
             'quantity' => 10,
         ]);
 
-        // Verify Work Order PDF generates and downloads for multi-color assignment
+        // Verify both Exporter and Fabricator Work Order PDFs generate for assignment
         $assignedWo = Assignment::where('product_id', $product->id)->first();
-        $pdfResponse = $this->get("/assignments/{$assignedWo->id}/pdf");
-        $pdfResponse->assertOk();
-        $this->assertEquals('application/pdf', $pdfResponse->headers->get('content-type'));
+        $this->assertDatabaseHas('work_order_pdfs', [
+            'assignment_id' => $assignedWo->id,
+            'copy_type' => 'EXPORTER',
+        ]);
+        $this->assertDatabaseHas('work_order_pdfs', [
+            'assignment_id' => $assignedWo->id,
+            'copy_type' => 'FABRICATOR',
+        ]);
+
+        // Verify Exporter Copy download
+        $exporterResponse = $this->get("/assignments/{$assignedWo->id}/pdf?type=exporter");
+        $exporterResponse->assertOk();
+        $this->assertEquals('application/pdf', $exporterResponse->headers->get('content-type'));
+        $this->assertStringContainsString('Exporter', $exporterResponse->headers->get('content-disposition'));
+
+        // Verify Fabricator Copy download
+        $fabricatorResponse = $this->get("/assignments/{$assignedWo->id}/pdf?type=fabricator");
+        $fabricatorResponse->assertOk();
+        $this->assertEquals('application/pdf', $fabricatorResponse->headers->get('content-type'));
+        $this->assertStringContainsString('Fabricator', $fabricatorResponse->headers->get('content-disposition'));
+
+        // Verify Leather Slip download
+        $leatherResponse = $this->get("/assignments/{$assignedWo->id}/leather-pdf");
+        $leatherResponse->assertOk();
+        $this->assertEquals('application/pdf', $leatherResponse->headers->get('content-type'));
     }
 }

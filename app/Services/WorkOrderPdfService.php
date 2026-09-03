@@ -11,8 +11,13 @@ class WorkOrderPdfService
 {
     /**
      * Generate Work Order PDF and store in storage/app/public/work_orders/
+     *
+     * @param Assignment $assignment
+     * @param int|null $generatedByUserId
+     * @param string $copyType 'FABRICATOR' or 'EXPORTER'
+     * @return WorkOrderPdf
      */
-    public function generatePdf(Assignment $assignment, ?int $generatedByUserId = null): WorkOrderPdf
+    public function generatePdf(Assignment $assignment, ?int $generatedByUserId = null, string $copyType = 'FABRICATOR'): WorkOrderPdf
     {
         $assignment->load([
             'product.materials.material',
@@ -22,6 +27,9 @@ class WorkOrderPdfService
             'materials.variant',
             'assigner',
         ]);
+
+        $normalizedCopy = strtoupper($copyType) === 'EXPORTER' ? 'EXPORTER' : 'FABRICATOR';
+        $copyTypeBanner = $normalizedCopy === 'EXPORTER' ? 'Exporter Copy' : 'Fabricator Copy';
 
         $logoPath = public_path('images/salah_logo.png');
         $logoBase64 = file_exists($logoPath)
@@ -35,19 +43,26 @@ class WorkOrderPdfService
             'labour'     => $assignment->labour,
             'materials'  => $assignment->materials,
             'logoBase64' => $logoBase64,
+            'copyType'   => $copyTypeBanner,
         ])->setPaper('a4', 'portrait');
 
-        $fileName = "work_order_{$assignment->assignment_no}.pdf";
+        $suffix = strtolower($normalizedCopy);
+        $fileName = "work_order_{$assignment->assignment_no}_{$suffix}.pdf";
         $relativePath = "work_orders/{$fileName}";
 
         // Save PDF to public storage
         Storage::disk('public')->put($relativePath, $pdf->output());
 
-        return WorkOrderPdf::create([
-            'assignment_id' => $assignment->id,
-            'file_path'     => $relativePath,
-            'generated_by'  => $generatedByUserId,
-            'generated_at'  => now(),
-        ]);
+        return WorkOrderPdf::updateOrCreate(
+            [
+                'assignment_id' => $assignment->id,
+                'copy_type'     => $normalizedCopy,
+            ],
+            [
+                'file_path'     => $relativePath,
+                'generated_by'  => $generatedByUserId,
+                'generated_at'  => now(),
+            ]
+        );
     }
 }

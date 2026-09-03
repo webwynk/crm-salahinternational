@@ -34,9 +34,14 @@ export default function Show({ assignment }) {
                                 <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Assignments
                             </Button>
                         </Link>
-                        <a href={route('assignments.pdf', assignment.id)} target="_blank" rel="noreferrer">
+                        <a href={route('assignments.pdf', { assignment: assignment.id, type: 'exporter' })} target="_blank" rel="noreferrer">
                             <Button variant="outline" size="sm">
-                                <FileText className="w-4 h-4 mr-1.5" /> PDF Work Order
+                                <FileText className="w-4 h-4 mr-1.5 text-neutral-600" /> Exporter Copy PDF
+                            </Button>
+                        </a>
+                        <a href={route('assignments.pdf', { assignment: assignment.id, type: 'fabricator' })} target="_blank" rel="noreferrer">
+                            <Button variant="outline" size="sm" className="border-amber-300 text-amber-900 bg-amber-50/50 hover:bg-amber-100/60">
+                                <FileText className="w-4 h-4 mr-1.5 text-amber-700" /> Fabricator Copy PDF
                             </Button>
                         </a>
                         <a href={route('assignments.leather-pdf', assignment.id)} target="_blank" rel="noreferrer">

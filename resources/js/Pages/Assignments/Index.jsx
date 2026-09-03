@@ -155,14 +155,19 @@ export default function Index({ assignments, filters = {} }) {
                                 <Eye className="w-4 h-4" />
                             </button>
                         </Link>
-                        <a href={route('assignments.pdf', row.id)} target="_blank" rel="noreferrer" title="Download Full Work Order PDF">
+                        <a href={route('assignments.pdf', { assignment: row.id, type: 'exporter' })} target="_blank" rel="noreferrer" title="Download Exporter Copy PDF">
                             <Button variant="outline" size="sm" className="text-xs">
-                                <FileText className="w-3.5 h-3.5 mr-1" /> Work Order
+                                <FileText className="w-3.5 h-3.5 mr-1 text-neutral-600" /> Exporter
+                            </Button>
+                        </a>
+                        <a href={route('assignments.pdf', { assignment: row.id, type: 'fabricator' })} target="_blank" rel="noreferrer" title="Download Fabricator Copy PDF">
+                            <Button variant="outline" size="sm" className="text-xs border-amber-300 text-amber-900 bg-amber-50/50 hover:bg-amber-100/60">
+                                <FileText className="w-3.5 h-3.5 mr-1 text-amber-700" /> Fabricator
                             </Button>
                         </a>
                         <a href={route('assignments.leather-pdf', row.id)} target="_blank" rel="noreferrer" title="Download Leather Cutting Voucher PDF">
                             <Button variant="secondary" size="sm" className="text-xs">
-                                <Scissors className="w-3.5 h-3.5 mr-1 text-brand-700" /> Leather Slip
+                                <Scissors className="w-3.5 h-3.5 mr-1 text-brand-700" /> Leather
                             </Button>
                         </a>
                     </div>

@@ -13,6 +13,7 @@ class WorkOrderPdf extends Model
 
     protected $fillable = [
         'assignment_id',
+        'copy_type',
         'file_path',
         'generated_by',
         'generated_at',
