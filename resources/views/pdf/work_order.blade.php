@@ -145,8 +145,8 @@
             background: #ffffff;
         }
         .meta-strip-cell {
-            padding: 6px 10px;
-            vertical-align: middle;
+            padding: 4px 10px 5px 10px;
+            vertical-align: top;
             border-right: 1px solid #e2e8f0;
         }
         .meta-strip-cell-rate {
@@ -169,6 +169,7 @@
             text-transform: uppercase;
             letter-spacing: 0.6px;
             display: block;
+            line-height: 1.0;
             margin-top: 0;
             margin-bottom: 2px;
         }
@@ -176,11 +177,15 @@
             font-size: 12.5px;
             font-weight: bold;
             color: #b45309;
+            line-height: 1.15;
+            display: block;
         }
         .meta-val-standard {
             font-size: 11px;
             font-weight: bold;
             color: #64748b;
+            line-height: 1.15;
+            display: block;
         }
 
         /* Right Passport Card (Height-Synchronized with Left Box) */
@@ -191,7 +196,7 @@
             border-collapse: collapse;
         }
         .passport-cell {
-            padding: 6px 8px;
+            padding: 4px 8px 5px 8px;
             vertical-align: top;
             border-bottom: 1px solid #e2e8f0;
         }
@@ -209,6 +214,7 @@
             text-transform: uppercase;
             letter-spacing: 0.6px;
             display: block;
+            line-height: 1.0;
             margin-top: 0;
             margin-bottom: 2px;
         }
@@ -217,36 +223,55 @@
             font-weight: bold;
             color: #0f172a;
             display: block;
+            line-height: 1.15;
         }
         .val-date {
             font-size: 13.5px;
             font-weight: bold;
             color: #0f172a;
             display: block;
+            line-height: 1.15;
         }
         .manual-space {
-            min-height: 16px;
-            height: 16px;
+            min-height: 14px;
+            height: 14px;
             border-bottom: 1px dashed #cbd5e1;
             margin-top: 2px;
             margin-bottom: 0;
             font-size: 11px;
             color: #64748b;
             font-weight: bold;
+            line-height: 1.0;
         }
         .artisan-box {
             background: #ffffff;
             padding: 4px 8px;
         }
+        .artisan-kicker {
+            font-size: 8.5px;
+            font-weight: bold;
+            color: #b45309;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            display: block;
+            margin-bottom: 1px;
+        }
         .artisan-name {
             font-size: 12.5px;
             font-weight: bold;
             color: #0f172a;
-            margin-bottom: 1px;
+            margin-bottom: 2px;
         }
-        .artisan-info {
-            font-size: 11px;
+        .artisan-meta-line {
+            font-size: 10px;
+            color: #1e293b;
             line-height: 1.25;
+        }
+        .artisan-meta-lbl {
+            font-weight: bold;
+            color: #475569;
+        }
+        .artisan-meta-val {
             color: #1e293b;
         }
 
@@ -255,11 +280,11 @@
             width: 100%;
             border: 1px solid #e2e8f0;
             background: #fafaf9;
-            margin: 8px 0;
+            margin: 6px 0;
             border-collapse: collapse;
         }
         .product-main {
-            padding: 7px 10px;
+            padding: 5px 10px 5px 10px;
             vertical-align: middle;
             width: 78%;
             border-right: 1px solid #e2e8f0;
@@ -268,6 +293,7 @@
             font-size: 13.5px;
             font-weight: bold;
             color: #b45309;
+            line-height: 1.1;
         }
         .product-title-sep {
             color: #cbd5e1;
@@ -278,39 +304,43 @@
             font-size: 13.5px;
             font-weight: bold;
             color: #0f172a;
+            line-height: 1.1;
         }
         .product-color-lead {
             font-size: 13.5px;
             font-weight: bold;
             color: #b45309;
+            line-height: 1.1;
         }
         .product-qty-box {
             width: 22%;
-            padding: 5px 10px;
+            padding: 4px 10px;
             text-align: center;
             vertical-align: middle;
             background: #ffffff;
         }
         .qty-label {
-            font-size: 9px;
+            font-size: 8.5px;
             font-weight: bold;
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             display: block;
+            line-height: 1.0;
             margin-bottom: 1px;
         }
         .qty-num {
-            font-size: 22px;
+            font-size: 19px;
             font-weight: bold;
             color: #0f172a;
-            line-height: 1;
+            line-height: 1.0;
         }
         .qty-unit {
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: bold;
             color: #b45309;
             text-transform: uppercase;
+            line-height: 1.0;
         }
 
         /* ================= SECTION 2: RAW MATERIALS TABLE ================= */
@@ -330,19 +360,21 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            padding: 6px 12px;
+            padding: 5px 12px;
             text-align: left;
             border-bottom: 1px solid #92400e;
             border-right: 1px solid rgba(255, 255, 255, 0.25);
+            line-height: 1.1;
         }
         .bom-table th:last-child {
             border-right: none;
         }
         .bom-table td {
-            padding: 7px 12px;
+            padding: 4.5px 12px 6px 12px;
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
             vertical-align: middle;
+            line-height: 1.15;
         }
         .bom-table td:last-child {
             border-right: none;
@@ -359,11 +391,13 @@
             color: #b45309;
             font-weight: bold;
             text-align: center;
+            line-height: 1.15;
         }
         .mat-name-lead {
             font-weight: bold;
             color: #0f172a;
             font-size: 13px;
+            line-height: 1.15;
         }
         .mat-sep {
             color: #cbd5e1;
@@ -374,6 +408,7 @@
             font-weight: bold;
             color: #b45309;
             font-size: 13px;
+            line-height: 1.15;
         }
         .td-qty {
             text-align: right;
@@ -381,16 +416,19 @@
             font-size: 13.5px;
             font-weight: bold;
             color: #09090b;
+            line-height: 1.15;
         }
         .td-unit {
             text-align: left;
             width: 65px;
             padding-left: 12px;
+            line-height: 1.15;
         }
         .unit-code {
             font-size: 12.5px;
             font-weight: bold;
             color: #b45309;
+            line-height: 1.15;
         }
 
         /* ================= SECTION 3: SIGNATURES ================= */
