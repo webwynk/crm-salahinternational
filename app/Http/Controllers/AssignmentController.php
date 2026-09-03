@@ -12,6 +12,8 @@ use App\Services\WorkOrderPdfService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -121,27 +123,50 @@ class AssignmentController extends Controller
         ]);
     }
 
-    public function downloadPdf(Request $request, Assignment $assignment): BinaryFileResponse|RedirectResponse
+    public function downloadPdf(Request $request, Assignment $assignment): BinaryFileResponse|RedirectResponse|HttpResponse
     {
         $requestedType = strtoupper($request->query('type', 'FABRICATOR'));
         $copyType = ($requestedType === 'EXPORTER') ? 'EXPORTER' : 'FABRICATOR';
         $typeLabel = ($copyType === 'EXPORTER') ? 'Exporter' : 'Fabricator';
 
-        $pdf = $assignment->pdfs()->where('copy_type', $copyType)->latest()->first();
-        $viewPath = resource_path('views/pdf/work_order.blade.php');
-        $viewMtime = file_exists($viewPath) ? filemtime($viewPath) : 0;
-        $pdfMtime = ($pdf && Storage::disk('public')->exists($pdf->file_path))
-            ? Storage::disk('public')->lastModified($pdf->file_path)
-            : 0;
+        try {
+            $pdf = null;
+            // Defensively check if copy_type column exists in database
+            if (Schema::hasColumn('work_order_pdfs', 'copy_type')) {
+                $pdf = $assignment->pdfs()->where('copy_type', $copyType)->latest()->first();
+            }
 
-        if (!$pdf || !Storage::disk('public')->exists($pdf->file_path) || $request->boolean('regenerate') || $pdfMtime < $viewMtime) {
-            // Regenerate PDF if missing, requested, or if the blade template is newer
+            $viewPath = resource_path('views/pdf/work_order.blade.php');
+            $viewMtime = file_exists($viewPath) ? filemtime($viewPath) : 0;
+            $pdfMtime = ($pdf && Storage::disk('public')->exists($pdf->file_path))
+                ? Storage::disk('public')->lastModified($pdf->file_path)
+                : 0;
+
+            if (!$pdf || !Storage::disk('public')->exists($pdf->file_path) || $request->boolean('regenerate') || $pdfMtime < $viewMtime) {
+                // Regenerate PDF if missing, requested, or if the blade template is newer
+                $pdfService = new WorkOrderPdfService();
+                $pdf = $pdfService->generatePdf($assignment, auth()->id(), $copyType);
+            }
+
+            if ($pdf && Storage::disk('public')->exists($pdf->file_path)) {
+                $fullPath = Storage::disk('public')->path($pdf->file_path);
+                return response()->download($fullPath, "Work_Order_{$assignment->assignment_no}_{$typeLabel}.pdf");
+            }
+
+            // If storage file was not written, stream directly from DomPDF in-memory
             $pdfService = new WorkOrderPdfService();
-            $pdf = $pdfService->generatePdf($assignment, auth()->id(), $copyType);
-        }
+            $domPdf = $pdfService->renderDomPdf($assignment, $copyType);
+            return $domPdf->download("Work_Order_{$assignment->assignment_no}_{$typeLabel}.pdf");
+        } catch (\Throwable $e) {
+            Log::error("Work Order PDF download fallback triggered for Assignment #{$assignment->id}: " . $e->getMessage(), [
+                'exception' => $e,
+            ]);
 
-        $fullPath = Storage::disk('public')->path($pdf->file_path);
-        return response()->download($fullPath, "Work_Order_{$assignment->assignment_no}_{$typeLabel}.pdf");
+            // Fail-safe: Render in-memory and stream directly to client with 200 OK
+            $pdfService = new WorkOrderPdfService();
+            $domPdf = $pdfService->renderDomPdf($assignment, $copyType);
+            return $domPdf->download("Work_Order_{$assignment->assignment_no}_{$typeLabel}.pdf");
+        }
     }
 
     public function downloadLeatherPdf(Assignment $assignment, LeatherIssuePdfService $leatherPdfService): HttpResponse

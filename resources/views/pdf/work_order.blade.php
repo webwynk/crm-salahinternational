@@ -529,12 +529,12 @@
                         <tr>
                             <td colspan="2" class="artisan-box">
                                 <span class="kicker">Assigned Fabricator</span>
-                                <div class="artisan-name">{{ $labour->name }}</div>
+                                <div class="artisan-name">{{ $labour?->name ?? 'Artisan Fabricator' }}</div>
                                 <div class="artisan-info">
-                                    {{ $labour->phone }}
+                                    {{ $labour?->phone ?? '—' }}
                                 </div>
                                 <div class="artisan-info">
-                                    {{ $labour->address ?? 'Topsia Atelier, Kolkata - 700046' }}
+                                    {{ $labour?->address ?? 'Topsia Atelier, Kolkata - 700046' }}
                                 </div>
                             </td>
                         </tr>
@@ -572,13 +572,13 @@
         <table class="product-card">
             <tr>
                 <td class="product-main">
-                    <span class="product-code-lead">{{ $product->code }}</span>
+                    <span class="product-code-lead">{{ $product?->code ?? 'PROD' }}</span>
                     <span class="product-title-sep">|</span>
-                    <span class="product-title-text">{{ $product->name }}</span>
+                    <span class="product-title-text">{{ $product?->name ?? 'Custom Leather Article' }}</span>
                 </td>
                 <td class="product-qty-box">
                     <span class="qty-label">Total Qty</span>
-                    <span class="qty-num">{{ $assignment->quantity }} <span class="qty-unit">Pcs</span></span>
+                    <span class="qty-num">{{ $assignment->quantity ?? 1 }} <span class="qty-unit">Pcs</span></span>
                 </td>
             </tr>
         </table>
