@@ -14,37 +14,61 @@ class UpdateProductRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('colors') && is_array($this->colors)) {
-            $sanitizedColors = array_map(function ($color) {
-                if (is_array($color) && isset($color['materials']) && is_array($color['materials'])) {
-                    $color['materials'] = array_map(function ($item) {
-                        if (is_array($item) && empty($item['material_type'])) {
+        $hasColors = filter_var($this->has_colors, FILTER_VALIDATE_BOOLEAN);
+        $this->merge(['has_colors' => $hasColors]);
+
+        if ($hasColors) {
+            $this->request->remove('materials');
+            if ($this->has('colors') && is_array($this->colors)) {
+                $sanitizedColors = array_map(function ($color) {
+                    if (is_array($color) && isset($color['materials']) && is_array($color['materials'])) {
+                        $color['materials'] = array_map(function ($item) {
+                            if (is_array($item)) {
+                                if (empty($item['material_type'])) {
+                                    $item['material_type'] = 'CONSUMABLE';
+                                }
+                                if (isset($item['material_id']) && $item['material_id'] === '') {
+                                    $item['material_id'] = null;
+                                }
+                                if (isset($item['material_variant_id']) && $item['material_variant_id'] === '') {
+                                    $item['material_variant_id'] = null;
+                                }
+                            }
+                            return $item;
+                        }, $color['materials']);
+                    }
+                    return $color;
+                }, $this->colors);
+
+                $this->merge(['colors' => $sanitizedColors]);
+            }
+        } else {
+            $this->request->remove('colors');
+            if ($this->has('materials') && is_array($this->materials)) {
+                $sanitized = array_map(function ($item) {
+                    if (is_array($item)) {
+                        if (empty($item['material_type'])) {
                             $item['material_type'] = 'CONSUMABLE';
                         }
-                        return $item;
-                    }, $color['materials']);
-                }
-                return $color;
-            }, $this->colors);
+                        if (isset($item['material_id']) && $item['material_id'] === '') {
+                            $item['material_id'] = null;
+                        }
+                        if (isset($item['material_variant_id']) && $item['material_variant_id'] === '') {
+                            $item['material_variant_id'] = null;
+                        }
+                    }
+                    return $item;
+                }, $this->materials);
 
-            $this->merge(['colors' => $sanitizedColors]);
-        }
-
-        if ($this->has('materials') && is_array($this->materials)) {
-            $sanitized = array_map(function ($item) {
-                if (is_array($item) && empty($item['material_type'])) {
-                    $item['material_type'] = 'CONSUMABLE';
-                }
-                return $item;
-            }, $this->materials);
-
-            $this->merge(['materials' => $sanitized]);
+                $this->merge(['materials' => $sanitized]);
+            }
         }
     }
 
     public function rules(): array
     {
         $productId = $this->route('product') ? $this->route('product')->id : null;
+        $hasColors = filter_var($this->has_colors, FILTER_VALIDATE_BOOLEAN);
 
         return [
             'code' => ['required', 'string', 'max:30', 'alpha_dash', Rule::unique('products', 'code')->ignore($productId)],
@@ -54,8 +78,8 @@ class UpdateProductRequest extends FormRequest
             'image_url' => ['nullable', 'string'],
             'has_colors' => ['nullable', 'boolean'],
 
-            // Single-color BOM (required unless has_colors is true)
-            'materials' => ['required_unless:has_colors,true', 'nullable', 'array', 'min:1'],
+            // Single-color BOM (required only when has_colors is false)
+            'materials' => [Rule::excludeIf($hasColors), 'required', 'array', 'min:1'],
             'materials.*.material_id' => ['nullable', 'exists:materials,id'],
             'materials.*.material_variant_id' => ['nullable', 'exists:material_variants,id'],
             'materials.*.material_type' => ['nullable', 'string', Rule::in(['LEATHER', 'CONSUMABLE', 'HARDWARE', 'PROCESS_NOTE'])],
@@ -65,8 +89,8 @@ class UpdateProductRequest extends FormRequest
             'materials.*.unit' => ['nullable', 'string', 'max:10'],
             'materials.*.dimension_note' => ['nullable', 'string', 'max:150'],
 
-            // Multi-color variations (required if has_colors is true)
-            'colors' => ['required_if:has_colors,true', 'nullable', 'array', 'min:1'],
+            // Multi-color variations (required only when has_colors is true)
+            'colors' => [Rule::excludeIf(!$hasColors), 'required', 'array', 'min:1'],
             'colors.*.id' => ['nullable', 'integer'],
             'colors.*.color_name' => ['required_with:colors', 'string', 'max:60'],
             'colors.*.image_url' => ['nullable', 'string'],

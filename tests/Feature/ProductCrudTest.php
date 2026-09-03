@@ -424,5 +424,75 @@ class ProductCrudTest extends TestCase
         $this->assertDatabaseMissing('product_colors', ['id' => $colorDelete->id]);
         $this->assertDatabaseMissing('product_materials', ['label' => 'Delete Leather']);
     }
+
+    public function test_user_can_create_single_color_product_with_unstocked_materials(): void
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->post('/products', [
+            'code' => 'WAL-UNSTOCKED-1',
+            'name' => 'Unstocked Material Wallet',
+            'category' => 'Wallet',
+            'has_colors' => false,
+            'materials' => [
+                [
+                    'material_id' => '',
+                    'material_type' => 'LEATHER',
+                    'label' => 'Bespoke Tuscan Veg-Tan',
+                    'quantity_min' => 1.25,
+                    'unit' => 'sq_ft',
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/products');
+        $this->assertDatabaseHas('products', [
+            'code' => 'WAL-UNSTOCKED-1',
+            'has_colors' => 0,
+        ]);
+        $this->assertDatabaseHas('product_materials', [
+            'label' => 'Bespoke Tuscan Veg-Tan',
+            'material_id' => null,
+        ]);
+    }
+
+    public function test_user_can_create_multi_color_product_even_if_materials_array_is_empty(): void
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->post('/products', [
+            'code' => 'WAL-MC-EMPTY-MAT',
+            'name' => 'Multi-Color Empty Materials Key Test',
+            'category' => 'Wallet',
+            'has_colors' => true,
+            'materials' => [],
+            'colors' => [
+                [
+                    'color_name' => 'Espresso Brown',
+                    'materials' => [
+                        [
+                            'material_id' => null,
+                            'material_type' => 'LEATHER',
+                            'label' => 'Espresso Leather Shell',
+                            'quantity_min' => 1.5,
+                            'unit' => 'sq_ft',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/products');
+        $this->assertDatabaseHas('products', [
+            'code' => 'WAL-MC-EMPTY-MAT',
+            'has_colors' => 1,
+        ]);
+        $this->assertDatabaseHas('product_colors', [
+            'color_name' => 'Espresso Brown',
+        ]);
+        $this->assertDatabaseHas('product_materials', [
+            'label' => 'Espresso Leather Shell',
+        ]);
+    }
 }
 

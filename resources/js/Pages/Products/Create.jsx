@@ -281,6 +281,17 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
         }
     };
 
+    const sanitizeBomRow = (row, defaultType = 'LEATHER', defaultLabel = 'Component') => ({
+        material_id: row.material_id ? parseInt(row.material_id, 10) || null : null,
+        material_variant_id: row.material_variant_id ? parseInt(row.material_variant_id, 10) || null : null,
+        material_type: row.material_type || defaultType,
+        label: (row.label && row.label.trim()) ? row.label.trim() : defaultLabel,
+        quantity_min: (row.quantity_min !== '' && row.quantity_min !== null && !isNaN(row.quantity_min)) ? String(row.quantity_min) : '1',
+        quantity_max: (row.quantity_max !== '' && row.quantity_max !== null && !isNaN(row.quantity_max)) ? String(row.quantity_max) : null,
+        unit: row.unit || (defaultType === 'LEATHER' ? 'sq_ft' : 'pcs'),
+        dimension_note: row.dimension_note ? row.dimension_note.trim() : null,
+    });
+
     const submit = (e) => {
         e.preventDefault();
 
@@ -292,52 +303,79 @@ export default function Create({ leatherMaterials = [], materials = [] }) {
 
             // Validate multi-color payload
             const formattedColors = colors.map((c, idx) => {
-                const cMaterials = [
-                    ...c.leatherRows.filter((r) => r.material_id && r.label),
-                    ...c.hardwareRows.filter((r) => r.material_id && r.label),
-                ];
+                const validLeather = (c.leatherRows || [])
+                    .filter((r) => (r.label && r.label.trim()) || r.material_id)
+                    .map((r) => sanitizeBomRow(r, 'LEATHER', `${c.color_name} Leather Shell`));
+
+                const validHardware = (c.hardwareRows || [])
+                    .filter((r) => (r.label && r.label.trim()) || r.material_id)
+                    .map((r) => sanitizeBomRow(r, 'HARDWARE', 'Hardware / Fitting'));
+
+                const cMaterials = [...validLeather, ...validHardware];
+
                 return {
                     color_name: c.color_name,
                     image_url: c.image_url || null,
                     sort_order: idx + 1,
                     materials: cMaterials.length > 0 ? cMaterials : [
-                        {
-                            material_id: leatherMaterials[0]?.id || materials[0]?.id || null,
-                            material_type: 'LEATHER',
-                            label: `${c.color_name} Leather Shell`,
-                            quantity_min: '1.25',
-                            unit: 'sq_ft',
-                        },
+                        sanitizeBomRow(
+                            {
+                                material_id: leatherMaterials[0]?.id || null,
+                                material_type: 'LEATHER',
+                                label: `${c.color_name} Leather Shell`,
+                                quantity_min: '1.25',
+                                unit: 'sq_ft',
+                            },
+                            'LEATHER',
+                            `${c.color_name} Leather Shell`
+                        ),
                     ],
                 };
             });
 
-            transform((formData) => ({
-                ...formData,
-                has_colors: true,
-                colors: formattedColors,
-                materials: [],
-            }));
+            transform((formData) => {
+                const copy = { ...formData };
+                delete copy.materials;
+                return {
+                    ...copy,
+                    has_colors: true,
+                    colors: formattedColors,
+                };
+            });
         } else {
-            const combined = [
-                ...singleLeatherRows.filter((r) => r.material_id && r.label),
-                ...singleHardwareRows.filter((r) => r.material_id && r.label),
-            ];
+            const validLeather = singleLeatherRows
+                .filter((r) => (r.label && r.label.trim()) || r.material_id)
+                .map((r) => sanitizeBomRow(r, 'LEATHER', 'Main Leather Cut'));
 
-            transform((formData) => ({
-                ...formData,
-                has_colors: false,
-                colors: [],
-                materials: combined.length > 0 ? combined : [
+            const validHardware = singleHardwareRows
+                .filter((r) => (r.label && r.label.trim()) || r.material_id)
+                .map((r) => sanitizeBomRow(r, 'HARDWARE', 'Hardware / Fitting'));
+
+            const combined = [...validLeather, ...validHardware];
+
+            const finalMaterials = combined.length > 0 ? combined : [
+                sanitizeBomRow(
                     {
-                        material_id: leatherMaterials[0]?.id || materials[0]?.id || null,
+                        material_id: leatherMaterials[0]?.id || null,
                         material_type: 'LEATHER',
                         label: 'Main Leather Shell',
                         quantity_min: '1.25',
                         unit: 'sq_ft',
                     },
-                ],
-            }));
+                    'LEATHER',
+                    'Main Leather Shell'
+                ),
+            ];
+
+            transform((formData) => {
+                const copy = { ...formData };
+                delete copy.colors;
+                return {
+                    ...copy,
+                    has_colors: false,
+                    materials: finalMaterials,
+                };
+            });
         }
 
         post(route('products.store'));
