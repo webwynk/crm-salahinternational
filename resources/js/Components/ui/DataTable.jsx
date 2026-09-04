@@ -33,11 +33,15 @@ export default function DataTable({
 
     if (error) {
         return (
-            <div className="bg-neutral-0 border border-danger-500/30 rounded-md p-8 text-center space-y-4 shadow-xs">
-                <p className="text-sm text-danger-700 font-medium">{error}</p>
+            <div className="bg-white border border-red-100 rounded-xl p-10 text-center space-y-3 shadow-xs">
+                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-1">
+                    <RefreshCw className="w-5 h-5 text-red-400" />
+                </div>
+                <p className="text-[13px] font-semibold text-neutral-700">Something went wrong</p>
+                <p className="text-[12px] text-neutral-400">{error}</p>
                 {onRetry && (
                     <Button variant="outline" size="sm" onClick={onRetry}>
-                        <RefreshCw className="w-4 h-4 mr-2" /> Retry Loading
+                        <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry Loading
                     </Button>
                 )}
             </div>

@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import DataTable from '@/Components/ui/DataTable';
 import Button from '@/Components/ui/Button';
 import {
     Plus, Eye, FileText, Scissors,
     ClipboardList, CheckCircle2, Clock, Package,
-    CheckCheck, XCircle,
+    CheckCheck, XCircle, Hourglass,
 } from 'lucide-react';
 
 /* ─────────────────────────────────────────────
@@ -76,6 +76,19 @@ function KpiCard({ label, value, unit, icon: Icon, accentColor, valueColor }) {
 }
 
 /* ─────────────────────────────────────────────
+   UI State #5 — Slow Network Banner (fires after 3 s)
+───────────────────────────────────────────── */
+function SlowNetworkBanner({ visible }) {
+    if (!visible) return null;
+    return (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-neutral-900/90 backdrop-blur-sm text-white text-[12px] font-medium px-4 py-2.5 rounded-full shadow-lg animate-pulse">
+            <Hourglass className="w-3.5 h-3.5 text-brand-400 shrink-0" />
+            Still loading… taking longer than usual
+        </div>
+    );
+}
+
+/* ─────────────────────────────────────────────
    Modern Square Status Badge with icon
 ───────────────────────────────────────────── */
 function StatusBadge({ status }) {
@@ -99,29 +112,40 @@ function StatusBadge({ status }) {
 
 /* ─────────────────────────────────────────────
    Modern Icon-Only Action Hub
+   UI State #7: status dropdown gated to is_admin only
 ───────────────────────────────────────────── */
-function WorkOrderActionHub({ row }) {
+function WorkOrderActionHub({ row, isAdmin }) {
     return (
         <div className="flex items-center gap-1.5 justify-end shrink-0 whitespace-nowrap">
+            {/* UI State #7 — Status transition: admin only */}
             {row.status === 'ASSIGNED' && (
-                <select
-                    value={row.status}
-                    onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === 'CANCELLED') {
-                            if (confirm(`Cancel Work Order ${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
+                isAdmin ? (
+                    <select
+                        value={row.status}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === 'CANCELLED') {
+                                if (confirm(`Cancel Work Order ${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
+                                    router.patch(route('assignments.status', row.id), { status: val });
+                                }
+                            } else {
                                 router.patch(route('assignments.status', row.id), { status: val });
                             }
-                        } else {
-                            router.patch(route('assignments.status', row.id), { status: val });
-                        }
-                    }}
-                    className="text-[10px] h-[22px] border border-neutral-200 rounded-md px-1.5 py-0 bg-white font-semibold text-neutral-600 hover:border-brand-400 hover:bg-brand-50 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-all"
-                >
-                    <option value="ASSIGNED">Assigned</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                </select>
+                        }}
+                        className="text-[10px] h-[22px] border border-neutral-200 rounded-md px-1.5 py-0 bg-white font-semibold text-neutral-600 hover:border-brand-400 hover:bg-brand-50 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-all"
+                    >
+                        <option value="ASSIGNED">Assigned</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                ) : (
+                    <span
+                        title="Only administrators can change work order status"
+                        className="text-[9.5px] text-neutral-300 font-medium italic cursor-not-allowed px-1.5 select-none"
+                    >
+                        Admin only
+                    </span>
+                )
             )}
 
             {/* Icon buttons */}
@@ -166,8 +190,35 @@ function WorkOrderActionHub({ row }) {
    Main Page Component
 ───────────────────────────────────────────── */
 export default function Index({ assignments, filters = {}, stats = null }) {
+    const { auth } = usePage().props;
+    const isAdmin = auth?.user?.is_admin ?? false;
+
     const [search, setSearch] = useState(filters.search || '');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || '');
+
+    /* ── UI State #2: Loading + UI State #5: Slow Network ── */
+    const [isLoading, setIsLoading] = useState(false);
+    const [slowNetwork, setSlowNetwork] = useState(false);
+    const slowTimer = useRef(null);
+
+    useEffect(() => {
+        const startHandler = router.on('start', () => {
+            setIsLoading(true);
+            setSlowNetwork(false);
+            // Fire slow-network banner after 3 seconds
+            slowTimer.current = setTimeout(() => setSlowNetwork(true), 3000);
+        });
+        const finishHandler = router.on('finish', () => {
+            setIsLoading(false);
+            setSlowNetwork(false);
+            if (slowTimer.current) clearTimeout(slowTimer.current);
+        });
+        return () => {
+            startHandler();
+            finishHandler();
+            if (slowTimer.current) clearTimeout(slowTimer.current);
+        };
+    }, []);
 
     const handleSearch = (val) => {
         setSearch(val);
@@ -397,21 +448,25 @@ export default function Index({ assignments, filters = {}, stats = null }) {
                 </Link>
             </div>
 
-            {/* ── Data Table ── */}
+            {/* ── Data Table (UI State #2 Loading passed) ── */}
             <DataTable
                 columns={columns}
                 data={assignments?.data || []}
                 pagination={assignments}
                 search={search}
                 isFiltered={isFiltered}
+                isLoading={isLoading}
                 onClearFilters={handleClearFilters}
                 emptyTitle="No work orders found"
                 emptyDescription="Create your first work order to start tracking production batches."
                 emptyActionLabel="New Work Order"
                 compact={true}
                 onEmptyAction={() => router.get(route('assignments.create'))}
-                renderRowActions={(row) => <WorkOrderActionHub row={row} />}
+                renderRowActions={(row) => <WorkOrderActionHub row={row} isAdmin={isAdmin} />}
             />
+
+            {/* UI State #5 — Slow Network floating banner */}
+            <SlowNetworkBanner visible={slowNetwork} />
         </AppLayout>
     );
 }
