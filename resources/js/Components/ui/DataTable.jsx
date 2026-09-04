@@ -24,6 +24,7 @@ export default function DataTable({
     emptyActionLabel = null,
     onEmptyAction = null,
     renderRowActions = null,
+    compact = false,
 }) {
     if (isLoading) {
         return <SkeletonTable cols={columns.length + (renderRowActions ? 1 : 0)} rows={6} />;
@@ -107,13 +108,13 @@ export default function DataTable({
                     {/* Desktop Table — hidden below md */}
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-neutral-50 border-b border-neutral-200 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                            <thead className={`bg-neutral-50 border-b border-neutral-200 font-semibold text-neutral-500 uppercase tracking-wider ${compact ? 'text-[11px]' : 'text-xs'}`}>
                                 <tr>
                                     {columns.map((col) => (
                                         <th
                                             key={col.key || col.accessor}
                                             onClick={() => col.sortable && onSort && onSort(col.accessor)}
-                                            className={`px-4 py-3 select-none ${
+                                            className={`${compact ? 'px-3 py-2' : 'px-4 py-3'} select-none ${
                                                 col.sortable ? 'cursor-pointer hover:bg-neutral-100' : ''
                                             } ${col.className || ''}`}
                                         >
@@ -123,9 +124,9 @@ export default function DataTable({
                                                     <span className="text-neutral-400">
                                                         {activeSort.column === col.accessor ? (
                                                             activeSort.direction === 'asc' ? (
-                                                                <ChevronUp className="w-3.5 h-3.5 text-brand-600" />
+                                                                 <ChevronUp className="w-3.5 h-3.5 text-brand-600" />
                                                             ) : (
-                                                                <ChevronDown className="w-3.5 h-3.5 text-brand-600" />
+                                                                 <ChevronDown className="w-3.5 h-3.5 text-brand-600" />
                                                             )
                                                         ) : (
                                                             <ChevronsUpDown className="w-3.5 h-3.5 opacity-50" />
@@ -135,10 +136,10 @@ export default function DataTable({
                                             </div>
                                         </th>
                                     ))}
-                                    {renderRowActions && <th className="px-4 py-3 text-right">Actions</th>}
+                                    {renderRowActions && <th className={`${compact ? 'px-3 py-2 text-[11px]' : 'px-4 py-3 text-xs'} text-right`}>Actions</th>}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-neutral-200 text-sm text-neutral-800">
+                            <tbody className={`divide-y divide-neutral-200 text-neutral-800 ${compact ? 'text-xs' : 'text-sm'}`}>
                                 {data.map((row, index) => (
                                     <tr
                                         key={row.id || index}
@@ -147,13 +148,13 @@ export default function DataTable({
                                         {columns.map((col) => (
                                             <td
                                                 key={col.key || col.accessor}
-                                                className={`px-4 py-3.5 ${col.numeric ? 'tabular-nums' : ''} ${col.cellClassName || ''}`}
+                                                className={`${compact ? 'px-3 py-2' : 'px-4 py-3.5'} ${col.numeric ? 'tabular-nums' : ''} ${col.cellClassName || ''}`}
                                             >
                                                 {col.render ? col.render(row) : row[col.accessor]}
                                             </td>
                                         ))}
                                         {renderRowActions && (
-                                            <td className="px-4 py-3.5 text-right font-medium">
+                                            <td className={`${compact ? 'px-3 py-2' : 'px-4 py-3.5'} text-right font-medium`}>
                                                 {renderRowActions(row)}
                                             </td>
                                         )}

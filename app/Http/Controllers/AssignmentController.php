@@ -31,6 +31,7 @@ class AssignmentController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('assignment_no', 'like', "%{$search}%")
                   ->orWhereHas('product', fn($pq) => $pq->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%"))
+                  ->orWhereHas('color', fn($cq) => $cq->where('color_name', 'like', "%{$search}%"))
                   ->orWhereHas('labour', fn($lq) => $lq->where('name', 'like', "%{$search}%"));
             });
         }
@@ -45,9 +46,17 @@ class AssignmentController extends Controller
 
         $assignments = $query->paginate($request->pageSize ?? 10)->withQueryString();
 
+        $stats = [
+            'total'          => Assignment::count(),
+            'assigned'       => Assignment::where('status', 'ASSIGNED')->count(),
+            'completed'      => Assignment::where('status', 'COMPLETED')->count(),
+            'total_quantity' => (int) Assignment::sum('quantity'),
+        ];
+
         return Inertia::render('Assignments/Index', [
             'assignments' => $assignments,
-            'filters' => $request->only(['search', 'status', 'sort', 'direction', 'pageSize']),
+            'filters'     => $request->only(['search', 'status', 'sort', 'direction', 'pageSize']),
+            'stats'       => $stats,
         ]);
     }
 

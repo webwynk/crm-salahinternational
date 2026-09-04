@@ -483,4 +483,61 @@ class AssignmentStatusTest extends TestCase
         // Must show legal jurisdiction notice
         $this->assertStringContainsString('ALL DISPUTES ARE SUBJECT TO KOLKATA JURISDICTION.', $leatherView);
     }
+
+    public function test_assignments_index_renders_compact_view_with_stats_and_color_search(): void
+    {
+        $colorTan = \App\Models\ProductColor::create([
+            'product_id' => $this->product->id,
+            'color_name' => 'Cognac Tan',
+            'is_active' => true,
+        ]);
+
+        $colorCherry = \App\Models\ProductColor::create([
+            'product_id' => $this->product->id,
+            'color_name' => 'Cherry Burgundy',
+            'is_active' => true,
+        ]);
+
+        $assignment1 = Assignment::create([
+            'assignment_no' => 'WO-2026-9001',
+            'product_id' => $this->product->id,
+            'product_color_id' => $colorTan->id,
+            'labour_id' => $this->labour->id,
+            'quantity' => 25,
+            'assigned_by' => $this->admin->id,
+            'status' => 'ASSIGNED',
+        ]);
+
+        $assignment2 = Assignment::create([
+            'assignment_no' => 'WO-2026-9002',
+            'product_id' => $this->product->id,
+            'product_color_id' => $colorCherry->id,
+            'labour_id' => $this->labour->id,
+            'quantity' => 15,
+            'assigned_by' => $this->admin->id,
+            'status' => 'COMPLETED',
+        ]);
+
+        // 1. Visit assignments index without filter
+        $response = $this->actingAs($this->admin)->get(route('assignments.index'));
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Assignments/Index')
+            ->has('assignments.data', 2)
+            ->where('stats.total', 2)
+            ->where('stats.assigned', 1)
+            ->where('stats.completed', 1)
+            ->where('stats.total_quantity', 40)
+        );
+
+        // 2. Search by color variation name 'Cognac'
+        $searchResponse = $this->actingAs($this->admin)->get(route('assignments.index', ['search' => 'Cognac']));
+        $searchResponse->assertStatus(200);
+        $searchResponse->assertInertia(fn ($page) => $page
+            ->component('Assignments/Index')
+            ->has('assignments.data', 1)
+            ->where('assignments.data.0.assignment_no', 'WO-2026-9001')
+            ->where('assignments.data.0.color.color_name', 'Cognac Tan')
+        );
+    }
 }
