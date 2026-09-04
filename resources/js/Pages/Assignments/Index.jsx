@@ -8,7 +8,7 @@ import useInertiaLoading from '@/hooks/useInertiaLoading';
 import {
     Plus, Eye, FileText, Scissors,
     ClipboardList, CheckCircle2, Clock, Package,
-    CheckCheck, XCircle,
+    CheckCheck, XCircle, ChevronDown,
 } from 'lucide-react';
 
 /* ─────────────────────────────────────────────
@@ -110,24 +110,27 @@ function WorkOrderActionHub({ row, isAdmin }) {
             {/* UI State #7 — Status transition: admin only */}
             {row.status === 'ASSIGNED' && (
                 isAdmin ? (
-                    <select
-                        value={row.status}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === 'CANCELLED') {
-                                if (confirm(`Cancel Work Order ${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
+                    <div className="relative inline-flex items-center">
+                        <select
+                            value={row.status}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === 'CANCELLED') {
+                                    if (confirm(`Cancel Work Order ${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
+                                        router.patch(route('assignments.status', row.id), { status: val });
+                                    }
+                                } else {
                                     router.patch(route('assignments.status', row.id), { status: val });
                                 }
-                            } else {
-                                router.patch(route('assignments.status', row.id), { status: val });
-                            }
-                        }}
-                        className="text-[10px] h-[22px] border border-neutral-200 rounded-md px-1.5 py-0 bg-white font-semibold text-neutral-600 hover:border-brand-400 hover:bg-brand-50 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-all"
-                    >
-                        <option value="ASSIGNED">Assigned</option>
-                        <option value="COMPLETED">Completed</option>
-                        <option value="CANCELLED">Cancelled</option>
-                    </select>
+                            }}
+                            className="appearance-none text-[10px] font-semibold h-[23px] pl-2 pr-5.5 rounded-md border border-amber-300/90 bg-amber-50/90 text-amber-900 hover:bg-amber-100 hover:border-amber-400 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-all leading-none"
+                        >
+                            <option value="ASSIGNED">Assigned</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="CANCELLED">Cancelled</option>
+                        </select>
+                        <ChevronDown className="w-3 h-3 text-amber-700 absolute right-1.5 pointer-events-none" />
+                    </div>
                 ) : (
                     <span
                         title="Only administrators can change work order status"
@@ -232,32 +235,35 @@ export default function Index({ assignments, filters = {}, stats = null }) {
         {
             header: 'Product / Variation',
             accessor: 'product',
-            className: 'min-w-[200px]',
+            className: 'min-w-[220px]',
             render: (row) => {
                 const colorConfig = row.color?.color_name ? getColorConfig(row.color.color_name) : null;
                 return (
-                    <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
                         <span
-                            className="font-medium text-neutral-900 text-[12px] truncate max-w-[175px]"
+                            className="font-semibold text-neutral-900 text-[12px] truncate max-w-[200px] sm:max-w-[240px]"
                             title={row.product?.name}
                         >
                             {row.product?.name ?? '—'}
                         </span>
                         {row.product?.code && (
-                            <span className="font-mono text-[9.5px] text-neutral-400 bg-neutral-100 px-1 py-px rounded border border-neutral-200 shrink-0">
+                            <span className="font-mono font-bold text-[10px] text-neutral-700 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-300/80 shrink-0 shadow-2xs">
                                 {row.product.code}
                             </span>
                         )}
                         {row.color?.color_name ? (
                             <span
-                                className="inline-flex items-center gap-1 px-1.5 py-px rounded-md text-[10px] font-semibold border leading-tight shrink-0"
+                                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold border leading-tight shrink-0 shadow-2xs"
                                 style={{ backgroundColor: colorConfig.bg, color: colorConfig.text, borderColor: colorConfig.border }}
                             >
-                                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: colorConfig.dot }} />
+                                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: colorConfig.dot }} />
                                 {row.color.color_name}
                             </span>
                         ) : (
-                            <span className="text-[9.5px] text-neutral-300 font-medium italic shrink-0">Standard</span>
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-neutral-100 text-neutral-600 border border-neutral-200/90 shrink-0 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 shrink-0" />
+                                Standard
+                            </span>
                         )}
                     </div>
                 );
@@ -269,17 +275,10 @@ export default function Index({ assignments, filters = {}, stats = null }) {
             className: 'whitespace-nowrap',
             render: (row) => {
                 if (!row.labour) return <span className="text-neutral-300 text-xs">—</span>;
-                const nameParts = row.labour.name.trim().split(/\s+/);
-                const initials = nameParts.length >= 2
-                    ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-                    : row.labour.name.substring(0, 2).toUpperCase();
                 return (
-                    <div className="flex items-center gap-2 whitespace-nowrap">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-100 to-brand-200 text-brand-800 border border-brand-300/60 text-[9px] font-bold flex items-center justify-center shrink-0 shadow-2xs select-none">
-                            {initials}
-                        </div>
-                        <span className="text-[12px] text-neutral-700 font-medium">{row.labour.name}</span>
-                    </div>
+                    <span className="text-[12px] text-neutral-800 font-medium whitespace-nowrap">
+                        {row.labour.name}
+                    </span>
                 );
             },
         },
