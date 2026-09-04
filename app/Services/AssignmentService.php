@@ -306,18 +306,17 @@ class AssignmentService
                 \Illuminate\Support\Facades\Log::warning("Storage directory wipe warning: " . $e->getMessage());
             }
 
-            // 2. Clean database records
-            \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
-            \App\Models\WorkOrderPdf::truncate();
-            AssignmentMaterial::truncate();
+            // 2. Clean database records using DML (delete) - avoids MySQL implicit DDL commit
+            \App\Models\WorkOrderPdf::query()->delete();
+            AssignmentMaterial::query()->delete();
 
             // Clean assignment-related stock transactions
             StockTransaction::where('note', 'like', '%Work Order%')
                 ->orWhere('note', 'like', '%Assignment%')
+                ->orWhereIn('type', ['ASSIGNMENT_DEDUCTION', 'ASSIGNMENT_REFUND', 'ASSIGNMENT_REVERSAL'])
                 ->delete();
 
-            Assignment::truncate();
-            \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+            Assignment::query()->delete();
 
             return [
                 'assignments_deleted' => $assignmentCount,
