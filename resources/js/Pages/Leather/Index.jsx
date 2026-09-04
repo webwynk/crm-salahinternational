@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
 import FilterChips from '@/Components/ui/FilterChips';
@@ -10,6 +10,8 @@ import Modal from '@/Components/ui/Modal';
 import Input from '@/Components/ui/Input';
 import Select from '@/Components/ui/Select';
 import EmptyState from '@/Components/ui/EmptyState';
+import SlowNetworkBanner from '@/Components/ui/SlowNetworkBanner';
+import useInertiaLoading from '@/hooks/useInertiaLoading';
 import {
     Plus,
     RefreshCw,
@@ -27,6 +29,11 @@ import {
 import { LEATHER_UNITS } from '@/constants/leatherUnits';
 
 export default function Index({ materials, categories = [], filters = {} }) {
+    const { auth } = usePage().props;
+    const isAdmin = auth?.user?.is_admin ?? false;
+
+    const { isLoading, slowNetwork } = useInertiaLoading();
+
     const [search, setSearch] = useState(filters.search || '');
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
 
@@ -198,9 +205,11 @@ export default function Index({ materials, categories = [], filters = {} }) {
                 title="Leather Hide Master"
                 description="Manage leather stock, multi-variation hide grades, and replenish inventory balances"
                 action={
-                    <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
-                        <Plus className="w-4 h-4 mr-1.5" /> Add Leather Hide
-                    </Button>
+                    isAdmin ? (
+                        <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
+                            <Plus className="w-4 h-4 mr-1.5" /> Add Leather Hide
+                        </Button>
+                    ) : null
                 }
             />
 
@@ -236,13 +245,15 @@ export default function Index({ materials, categories = [], filters = {} }) {
                             : 'Get started by creating your first leather hide master and stock variations.'
                     }
                     action={
-                        <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
-                            <Plus className="w-4 h-4 mr-1.5" /> Add Leather Hide
-                        </Button>
+                        isAdmin ? (
+                            <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
+                                <Plus className="w-4 h-4 mr-1.5" /> Add Leather Hide
+                            </Button>
+                        ) : undefined
                     }
                 />
             ) : (
-                <div className="bg-neutral-0 rounded-xl border border-neutral-200/80 shadow-xs overflow-hidden">
+                <div className={`bg-neutral-0 rounded-xl border border-neutral-200/80 shadow-xs overflow-hidden transition-opacity duration-200 ${isLoading ? 'opacity-60 pointer-events-none' : ''}`}>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs border-collapse">
                             <thead className="bg-neutral-50/80 border-b border-neutral-200 text-neutral-600 font-semibold uppercase tracking-wider">
@@ -331,22 +342,29 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                 </td>
                                                 <td className="px-4 py-3.5 text-right">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => setAddVariantMaterial(material)}
-                                                            className="text-xs"
-                                                        >
-                                                            <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Variation
-                                                        </Button>
-                                                        <button
-                                                            type="button"
-                                                            className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-neutral-200 bg-neutral-0 text-neutral-400 hover:text-danger-600 hover:bg-danger-50 hover:border-danger-300 transition-all shadow-xs cursor-pointer"
-                                                            onClick={() => setDeleteMaterial(material)}
-                                                            title="Delete Entire Leather Type"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 text-danger-500" />
-                                                        </button>
+                                                        {isAdmin && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => setAddVariantMaterial(material)}
+                                                                className="text-xs"
+                                                            >
+                                                                <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Variation
+                                                            </Button>
+                                                        )}
+                                                        {isAdmin && (
+                                                            <button
+                                                                type="button"
+                                                                className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-neutral-200 bg-neutral-0 text-neutral-400 hover:text-danger-600 hover:bg-danger-50 hover:border-danger-300 transition-all shadow-xs cursor-pointer"
+                                                                onClick={() => setDeleteMaterial(material)}
+                                                                title="Delete Entire Leather Type"
+                                                            >
+                                                                <Trash2 className="w-4 h-4 text-danger-500" />
+                                                            </button>
+                                                        )}
+                                                        {!isAdmin && (
+                                                            <span className="text-[11px] text-neutral-400 italic">Read only</span>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -361,14 +379,16 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                                     <Layers className="w-3.5 h-3.5 text-brand-600" />
                                                                     Variations of {material.name} ({variantCount})
                                                                 </span>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => setAddVariantMaterial(material)}
-                                                                    className="text-xs text-brand-600 hover:text-brand-700"
-                                                                >
-                                                                    <Plus className="w-3.5 h-3.5 mr-1" /> Add Variation
-                                                                </Button>
+                                                                {isAdmin && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() => setAddVariantMaterial(material)}
+                                                                        className="text-xs text-brand-600 hover:text-brand-700"
+                                                                    >
+                                                                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Variation
+                                                                    </Button>
+                                                                )}
                                                             </div>
 
                                                             <table className="w-full text-left text-xs border-collapse">
@@ -417,21 +437,23 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                                                 </td>
                                                                                 <td className="px-4 py-2.5 text-right">
                                                                                     <div className="flex items-center justify-end gap-1.5">
-                                                                                        <Button
-                                                                                            variant="primary"
-                                                                                            size="sm"
-                                                                                            onClick={() => {
-                                                                                                setRestockVariant({
-                                                                                                    ...variant,
-                                                                                                    materialName: material.name,
-                                                                                                    base_unit: material.base_unit,
-                                                                                                });
-                                                                                            }}
-                                                                                            className="h-7 text-xs px-2.5"
-                                                                                        >
-                                                                                            <RefreshCw className="w-3 h-3 mr-1" /> Restock
-                                                                                        </Button>
-                                                                                        {variantCount > 1 && (
+                                                                                        {isAdmin && (
+                                                                                            <Button
+                                                                                                variant="primary"
+                                                                                                size="sm"
+                                                                                                onClick={() => {
+                                                                                                    setRestockVariant({
+                                                                                                        ...variant,
+                                                                                                        materialName: material.name,
+                                                                                                        base_unit: material.base_unit,
+                                                                                                    });
+                                                                                                }}
+                                                                                                className="h-7 text-xs px-2.5"
+                                                                                            >
+                                                                                                <RefreshCw className="w-3 h-3 mr-1" /> Restock
+                                                                                            </Button>
+                                                                                        )}
+                                                                                        {isAdmin && variantCount > 1 && (
                                                                                             <button
                                                                                                 type="button"
                                                                                                 onClick={() => setDeleteVariant({
@@ -443,6 +465,9 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                                                             >
                                                                                                 <Trash2 className="w-3.5 h-3.5" />
                                                                                             </button>
+                                                                                        )}
+                                                                                        {!isAdmin && (
+                                                                                            <span className="text-[10px] text-neutral-400 italic">View only</span>
                                                                                         )}
                                                                                     </div>
                                                                                 </td>
@@ -882,6 +907,9 @@ export default function Index({ materials, categories = [], filters = {} }) {
                     </div>
                 </div>
             </Modal>
+
+            {/* UI State #5 — Slow Network floating banner */}
+            <SlowNetworkBanner visible={slowNetwork} />
         </AppLayout>
     );
 }

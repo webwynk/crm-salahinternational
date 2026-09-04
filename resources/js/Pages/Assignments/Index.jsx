@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import DataTable from '@/Components/ui/DataTable';
 import Button from '@/Components/ui/Button';
+import SlowNetworkBanner from '@/Components/ui/SlowNetworkBanner';
+import useInertiaLoading from '@/hooks/useInertiaLoading';
 import {
     Plus, Eye, FileText, Scissors,
     ClipboardList, CheckCircle2, Clock, Package,
-    CheckCheck, XCircle, Hourglass,
+    CheckCheck, XCircle,
 } from 'lucide-react';
 
 /* ─────────────────────────────────────────────
@@ -75,18 +77,6 @@ function KpiCard({ label, value, unit, icon: Icon, accentColor, valueColor }) {
     );
 }
 
-/* ─────────────────────────────────────────────
-   UI State #5 — Slow Network Banner (fires after 3 s)
-───────────────────────────────────────────── */
-function SlowNetworkBanner({ visible }) {
-    if (!visible) return null;
-    return (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-neutral-900/90 backdrop-blur-sm text-white text-[12px] font-medium px-4 py-2.5 rounded-full shadow-lg animate-pulse">
-            <Hourglass className="w-3.5 h-3.5 text-brand-400 shrink-0" />
-            Still loading… taking longer than usual
-        </div>
-    );
-}
 
 /* ─────────────────────────────────────────────
    Modern Square Status Badge with icon
@@ -196,29 +186,8 @@ export default function Index({ assignments, filters = {}, stats = null }) {
     const [search, setSearch] = useState(filters.search || '');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || '');
 
-    /* ── UI State #2: Loading + UI State #5: Slow Network ── */
-    const [isLoading, setIsLoading] = useState(false);
-    const [slowNetwork, setSlowNetwork] = useState(false);
-    const slowTimer = useRef(null);
-
-    useEffect(() => {
-        const startHandler = router.on('start', () => {
-            setIsLoading(true);
-            setSlowNetwork(false);
-            // Fire slow-network banner after 3 seconds
-            slowTimer.current = setTimeout(() => setSlowNetwork(true), 3000);
-        });
-        const finishHandler = router.on('finish', () => {
-            setIsLoading(false);
-            setSlowNetwork(false);
-            if (slowTimer.current) clearTimeout(slowTimer.current);
-        });
-        return () => {
-            startHandler();
-            finishHandler();
-            if (slowTimer.current) clearTimeout(slowTimer.current);
-        };
-    }, []);
+    /* ── UI State #2 + #5: Inertia loading & slow network (shared hook) ── */
+    const { isLoading, slowNetwork } = useInertiaLoading();
 
     const handleSearch = (val) => {
         setSearch(val);

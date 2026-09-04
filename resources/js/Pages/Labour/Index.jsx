@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
 import DataTable from '@/Components/ui/DataTable';
@@ -9,9 +9,16 @@ import Drawer from '@/Components/ui/Drawer';
 import Input from '@/Components/ui/Input';
 import Textarea from '@/Components/ui/Textarea';
 import Checkbox from '@/Components/ui/Checkbox';
+import SlowNetworkBanner from '@/Components/ui/SlowNetworkBanner';
+import useInertiaLoading from '@/hooks/useInertiaLoading';
 import { Plus, Edit3, Phone } from 'lucide-react';
 
 export default function Index({ labour, filters = {} }) {
+    const { auth } = usePage().props;
+    const isAdmin = auth?.user?.is_admin ?? false;
+
+    const { isLoading, slowNetwork } = useInertiaLoading();
+
     const [search, setSearch] = useState(filters.search || '');
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editingWorker, setEditingWorker] = useState(null);
@@ -142,9 +149,11 @@ export default function Index({ labour, filters = {} }) {
                 title="Labour Artisans Master"
                 description="Manage leather craftsmen, contact details, skill specialization tags, and work history"
                 action={
-                    <Button variant="primary" onClick={openAddDrawer}>
-                        <Plus className="w-4 h-4 mr-1.5" /> Add Artisan Worker
-                    </Button>
+                    isAdmin ? (
+                        <Button variant="primary" onClick={openAddDrawer}>
+                            <Plus className="w-4 h-4 mr-1.5" /> Add Artisan Worker
+                        </Button>
+                    ) : null
                 }
             />
 
@@ -152,17 +161,20 @@ export default function Index({ labour, filters = {} }) {
                 columns={columns}
                 data={labour.data}
                 pagination={labour}
+                isLoading={isLoading}
                 search={search}
                 onSearchChange={handleSearch}
                 searchPlaceholder="Search artisan by name or phone..."
                 emptyTitle="No labour records found"
                 emptyDescription="Add artisan workers to assign production work orders."
-                emptyActionLabel="Add Artisan Worker"
-                onEmptyAction={openAddDrawer}
+                emptyActionLabel={isAdmin ? "Add Artisan Worker" : undefined}
+                onEmptyAction={isAdmin ? openAddDrawer : undefined}
                 renderRowActions={(row) => (
-                    <Button variant="outline" size="sm" onClick={() => openEditDrawer(row)}>
-                        <Edit3 className="w-3.5 h-3.5 mr-1" /> Edit
-                    </Button>
+                    isAdmin ? (
+                        <Button variant="outline" size="sm" onClick={() => openEditDrawer(row)}>
+                            <Edit3 className="w-3.5 h-3.5 mr-1" /> Edit
+                        </Button>
+                    ) : null
                 )}
             />
 
@@ -229,6 +241,9 @@ export default function Index({ labour, filters = {} }) {
                     </div>
                 </form>
             </Drawer>
+
+            {/* UI State #5 — Slow Network floating banner */}
+            <SlowNetworkBanner visible={slowNetwork} />
         </AppLayout>
     );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
 import DataTable from '@/Components/ui/DataTable';
@@ -7,9 +7,16 @@ import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
 import StatusPill from '@/Components/ui/StatusPill';
 import MobileFAB from '@/Components/ui/MobileFAB';
+import SlowNetworkBanner from '@/Components/ui/SlowNetworkBanner';
+import useInertiaLoading from '@/hooks/useInertiaLoading';
 import { Plus, Eye, Edit3, Image as ImageIcon, Palette } from 'lucide-react';
 
 export default function Index({ products, categories = [], filters = {} }) {
+    const { auth } = usePage().props;
+    const isAdmin = auth?.user?.is_admin ?? false;
+
+    const { isLoading, slowNetwork } = useInertiaLoading();
+
     const [search, setSearch] = useState(filters.search || '');
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
     const [sort, setSort] = useState({
@@ -105,12 +112,14 @@ export default function Index({ products, categories = [], filters = {} }) {
                 title="Products & Bill of Materials"
                 description="Manage leather goods definitions, code master, and crafting specifications"
                 action={
-                    <Link href={route('products.create')}>
-                        <Button variant="primary">
-                            <Plus className="w-4 h-4" />
-                            New Product
-                        </Button>
-                    </Link>
+                    isAdmin ? (
+                        <Link href={route('products.create')}>
+                            <Button variant="primary">
+                                <Plus className="w-4 h-4" />
+                                New Product
+                            </Button>
+                        </Link>
+                    ) : null
                 }
             />
 
@@ -129,6 +138,7 @@ export default function Index({ products, categories = [], filters = {} }) {
                 columns={columns}
                 data={products.data}
                 pagination={products}
+                isLoading={isLoading}
                 search={search}
                 onSearchChange={handleSearch}
                 searchPlaceholder="Search by product code or name…"
@@ -138,8 +148,8 @@ export default function Index({ products, categories = [], filters = {} }) {
                 onClearFilters={handleClearFilters}
                 emptyTitle="No products defined yet"
                 emptyDescription="Create your first leather product definition with Bill of Materials."
-                emptyActionLabel="Add Product"
-                onEmptyAction={() => router.visit(route('products.create'))}
+                emptyActionLabel={isAdmin ? "Add Product" : undefined}
+                onEmptyAction={isAdmin ? () => router.visit(route('products.create')) : undefined}
                 renderRowActions={(row) => (
                     <div className="flex items-center justify-end gap-1">
                         <Link href={route('products.show', row.id)}>
@@ -147,17 +157,22 @@ export default function Index({ products, categories = [], filters = {} }) {
                                 <Eye className="w-4 h-4" strokeWidth={1.75} />
                             </button>
                         </Link>
-                        <Link href={route('products.edit', row.id)}>
-                            <button className="p-1.5 text-neutral-400 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="Edit specifications">
-                                <Edit3 className="w-4 h-4" strokeWidth={1.75} />
-                            </button>
-                        </Link>
+                        {isAdmin && (
+                            <Link href={route('products.edit', row.id)}>
+                                <button className="p-1.5 text-neutral-400 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors" title="Edit specifications">
+                                    <Edit3 className="w-4 h-4" strokeWidth={1.75} />
+                                </button>
+                            </Link>
+                        )}
                     </div>
                 )}
             />
 
-            {/* Mobile Quick Action FAB */}
-            <MobileFAB href={route('products.create')} label="Add Product" />
+            {/* Mobile Quick Action FAB - admin only */}
+            {isAdmin && <MobileFAB href={route('products.create')} label="Add Product" />}
+
+            {/* UI State #5 — Slow Network floating banner */}
+            <SlowNetworkBanner visible={slowNetwork} />
         </AppLayout>
     );
 }
