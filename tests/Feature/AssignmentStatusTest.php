@@ -450,13 +450,36 @@ class AssignmentStatusTest extends TestCase
         $this->assertStringContainsString('Italian Pull-Up Cowhide', $leatherView);
         // Must exclude non-leather hardware
         $this->assertStringNotContainsString('Solid Brass YKK Zipper #5', $leatherView);
-        // Must show product details
+
+        // Header Left matches Image 1
+        $this->assertStringContainsString('EXPORTER &amp; MANUFACTURER OF LEATHER GOODS', $leatherView);
+        $this->assertStringContainsString('31/18 Topsia Road (South), 3rd Floor', $leatherView);
+        $this->assertStringContainsString('19AEQFS1716K1ZH', $leatherView);
+
+        // Header Right matches Image 2
+        $this->assertStringContainsString('WORK ORDER NO.', $leatherView);
+        $this->assertStringContainsString('ISSUE DATE', $leatherView);
+
+        // Must NOT show removed sections
+        $this->assertStringNotContainsString('Cutting Rate', $leatherView);
+        $this->assertStringNotContainsString('Target Delivery Date', $leatherView);
+        $this->assertStringNotContainsString('Component Cut Part', $leatherView);
+        $this->assertStringNotContainsString('OFFCUT &amp; SCRAP RETURN RECONCILIATION', $leatherView);
+        $this->assertStringNotContainsString('Cutting Master / Artisan', $leatherView);
+
+        // Must show product details with Color in hero card
         $this->assertStringContainsString('Heritage Leather Duffle Bag', $leatherView);
         $this->assertStringContainsString('DUFFLE-BRN-01', $leatherView);
-        $this->assertStringContainsString('Cognac Tan', $leatherView);
+        $this->assertStringContainsString('Color: Cognac Tan', $leatherView);
+
         // Must show prominent total banner
         $this->assertStringContainsString('TOTAL RAW LEATHER ISSUED FROM WAREHOUSE:', $leatherView);
         $this->assertStringContainsString('225.00 SQ_FT', $leatherView);
+
+        // Must show exactly 2 signatures: Leather Storekeeper & Production Supervisor
+        $this->assertStringContainsString('Leather Storekeeper Signature', $leatherView);
+        $this->assertStringContainsString('Production Supervisor Signature', $leatherView);
+
         // Must show legal jurisdiction notice
         $this->assertStringContainsString('ALL DISPUTES ARE SUBJECT TO KOLKATA JURISDICTION.', $leatherView);
     }
