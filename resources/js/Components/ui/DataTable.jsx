@@ -106,7 +106,7 @@ export default function DataTable({
             ) : (
                 <>
                     {/* Desktop Table — hidden below md */}
-                    <div className="hidden md:block overflow-x-auto min-h-[220px]">
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead className={`bg-neutral-50 border-b border-neutral-200 font-semibold text-neutral-500 uppercase tracking-wider ${compact ? 'text-[11px]' : 'text-xs'}`}>
                                 <tr>
@@ -114,7 +114,7 @@ export default function DataTable({
                                         <th
                                             key={col.key || col.accessor}
                                             onClick={() => col.sortable && onSort && onSort(col.accessor)}
-                                            className={`${compact ? 'px-3 py-2' : 'px-4 py-3'} select-none whitespace-nowrap ${
+                                            className={`${compact ? 'px-3 py-1.5' : 'px-4 py-3'} select-none whitespace-nowrap ${
                                                 col.sortable ? 'cursor-pointer hover:bg-neutral-100' : ''
                                             } ${col.className || ''}`}
                                         >
@@ -136,7 +136,7 @@ export default function DataTable({
                                             </div>
                                         </th>
                                     ))}
-                                    {renderRowActions && <th className={`${compact ? 'px-3 py-2 text-[11px]' : 'px-4 py-3 text-xs'} text-right whitespace-nowrap`}>Actions</th>}
+                                    {renderRowActions && <th className={`${compact ? 'px-3 py-1.5 text-[11px]' : 'px-4 py-3 text-xs'} text-right whitespace-nowrap`}>Actions</th>}
                                 </tr>
                             </thead>
                             <tbody className={`divide-y divide-neutral-200 text-neutral-800 ${compact ? 'text-xs' : 'text-sm'}`}>
@@ -148,13 +148,13 @@ export default function DataTable({
                                         {columns.map((col) => (
                                             <td
                                                 key={col.key || col.accessor}
-                                                className={`${compact ? 'px-3 py-2' : 'px-4 py-3.5'} ${col.numeric ? 'tabular-nums' : ''} ${col.cellClassName || ''}`}
+                                                className={`${compact ? 'px-3 py-1' : 'px-4 py-3.5'} ${col.numeric ? 'tabular-nums' : ''} ${col.cellClassName || ''}`}
                                             >
                                                 {col.render ? col.render(row) : row[col.accessor]}
                                             </td>
                                         ))}
                                         {renderRowActions && (
-                                            <td className={`${compact ? 'px-3 py-2' : 'px-4 py-3.5'} text-right font-medium`}>
+                                            <td className={`${compact ? 'px-3 py-1' : 'px-4 py-3.5'} text-right font-medium`}>
                                                 {renderRowActions(row)}
                                             </td>
                                         )}

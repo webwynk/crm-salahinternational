@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
@@ -6,7 +6,7 @@ import DataTable from '@/Components/ui/DataTable';
 import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
 import StatusPill from '@/Components/ui/StatusPill';
-import { Plus, Eye, FileText, Scissors, ClipboardList, CheckCircle2, Clock, Package, ChevronDown, Printer } from 'lucide-react';
+import { Plus, Eye, FileText, Scissors, ClipboardList, CheckCircle2, Clock, Package } from 'lucide-react';
 
 /**
  * Dynamic Leather Color Palette Resolver
@@ -54,27 +54,10 @@ const getColorConfig = (name = '') => {
 };
 
 /**
- * Luxury Atelier Unified Actions Hub
- * Compact View button + Elegant PDF Slips Dropdown menu
+ * Factory Direct 1-Click Micro-Action Bar
+ * Ultra-compact 24px segmented toolbar with instant 1-click printing and zero popover scrollbar bugs
  */
 function WorkOrderActionHub({ row }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef(null);
-
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsOpen(false);
-            }
-        }
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isOpen]);
-
     return (
         <div className="flex items-center gap-1.5 justify-end shrink-0 whitespace-nowrap">
             {row.status === 'ASSIGNED' && (
@@ -90,7 +73,7 @@ function WorkOrderActionHub({ row }) {
                             router.patch(route('assignments.status', row.id), { status: val });
                         }
                     }}
-                    className="text-[11px] border border-brand-300 rounded px-1.5 py-1 bg-brand-50/50 font-bold text-brand-800 hover:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-colors"
+                    className="text-[10px] h-[24px] border border-brand-300 rounded px-1 py-0 bg-brand-50/60 font-bold text-brand-800 hover:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-colors"
                 >
                     <option value="ASSIGNED">ASSIGNED</option>
                     <option value="COMPLETED">COMPLETED</option>
@@ -98,90 +81,52 @@ function WorkOrderActionHub({ row }) {
                 </select>
             )}
 
-            {/* View Details Link */}
-            <Link
-                href={route('assignments.show', row.id)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-neutral-700 bg-white hover:text-brand-800 hover:bg-neutral-50 border border-neutral-300 rounded shadow-2xs transition-colors"
-                title="View Work Order details"
-            >
-                <Eye className="w-3.5 h-3.5 text-neutral-500" />
-                <span>View</span>
-            </Link>
-
-            {/* Luxury Atelier Unified PDF Slips Dropdown */}
-            <div className="relative inline-block text-left" ref={dropdownRef}>
-                <button
-                    type="button"
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-brand-900 bg-brand-50/90 hover:bg-brand-100 border border-brand-300 rounded shadow-2xs transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                    title="Download Work Order PDFs"
+            {/* Contiguous Segmented Micro-Toolbar (24px height) */}
+            <div className="inline-flex items-center rounded border border-neutral-300 bg-white shadow-2xs divide-x divide-neutral-200 overflow-hidden h-[24px]">
+                {/* 1. View Full Details */}
+                <Link
+                    href={route('assignments.show', row.id)}
+                    className="px-1.5 h-full flex items-center justify-center text-neutral-500 hover:text-brand-800 hover:bg-neutral-50 transition-colors"
+                    title="View Work Order details"
                 >
-                    <Printer className="w-3.5 h-3.5 text-brand-700" />
-                    <span>PDFs</span>
-                    <ChevronDown className={`w-3 h-3 text-brand-600 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
+                    <Eye className="w-3.5 h-3.5" />
+                </Link>
 
-                {isOpen && (
-                    <div className="absolute right-0 mt-1.5 w-64 rounded-lg bg-white border border-neutral-200/90 shadow-xl z-50 py-1.5 divide-y divide-neutral-100 text-left animate-in fade-in slide-in-from-top-1 duration-150">
-                        <div className="px-3 py-1.5 bg-neutral-50/70 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Printable PDF Slips</span>
-                            <span className="text-[10px] font-mono text-brand-700 font-semibold">#{row.assignment_no}</span>
-                        </div>
+                {/* 2. Exporter Copy (1-Click) */}
+                <a
+                    href={route('assignments.pdf', { assignment: row.id, type: 'exporter' })}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2 h-full flex items-center gap-1 text-[10.5px] font-semibold text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                    title="Download Exporter Copy PDF (Commercial & BOM costing)"
+                >
+                    <FileText className="w-3 h-3 text-neutral-500" />
+                    <span>Exp</span>
+                </a>
 
-                        <div className="py-1">
-                            {/* 1. Exporter Copy */}
-                            <a
-                                href={route('assignments.pdf', { assignment: row.id, type: 'exporter' })}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => setIsOpen(false)}
-                                className="flex items-start gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-brand-50/60 hover:text-brand-900 transition-colors group"
-                            >
-                                <div className="w-7 h-7 rounded bg-neutral-100 group-hover:bg-brand-100 flex items-center justify-center shrink-0 text-neutral-600 group-hover:text-brand-800 transition-colors mt-0.5">
-                                    <FileText className="w-3.5 h-3.5" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="font-semibold text-neutral-900 group-hover:text-brand-900 leading-tight">Exporter Copy</div>
-                                    <div className="text-[10.5px] text-neutral-400 font-normal truncate mt-0.5">Commercial invoice & BOM breakdown</div>
-                                </div>
-                            </a>
+                {/* 3. Fabricator Copy (1-Click) */}
+                <a
+                    href={route('assignments.pdf', { assignment: row.id, type: 'fabricator' })}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2 h-full flex items-center gap-1 text-[10.5px] font-semibold text-amber-800 hover:bg-amber-50 hover:text-amber-950 transition-colors"
+                    title="Download Fabricator Copy PDF (Artisan workshop job card)"
+                >
+                    <FileText className="w-3 h-3 text-amber-600" />
+                    <span>Fab</span>
+                </a>
 
-                            {/* 2. Fabricator Copy */}
-                            <a
-                                href={route('assignments.pdf', { assignment: row.id, type: 'fabricator' })}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => setIsOpen(false)}
-                                className="flex items-start gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-amber-50/60 hover:text-amber-900 transition-colors group"
-                            >
-                                <div className="w-7 h-7 rounded bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center shrink-0 text-amber-700 group-hover:text-amber-900 transition-colors mt-0.5">
-                                    <FileText className="w-3.5 h-3.5" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="font-semibold text-neutral-900 group-hover:text-amber-900 leading-tight">Fabricator Copy</div>
-                                    <div className="text-[10.5px] text-neutral-400 font-normal truncate mt-0.5">Artisan job card (costs masked)</div>
-                                </div>
-                            </a>
-
-                            {/* 3. Leather Cutting Slip */}
-                            <a
-                                href={route('assignments.leather-pdf', row.id)}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => setIsOpen(false)}
-                                className="flex items-start gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-brand-50/60 hover:text-brand-900 transition-colors group"
-                            >
-                                <div className="w-7 h-7 rounded bg-brand-50 group-hover:bg-brand-100 flex items-center justify-center shrink-0 text-brand-700 group-hover:text-brand-900 transition-colors mt-0.5">
-                                    <Scissors className="w-3.5 h-3.5" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="font-semibold text-neutral-900 group-hover:text-brand-900 leading-tight">Leather Cutting Slip</div>
-                                    <div className="text-[10.5px] text-neutral-400 font-normal truncate mt-0.5">Workshop sq ft & hide voucher</div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                )}
+                {/* 4. Leather Cutting Slip (1-Click) */}
+                <a
+                    href={route('assignments.leather-pdf', row.id)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2 h-full flex items-center gap-1 text-[10.5px] font-semibold text-brand-900 hover:bg-brand-50 hover:text-brand-950 transition-colors"
+                    title="Download Leather Cutting Slip (Workshop hide voucher)"
+                >
+                    <Scissors className="w-3 h-3 text-brand-700" />
+                    <span>Lthr</span>
+                </a>
             </div>
         </div>
     );
@@ -210,7 +155,7 @@ export default function Index({ assignments, filters = {}, stats = null }) {
             render: (row) => (
                 <Link
                     href={route('assignments.show', row.id)}
-                    className="inline-flex items-center gap-1 font-mono font-bold text-xs text-brand-800 bg-brand-50/80 hover:bg-brand-100 hover:text-brand-950 border border-brand-200 hover:border-brand-400 px-2 py-0.5 rounded shadow-2xs transition-all"
+                    className="inline-flex items-center gap-1 font-mono font-bold text-xs text-brand-800 bg-brand-50/80 hover:bg-brand-100 hover:text-brand-950 border border-brand-200/80 hover:border-brand-400 px-2 py-0.5 rounded shadow-2xs transition-all"
                     title="View full work order"
                 >
                     #{row.assignment_no}
@@ -224,40 +169,35 @@ export default function Index({ assignments, filters = {}, stats = null }) {
             render: (row) => {
                 const colorConfig = row.color?.color_name ? getColorConfig(row.color.color_name) : null;
                 return (
-                    <div className="py-0.5 space-y-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-neutral-900 text-xs tracking-tight">
-                                {row.product?.name ?? '—'}
+                    <div className="flex items-center gap-1.5 whitespace-nowrap py-0.5">
+                        <span className="font-semibold text-neutral-900 text-xs tracking-tight">
+                            {row.product?.name ?? '—'}
+                        </span>
+                        {row.product?.code && (
+                            <span className="font-mono text-[10px] text-neutral-500 bg-neutral-100 px-1 py-0.2 rounded border border-neutral-200">
+                                {row.product.code}
                             </span>
-                            {row.product?.code && (
-                                <span className="font-mono text-[10px] text-neutral-500 bg-neutral-100 px-1.5 py-0.2 rounded border border-neutral-200">
-                                    {row.product.code}
-                                </span>
-                            )}
-                        </div>
+                        )}
 
-                        {/* Highlighted Product Variation Badge */}
+                        {/* Inline Highlighted Product Variation Badge */}
                         {row.color?.color_name ? (
-                            <div className="flex items-center">
+                            <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[10.5px] font-bold border shadow-2xs leading-tight transition-all"
+                                style={{
+                                    backgroundColor: colorConfig.bg,
+                                    color: colorConfig.text,
+                                    borderColor: colorConfig.border,
+                                }}
+                            >
                                 <span
-                                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold border shadow-2xs leading-tight transition-all"
-                                    style={{
-                                        backgroundColor: colorConfig.bg,
-                                        color: colorConfig.text,
-                                        borderColor: colorConfig.border,
-                                    }}
-                                >
-                                    <span
-                                        className="w-2 h-2 rounded-full ring-1 ring-black/15 shrink-0"
-                                        style={{ backgroundColor: colorConfig.dot }}
-                                    />
-                                    <span>{row.color.color_name}</span>
-                                </span>
-                            </div>
+                                    className="w-1.5 h-1.5 rounded-full ring-1 ring-black/15 shrink-0"
+                                    style={{ backgroundColor: colorConfig.dot }}
+                                />
+                                <span>{row.color.color_name}</span>
+                            </span>
                         ) : (
-                            <span className="inline-flex items-center gap-1 text-[10.5px] text-neutral-400 font-medium italic">
-                                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
-                                Standard Color
+                            <span className="text-[10px] text-neutral-400 font-medium italic">
+                                Standard
                             </span>
                         )}
                     </div>
@@ -277,8 +217,8 @@ export default function Index({ assignments, filters = {}, stats = null }) {
                     : row.labour.name.substring(0, 2).toUpperCase();
 
                 return (
-                    <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-900 border border-brand-300/80 text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs select-none">
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
+                        <div className="w-5 h-5 rounded-full bg-brand-100 text-brand-900 border border-brand-300/80 text-[9.5px] font-bold flex items-center justify-center shrink-0 shadow-2xs select-none">
                             {initials}
                         </div>
                         <span className="text-xs text-neutral-800 font-medium whitespace-nowrap">
@@ -295,9 +235,9 @@ export default function Index({ assignments, filters = {}, stats = null }) {
             numeric: true,
             className: 'whitespace-nowrap',
             render: (row) => (
-                <span className="inline-flex items-baseline gap-1 px-2 py-0.5 rounded bg-neutral-100/90 border border-neutral-200/80 font-bold text-neutral-900 text-xs tabular-nums">
+                <span className="inline-flex items-baseline gap-1 px-1.5 py-0.2 rounded bg-neutral-100/90 border border-neutral-200/80 font-bold text-neutral-900 text-xs tabular-nums">
                     {row.quantity}
-                    <span className="text-[10px] font-normal text-neutral-500 uppercase">Pcs</span>
+                    <span className="text-[9.5px] font-normal text-neutral-500 uppercase">Pcs</span>
                 </span>
             ),
         },
@@ -307,7 +247,7 @@ export default function Index({ assignments, filters = {}, stats = null }) {
             sortable: true,
             className: 'whitespace-nowrap',
             render: (row) => (
-                <StatusPill status={row.status} />
+                <StatusPill status={row.status} className="text-[10.5px] px-2 py-0.2" />
             ),
         },
         {
@@ -411,3 +351,4 @@ export default function Index({ assignments, filters = {}, stats = null }) {
         </AppLayout>
     );
 }
+
