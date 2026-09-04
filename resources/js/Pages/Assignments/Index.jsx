@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
 import DataTable from '@/Components/ui/DataTable';
 import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
-import Badge from '@/Components/ui/Badge';
-import { Plus, Eye, FileText, Scissors, ClipboardList, CheckCircle2, Clock, Package } from 'lucide-react';
+import StatusPill from '@/Components/ui/StatusPill';
+import { Plus, Eye, FileText, Scissors, ClipboardList, CheckCircle2, Clock, Package, ChevronDown, Printer } from 'lucide-react';
 
 /**
  * Dynamic Leather Color Palette Resolver
@@ -53,6 +53,140 @@ const getColorConfig = (name = '') => {
     return { dot: '#b45309', bg: '#fffbeb', text: '#78350f', border: '#fde68a' };
 };
 
+/**
+ * Luxury Atelier Unified Actions Hub
+ * Compact View button + Elegant PDF Slips Dropdown menu
+ */
+function WorkOrderActionHub({ row }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        }
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen]);
+
+    return (
+        <div className="flex items-center gap-1.5 justify-end shrink-0 whitespace-nowrap">
+            {row.status === 'ASSIGNED' && (
+                <select
+                    value={row.status}
+                    onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === 'CANCELLED') {
+                            if (confirm(`Cancel Work Order #${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
+                                router.patch(route('assignments.status', row.id), { status: val });
+                            }
+                        } else {
+                            router.patch(route('assignments.status', row.id), { status: val });
+                        }
+                    }}
+                    className="text-[11px] border border-brand-300 rounded px-1.5 py-1 bg-brand-50/50 font-bold text-brand-800 hover:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-colors"
+                >
+                    <option value="ASSIGNED">ASSIGNED</option>
+                    <option value="COMPLETED">COMPLETED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                </select>
+            )}
+
+            {/* View Details Link */}
+            <Link
+                href={route('assignments.show', row.id)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-neutral-700 bg-white hover:text-brand-800 hover:bg-neutral-50 border border-neutral-300 rounded shadow-2xs transition-colors"
+                title="View Work Order details"
+            >
+                <Eye className="w-3.5 h-3.5 text-neutral-500" />
+                <span>View</span>
+            </Link>
+
+            {/* Luxury Atelier Unified PDF Slips Dropdown */}
+            <div className="relative inline-block text-left" ref={dropdownRef}>
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-brand-900 bg-brand-50/90 hover:bg-brand-100 border border-brand-300 rounded shadow-2xs transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                    title="Download Work Order PDFs"
+                >
+                    <Printer className="w-3.5 h-3.5 text-brand-700" />
+                    <span>PDFs</span>
+                    <ChevronDown className={`w-3 h-3 text-brand-600 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isOpen && (
+                    <div className="absolute right-0 mt-1.5 w-64 rounded-lg bg-white border border-neutral-200/90 shadow-xl z-50 py-1.5 divide-y divide-neutral-100 text-left animate-in fade-in slide-in-from-top-1 duration-150">
+                        <div className="px-3 py-1.5 bg-neutral-50/70 flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Printable PDF Slips</span>
+                            <span className="text-[10px] font-mono text-brand-700 font-semibold">#{row.assignment_no}</span>
+                        </div>
+
+                        <div className="py-1">
+                            {/* 1. Exporter Copy */}
+                            <a
+                                href={route('assignments.pdf', { assignment: row.id, type: 'exporter' })}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-start gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-brand-50/60 hover:text-brand-900 transition-colors group"
+                            >
+                                <div className="w-7 h-7 rounded bg-neutral-100 group-hover:bg-brand-100 flex items-center justify-center shrink-0 text-neutral-600 group-hover:text-brand-800 transition-colors mt-0.5">
+                                    <FileText className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="font-semibold text-neutral-900 group-hover:text-brand-900 leading-tight">Exporter Copy</div>
+                                    <div className="text-[10.5px] text-neutral-400 font-normal truncate mt-0.5">Commercial invoice & BOM breakdown</div>
+                                </div>
+                            </a>
+
+                            {/* 2. Fabricator Copy */}
+                            <a
+                                href={route('assignments.pdf', { assignment: row.id, type: 'fabricator' })}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-start gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-amber-50/60 hover:text-amber-900 transition-colors group"
+                            >
+                                <div className="w-7 h-7 rounded bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center shrink-0 text-amber-700 group-hover:text-amber-900 transition-colors mt-0.5">
+                                    <FileText className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="font-semibold text-neutral-900 group-hover:text-amber-900 leading-tight">Fabricator Copy</div>
+                                    <div className="text-[10.5px] text-neutral-400 font-normal truncate mt-0.5">Artisan job card (costs masked)</div>
+                                </div>
+                            </a>
+
+                            {/* 3. Leather Cutting Slip */}
+                            <a
+                                href={route('assignments.leather-pdf', row.id)}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-start gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-brand-50/60 hover:text-brand-900 transition-colors group"
+                            >
+                                <div className="w-7 h-7 rounded bg-brand-50 group-hover:bg-brand-100 flex items-center justify-center shrink-0 text-brand-700 group-hover:text-brand-900 transition-colors mt-0.5">
+                                    <Scissors className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="font-semibold text-neutral-900 group-hover:text-brand-900 leading-tight">Leather Cutting Slip</div>
+                                    <div className="text-[10.5px] text-neutral-400 font-normal truncate mt-0.5">Workshop sq ft & hide voucher</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function Index({ assignments, filters = {}, stats = null }) {
     const [search, setSearch] = useState(filters.search || '');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || '');
@@ -72,11 +206,12 @@ export default function Index({ assignments, filters = {}, stats = null }) {
             header: 'Work Order #',
             accessor: 'assignment_no',
             sortable: true,
-            className: 'w-32',
+            className: 'whitespace-nowrap',
             render: (row) => (
                 <Link
                     href={route('assignments.show', row.id)}
-                    className="font-mono font-bold text-brand-700 hover:text-brand-900 hover:underline text-xs tracking-tight block py-0.5"
+                    className="inline-flex items-center gap-1 font-mono font-bold text-xs text-brand-800 bg-brand-50/80 hover:bg-brand-100 hover:text-brand-950 border border-brand-200 hover:border-brand-400 px-2 py-0.5 rounded shadow-2xs transition-all"
+                    title="View full work order"
                 >
                     #{row.assignment_no}
                 </Link>
@@ -85,12 +220,13 @@ export default function Index({ assignments, filters = {}, stats = null }) {
         {
             header: 'Product Target',
             accessor: 'product',
+            className: 'min-w-[180px]',
             render: (row) => {
                 const colorConfig = row.color?.color_name ? getColorConfig(row.color.color_name) : null;
                 return (
                     <div className="py-0.5 space-y-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-neutral-900 text-xs">
+                            <span className="font-semibold text-neutral-900 text-xs tracking-tight">
                                 {row.product?.name ?? '—'}
                             </span>
                             {row.product?.code && (
@@ -131,51 +267,56 @@ export default function Index({ assignments, filters = {}, stats = null }) {
         {
             header: 'Artisan Worker',
             accessor: 'labour',
-            className: 'w-36',
-            render: (row) => (
-                <span className="text-xs text-neutral-800 font-medium whitespace-nowrap block">
-                    {row.labour ? row.labour.name : '—'}
-                </span>
-            ),
+            className: 'whitespace-nowrap',
+            render: (row) => {
+                if (!row.labour) return <span className="text-neutral-400 text-xs">—</span>;
+
+                const nameParts = row.labour.name.trim().split(/\s+/);
+                const initials = nameParts.length >= 2
+                    ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+                    : row.labour.name.substring(0, 2).toUpperCase();
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-900 border border-brand-300/80 text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs select-none">
+                            {initials}
+                        </div>
+                        <span className="text-xs text-neutral-800 font-medium whitespace-nowrap">
+                            {row.labour.name}
+                        </span>
+                    </div>
+                );
+            },
         },
         {
             header: 'Target Qty',
             accessor: 'quantity',
             sortable: true,
             numeric: true,
-            className: 'w-24',
+            className: 'whitespace-nowrap',
             render: (row) => (
-                <strong className="text-brand-800 text-xs font-sans tabular-nums whitespace-nowrap block">
-                    {row.quantity} Pcs
-                </strong>
+                <span className="inline-flex items-baseline gap-1 px-2 py-0.5 rounded bg-neutral-100/90 border border-neutral-200/80 font-bold text-neutral-900 text-xs tabular-nums">
+                    {row.quantity}
+                    <span className="text-[10px] font-normal text-neutral-500 uppercase">Pcs</span>
+                </span>
             ),
         },
         {
             header: 'Status',
             accessor: 'status',
             sortable: true,
-            className: 'w-28',
-            render: (row) => {
-                const variants = {
-                    ASSIGNED: 'brand',
-                    IN_PROGRESS: 'brand',
-                    COMPLETED: 'success',
-                    CANCELLED: 'danger',
-                };
-                return (
-                    <Badge variant={variants[row.status] || 'neutral'} size="xs" className="text-[10.5px] px-2 py-0.5">
-                        {row.status}
-                    </Badge>
-                );
-            },
+            className: 'whitespace-nowrap',
+            render: (row) => (
+                <StatusPill status={row.status} />
+            ),
         },
         {
             header: 'Assigned Date',
             accessor: 'created_at',
             sortable: true,
-            className: 'w-28',
+            className: 'whitespace-nowrap',
             render: (row) => (
-                <span className="text-[11px] text-neutral-500 font-sans whitespace-nowrap block">
+                <span className="text-[11.5px] text-neutral-500 font-sans tabular-nums whitespace-nowrap block">
                     {row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                 </span>
             ),
@@ -265,75 +406,7 @@ export default function Index({ assignments, filters = {}, stats = null }) {
                 emptyActionLabel="New Work Order"
                 compact={true}
                 onEmptyAction={() => router.get(route('assignments.create'))}
-                renderRowActions={(row) => (
-                    <div className="flex items-center gap-1.5 justify-end shrink-0">
-                        {row.status === 'ASSIGNED' ? (
-                            <select
-                                value={row.status}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === 'CANCELLED') {
-                                        if (confirm(`Cancel Work Order #${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
-                                            router.patch(route('assignments.status', row.id), { status: val });
-                                        }
-                                    } else {
-                                        router.patch(route('assignments.status', row.id), { status: val });
-                                    }
-                                }}
-                                className="text-[11px] border border-brand-300 rounded px-1.5 py-0.5 bg-brand-50/50 font-bold text-brand-800 hover:border-brand-500 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-colors"
-                            >
-                                <option value="ASSIGNED">ASSIGNED</option>
-                                <option value="COMPLETED">COMPLETED</option>
-                                <option value="CANCELLED">CANCELLED</option>
-                            </select>
-                        ) : null}
-
-                        {/* Compact View Details Button */}
-                        <Link
-                            href={route('assignments.show', row.id)}
-                            className="p-1 text-neutral-500 hover:text-brand-700 hover:bg-neutral-100 rounded transition-colors"
-                            title="View Work Order details"
-                        >
-                            <Eye className="w-3.5 h-3.5" />
-                        </Link>
-
-                        {/* Compact Exporter Copy Button */}
-                        <a
-                            href={route('assignments.pdf', { assignment: row.id, type: 'exporter' })}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center px-2 py-1 text-[11px] font-semibold text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 hover:border-neutral-400 transition-colors shadow-2xs shrink-0"
-                            title="Download Exporter Copy PDF"
-                        >
-                            <FileText className="w-3 h-3 mr-1 text-neutral-500" />
-                            Exporter
-                        </a>
-
-                        {/* Compact Fabricator Copy Button */}
-                        <a
-                            href={route('assignments.pdf', { assignment: row.id, type: 'fabricator' })}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center px-2 py-1 text-[11px] font-semibold text-amber-900 bg-amber-50/60 border border-amber-300 rounded hover:bg-amber-100/80 transition-colors shadow-2xs shrink-0"
-                            title="Download Fabricator Copy PDF"
-                        >
-                            <FileText className="w-3 h-3 mr-1 text-amber-700" />
-                            Fabricator
-                        </a>
-
-                        {/* Compact Leather Slip Button */}
-                        <a
-                            href={route('assignments.leather-pdf', row.id)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center px-2 py-1 text-[11px] font-semibold text-brand-900 bg-brand-50 border border-brand-300 rounded hover:bg-brand-100 transition-colors shadow-2xs shrink-0"
-                            title="Download Leather Cutting Voucher PDF"
-                        >
-                            <Scissors className="w-3 h-3 mr-1 text-brand-700" />
-                            Leather
-                        </a>
-                    </div>
-                )}
+                renderRowActions={(row) => <WorkOrderActionHub row={row} />}
             />
         </AppLayout>
     );
