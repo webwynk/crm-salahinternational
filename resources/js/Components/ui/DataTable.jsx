@@ -16,6 +16,7 @@ export default function DataTable({
     onSearchChange = null,
     searchPlaceholder = 'Search...',
     filters = null,
+    isFiltered = false,
     onClearFilters = null,
     activeSort = { column: null, direction: 'asc' },
     onSort = null,
@@ -44,7 +45,7 @@ export default function DataTable({
     }
 
     const hasData = data && data.length > 0;
-    const isFiltered = Boolean(search || (filters && Object.values(filters).some(Boolean)));
+    const _isFiltered = isFiltered || Boolean(search || (filters && Object.values(filters).some(Boolean)));
 
     // Build pagination prev/next links from Laravel paginator links array
     const prevLink = pagination?.links?.find(l => l.label.includes('Previous') || l.label.includes('&laquo;'));
@@ -53,24 +54,24 @@ export default function DataTable({
         !l.label.includes('&laquo;') && !l.label.includes('&raquo;'));
 
     return (
-        <div className="bg-neutral-0 border border-neutral-200 rounded-md overflow-hidden shadow-xs">
-            {/* Filter & Search Header */}
+        <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-xs">
+            {/* Filter & Search Header — only if using built-in search */}
             {(onSearchChange || filters) && (
-                <div className="p-4 border-b border-neutral-200 bg-neutral-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     {onSearchChange && (
                         <div className="relative flex-1 max-w-md">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => onSearchChange(e.target.value)}
                                 placeholder={searchPlaceholder}
-                                className="w-full text-sm pl-9 pr-3.5 py-2 border border-neutral-300 rounded-md bg-neutral-0 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                className="w-full text-[12.5px] pl-8 pr-3 py-2 border border-neutral-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 placeholder:text-neutral-300 shadow-2xs"
                             />
                         </div>
                     )}
 
-                    {isFiltered && onClearFilters && (
+                    {_isFiltered && onClearFilters && (
                         <Button variant="ghost" size="sm" onClick={onClearFilters}>
                             Clear Filters
                         </Button>
@@ -80,14 +81,14 @@ export default function DataTable({
 
             {/* Table Content */}
             {!hasData ? (
-                isFiltered ? (
-                    <div className="p-12 text-center">
-                        <Filter className="w-8 h-8 text-neutral-400 mx-auto mb-3" />
-                        <h4 className="text-md font-semibold text-neutral-900 mb-1">
-                            No results for "{search}"
+                _isFiltered ? (
+                    <div className="py-16 text-center">
+                        <Filter className="w-7 h-7 text-neutral-300 mx-auto mb-3" />
+                        <h4 className="text-sm font-semibold text-neutral-700 mb-1">
+                            No results{search ? ` for "${search}"` : ''}
                         </h4>
-                        <p className="text-sm text-neutral-500 mb-4">
-                            Try adjusting your search terms or clearing active filters.
+                        <p className="text-[12.5px] text-neutral-400 mb-4">
+                            Try adjusting your search or clearing active filters.
                         </p>
                         {onClearFilters && (
                             <Button variant="outline" size="sm" onClick={onClearFilters}>
@@ -108,53 +109,65 @@ export default function DataTable({
                     {/* Desktop Table — hidden below md */}
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                            <thead className={`bg-neutral-50 border-b border-neutral-200 font-semibold text-neutral-500 uppercase tracking-wider ${compact ? 'text-[11px]' : 'text-xs'}`}>
+                            {/* Sticky Header */}
+                            <thead className={`bg-neutral-50/90 backdrop-blur-sm border-b border-neutral-200 sticky top-0 z-10 ${compact ? 'text-[10.5px]' : 'text-xs'}`}>
                                 <tr>
-                                    {columns.map((col) => (
+                                    {columns.map((col, colIdx) => (
                                         <th
                                             key={col.key || col.accessor}
                                             onClick={() => col.sortable && onSort && onSort(col.accessor)}
-                                            className={`${compact ? 'px-3 py-1.5' : 'px-4 py-3'} select-none whitespace-nowrap ${
-                                                col.sortable ? 'cursor-pointer hover:bg-neutral-100' : ''
-                                            } ${col.className || ''}`}
+                                            className={`${compact ? 'px-3 py-2' : 'px-4 py-3'} select-none whitespace-nowrap font-semibold text-neutral-400 uppercase tracking-widest ${
+                                                col.sortable ? 'cursor-pointer hover:text-neutral-600' : ''
+                                            } ${colIdx === 0 ? 'pl-4' : ''} ${col.className || ''}`}
                                         >
                                             <div className="flex items-center gap-1.5 whitespace-nowrap">
                                                 <span>{col.header}</span>
                                                 {col.sortable && (
-                                                    <span className="text-neutral-400">
+                                                    <span className="text-neutral-300">
                                                         {activeSort.column === col.accessor ? (
                                                             activeSort.direction === 'asc' ? (
-                                                                <ChevronUp className="w-3.5 h-3.5 text-brand-600" />
+                                                                <ChevronUp className="w-3 h-3 text-brand-500" />
                                                             ) : (
-                                                                <ChevronDown className="w-3.5 h-3.5 text-brand-600" />
+                                                                <ChevronDown className="w-3 h-3 text-brand-500" />
                                                             )
                                                         ) : (
-                                                            <ChevronsUpDown className="w-3.5 h-3.5 opacity-50" />
+                                                            <ChevronsUpDown className="w-3 h-3 opacity-40" />
                                                         )}
                                                     </span>
                                                 )}
                                             </div>
                                         </th>
                                     ))}
-                                    {renderRowActions && <th className={`${compact ? 'px-3 py-1.5 text-[11px]' : 'px-4 py-3 text-xs'} text-right whitespace-nowrap`}>Actions</th>}
+                                    {renderRowActions && (
+                                        <th className={`${compact ? 'px-3 py-2 text-[10.5px]' : 'px-4 py-3 text-xs'} text-right whitespace-nowrap font-semibold text-neutral-400 uppercase tracking-widest`}>
+                                            Actions
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
-                            <tbody className={`divide-y divide-neutral-200 text-neutral-800 ${compact ? 'text-xs' : 'text-sm'}`}>
+                            <tbody className={`divide-y divide-neutral-100 text-neutral-800 ${compact ? 'text-xs' : 'text-sm'}`}>
                                 {data.map((row, index) => (
                                     <tr
                                         key={row.id || index}
-                                        className="hover:bg-neutral-50/80 transition-colors"
+                                        className={`group transition-colors ${
+                                            index % 2 === 0 ? 'bg-white' : 'bg-neutral-50/40'
+                                        } hover:bg-amber-50/25`}
                                     >
-                                        {columns.map((col) => (
+                                        {columns.map((col, colIdx) => (
                                             <td
                                                 key={col.key || col.accessor}
-                                                className={`${compact ? 'px-3 py-1' : 'px-4 py-3.5'} ${col.numeric ? 'tabular-nums' : ''} ${col.cellClassName || ''}`}
+                                                className={`${
+                                                    compact ? 'px-3 py-1.5' : 'px-4 py-3.5'
+                                                } ${colIdx === 0
+                                                    ? 'border-l-2 border-transparent group-hover:border-brand-400 transition-colors pl-4'
+                                                    : ''
+                                                } ${col.numeric ? 'tabular-nums' : ''} ${col.cellClassName || ''}`}
                                             >
                                                 {col.render ? col.render(row) : row[col.accessor]}
                                             </td>
                                         ))}
                                         {renderRowActions && (
-                                            <td className={`${compact ? 'px-3 py-1' : 'px-4 py-3.5'} text-right font-medium`}>
+                                            <td className={`${compact ? 'px-3 py-1.5' : 'px-4 py-3.5'} text-right font-medium`}>
                                                 {renderRowActions(row)}
                                             </td>
                                         )}
@@ -194,29 +207,28 @@ export default function DataTable({
 
             {/* Pagination Controls */}
             {pagination && pagination.total > 0 && (
-                <div className="px-4 py-3 border-t border-neutral-200 bg-neutral-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="px-4 py-3 border-t border-neutral-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-3">
                     {/* Showing X–Y of Z */}
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-[11.5px] text-neutral-400">
                         Showing{' '}
-                        <span className="font-semibold text-neutral-800">{pagination.from || 1}</span>
+                        <span className="font-semibold text-neutral-600">{pagination.from || 1}</span>
                         {' '}–{' '}
-                        <span className="font-semibold text-neutral-800">{pagination.to || data.length}</span>
+                        <span className="font-semibold text-neutral-600">{pagination.to || data.length}</span>
                         {' '}of{' '}
-                        <span className="font-semibold text-neutral-800">{pagination.total}</span>
-                        {' '}entries
+                        <span className="font-semibold text-neutral-600">{pagination.total}</span>
+                        {' '}work orders
                     </p>
 
-                    {/* Prev / Page numbers / Next */}
+                    {/* Ghost-style Prev / Page numbers / Next */}
                     {pagination.last_page > 1 && (
-                        <div className="flex items-center gap-1">
-                            {/* Prev */}
+                        <div className="flex items-center gap-0.5">
                             {prevLink && (
                                 <a
                                     href={prevLink.url || '#'}
-                                    className={`inline-flex items-center justify-center w-8 h-8 rounded border text-xs transition-colors ${
+                                    className={`inline-flex items-center justify-center w-7 h-7 rounded-md text-xs transition-colors ${
                                         prevLink.url
-                                            ? 'bg-neutral-0 border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-                                            : 'bg-neutral-100 border-neutral-200 text-neutral-300 pointer-events-none'
+                                            ? 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
+                                            : 'text-neutral-200 pointer-events-none'
                                     }`}
                                     aria-label="Previous page"
                                 >
@@ -224,21 +236,20 @@ export default function DataTable({
                                 </a>
                             )}
 
-                            {/* Page numbers — show up to 7, ellipsis for large sets */}
                             {pageLinks && pageLinks.map((link, idx) => {
                                 const isEllipsis = link.label === '...';
                                 return isEllipsis ? (
-                                    <span key={idx} className="px-1 text-xs text-neutral-400">…</span>
+                                    <span key={idx} className="px-1 text-[11px] text-neutral-300">…</span>
                                 ) : (
                                     <a
                                         key={idx}
                                         href={link.url || '#'}
-                                        className={`inline-flex items-center justify-center w-8 h-8 rounded border text-xs font-medium transition-colors ${
+                                        className={`inline-flex items-center justify-center w-7 h-7 rounded-md text-[11.5px] font-medium transition-colors ${
                                             link.active
-                                                ? 'bg-brand-500 text-white border-brand-500'
+                                                ? 'bg-brand-600 text-white shadow-xs'
                                                 : link.url
-                                                ? 'bg-neutral-0 border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-                                                : 'bg-neutral-100 border-neutral-200 text-neutral-300 pointer-events-none'
+                                                ? 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
+                                                : 'text-neutral-200 pointer-events-none'
                                         }`}
                                     >
                                         {link.label}
@@ -246,14 +257,13 @@ export default function DataTable({
                                 );
                             })}
 
-                            {/* Next */}
                             {nextLink && (
                                 <a
                                     href={nextLink.url || '#'}
-                                    className={`inline-flex items-center justify-center w-8 h-8 rounded border text-xs transition-colors ${
+                                    className={`inline-flex items-center justify-center w-7 h-7 rounded-md text-xs transition-colors ${
                                         nextLink.url
-                                            ? 'bg-neutral-0 border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-                                            : 'bg-neutral-100 border-neutral-200 text-neutral-300 pointer-events-none'
+                                            ? 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
+                                            : 'text-neutral-200 pointer-events-none'
                                     }`}
                                     aria-label="Next page"
                                 >
