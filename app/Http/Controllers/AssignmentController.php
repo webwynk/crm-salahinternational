@@ -86,8 +86,12 @@ class AssignmentController extends Controller
         return response()->json($result);
     }
 
-    public function store(StoreAssignmentRequest $request, AssignmentService $assignmentService, WorkOrderPdfService $pdfService): RedirectResponse
-    {
+    public function store(
+        StoreAssignmentRequest $request,
+        AssignmentService $assignmentService,
+        WorkOrderPdfService $pdfService,
+        LeatherIssuePdfService $leatherPdfService
+    ): RedirectResponse {
         $validated = $request->validated();
 
         try {
@@ -100,11 +104,13 @@ class AssignmentController extends Controller
                 $validated['product_color_id'] ?? null
             );
 
-            // Auto-generate both Work Order PDF copies: Exporter and Fabricator
+            // Auto-generate all 3 PDF copies: Exporter Copy, Fabricator Copy, and Leather Slip
             try {
                 $pdfService->generatePdf($assignment, $request->user()->id, 'EXPORTER');
                 $pdfService->generatePdf($assignment, $request->user()->id, 'FABRICATOR');
+                $leatherPdfService->generatePdf($assignment, $request->user()->id);
             } catch (\Exception $pdfEx) {
+                Log::warning("Initial PDF generation error for Assignment #{$assignment->id}: " . $pdfEx->getMessage());
                 return redirect()->route('assignments.index')->with('warning', "Assignment #{$assignment->assignment_no} created and stock deducted, but PDF generation failed. You can retry generating PDF from the assignments list.");
             }
 
@@ -169,10 +175,36 @@ class AssignmentController extends Controller
         }
     }
 
-    public function downloadLeatherPdf(Assignment $assignment, LeatherIssuePdfService $leatherPdfService): HttpResponse
+    public function downloadLeatherPdf(Assignment $assignment, LeatherIssuePdfService $leatherPdfService): BinaryFileResponse|HttpResponse
     {
-        $pdf = $leatherPdfService->generatePdf($assignment, auth()->id());
-        return $pdf->download("Leather_Issue_Slip_{$assignment->assignment_no}.pdf");
+        try {
+            $relativePath = $leatherPdfService->getStorageRelativePath($assignment);
+            $viewPath = resource_path('views/pdf/leather_issue_slip.blade.php');
+            $viewMtime = file_exists($viewPath) ? filemtime($viewPath) : 0;
+            $pdfMtime = Storage::disk('public')->exists($relativePath)
+                ? Storage::disk('public')->lastModified($relativePath)
+                : 0;
+
+            // Regenerate if missing on disk or if template was modified
+            if (!Storage::disk('public')->exists($relativePath) || $pdfMtime < $viewMtime) {
+                $leatherPdfService->generatePdf($assignment, auth()->id());
+            }
+
+            if (Storage::disk('public')->exists($relativePath)) {
+                $fullPath = Storage::disk('public')->path($relativePath);
+                return response()->download($fullPath, "Leather_Issue_Slip_{$assignment->assignment_no}.pdf");
+            }
+
+            $domPdf = $leatherPdfService->renderDomPdf($assignment);
+            return $domPdf->download("Leather_Issue_Slip_{$assignment->assignment_no}.pdf");
+        } catch (\Throwable $e) {
+            Log::error("Leather Issue Slip download fallback triggered for Assignment #{$assignment->id}: " . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
+            $domPdf = $leatherPdfService->renderDomPdf($assignment);
+            return $domPdf->download("Leather_Issue_Slip_{$assignment->assignment_no}.pdf");
+        }
     }
 
     public function updateStatus(Request $request, Assignment $assignment, AssignmentService $assignmentService): RedirectResponse

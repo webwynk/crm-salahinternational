@@ -495,7 +495,7 @@
             <tr>
                 <!-- COMPANY DETAILS LEFT -->
                 <td class="header-left">
-                    @if($logoBase64)
+                    @if(isset($logoBase64) && $logoBase64)
                         <img src="{{ $logoBase64 }}" class="brand-logo-img" alt="Salah International">
                     @else
                         <div style="font-size: 18px; font-weight: bold; color: #b45309; margin-bottom: 4px;">SALAH INTERNATIONAL</div>
@@ -611,7 +611,7 @@
                     @empty
                     <tr>
                         <td colspan="4" style="text-align: center; padding: 12px; color: #64748b;">
-                            No allocated raw materials recorded for this batch.
+                            No additional hardware or non-leather fittings recorded for this batch. All raw leather allocated on Leather Issue Slip.
                         </td>
                     </tr>
                     @endforelse

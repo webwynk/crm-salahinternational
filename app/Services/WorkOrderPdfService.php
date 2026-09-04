@@ -38,12 +38,19 @@ class WorkOrderPdfService
             ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
             : null;
 
+        // Exclude raw leather materials from Exporter Copy and Fabricator Copy (allocated exclusively on Leather Issue Slip)
+        $nonLeatherMaterials = $assignment->materials->filter(function ($mat) {
+            $isLeatherFlag = $mat->material && $mat->material->is_leather;
+            $isLeatherUnit = in_array(strtolower(trim((string) $mat->unit)), ['sq_ft', 'sq_dm', 'sq_m', 'hides', 'sq ft', 'sqft']);
+            return !($isLeatherFlag || $isLeatherUnit);
+        });
+
         return Pdf::loadView('pdf.work_order', [
             'assignment' => $assignment,
             'product'    => $assignment->product,
             'color'      => $assignment->color,
             'labour'     => $assignment->labour,
-            'materials'  => $assignment->materials,
+            'materials'  => $nonLeatherMaterials,
             'logoBase64' => $logoBase64,
             'copyType'   => $copyTypeBanner,
         ])->setPaper('a4', 'portrait');

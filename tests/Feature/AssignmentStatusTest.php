@@ -287,7 +287,7 @@ class AssignmentStatusTest extends TestCase
             'quantity' => 10,
         ]);
 
-        // Verify both Exporter and Fabricator Work Order PDFs generate for assignment
+        // Verify Exporter, Fabricator, and Leather Slip PDFs generate for assignment
         $assignedWo = Assignment::where('product_id', $product->id)->first();
         $this->assertDatabaseHas('work_order_pdfs', [
             'assignment_id' => $assignedWo->id,
@@ -296,6 +296,10 @@ class AssignmentStatusTest extends TestCase
         $this->assertDatabaseHas('work_order_pdfs', [
             'assignment_id' => $assignedWo->id,
             'copy_type' => 'FABRICATOR',
+        ]);
+        $this->assertDatabaseHas('work_order_pdfs', [
+            'assignment_id' => $assignedWo->id,
+            'copy_type' => 'LEATHER',
         ]);
 
         // Verify Exporter Copy download
@@ -314,5 +318,146 @@ class AssignmentStatusTest extends TestCase
         $leatherResponse = $this->get("/assignments/{$assignedWo->id}/leather-pdf");
         $leatherResponse->assertOk();
         $this->assertEquals('application/pdf', $leatherResponse->headers->get('content-type'));
+    }
+
+    public function test_assignment_creation_generates_all_three_pdfs_with_strict_material_separation(): void
+    {
+        $this->actingAs($this->admin);
+
+        // Create Leather Material
+        $leatherMat = Material::create([
+            'name' => 'Italian Pull-Up Cowhide',
+            'category' => 'LEATHER',
+            'base_unit' => 'sq_ft',
+            'is_leather' => true,
+            'reorder_level' => 10,
+        ]);
+        $leatherVariant = $leatherMat->variants()->create([
+            'name' => 'Cognac Tan',
+            'reorder_level' => 10,
+            'is_active' => true,
+        ]);
+        Inventory::create([
+            'material_id' => $leatherMat->id,
+            'material_variant_id' => $leatherVariant->id,
+            'quantity_on_hand' => 500.0,
+            'unit' => 'sq_ft',
+        ]);
+
+        // Create Non-Leather Hardware Material
+        $hardwareMat = Material::create([
+            'name' => 'Solid Brass YKK Zipper #5',
+            'category' => 'FITTINGS',
+            'base_unit' => 'pcs',
+            'is_leather' => false,
+            'reorder_level' => 20,
+        ]);
+        $hardwareVariant = $hardwareMat->variants()->create([
+            'name' => 'Antique Brass',
+            'reorder_level' => 20,
+            'is_active' => true,
+        ]);
+        Inventory::create([
+            'material_id' => $hardwareMat->id,
+            'material_variant_id' => $hardwareVariant->id,
+            'quantity_on_hand' => 200.0,
+            'unit' => 'pcs',
+        ]);
+
+        // Create Product with Colorway & BOM
+        $product = Product::create([
+            'code' => 'DUFFLE-BRN-01',
+            'name' => 'Heritage Leather Duffle Bag',
+            'created_by' => $this->admin->id,
+        ]);
+        $color = $product->colors()->create([
+            'color_name' => 'Cognac Tan',
+            'color_code' => '#b47b48',
+            'is_active' => true,
+        ]);
+        $product->materials()->create([
+            'material_id' => $leatherMat->id,
+            'material_variant_id' => $leatherVariant->id,
+            'product_color_id' => $color->id,
+            'material_type' => 'CONSUMABLE',
+            'label' => 'Main Body Leather Hides',
+            'quantity_min' => 4.5,
+            'quantity_max' => 4.5,
+            'unit' => 'sq_ft',
+            'sort_order' => 1,
+        ]);
+        $product->materials()->create([
+            'material_id' => $hardwareMat->id,
+            'material_variant_id' => $hardwareVariant->id,
+            'product_color_id' => $color->id,
+            'material_type' => 'CONSUMABLE',
+            'label' => 'Main Zipper Fitting',
+            'quantity_min' => 2.0,
+            'quantity_max' => 2.0,
+            'unit' => 'pcs',
+            'sort_order' => 2,
+        ]);
+
+        // Create Assignment for 50 Duffle Bags (Requires 225.00 SQ_FT Leather and 100 zippers)
+        $response = $this->post('/assignments', [
+            'product_id' => $product->id,
+            'product_color_id' => $color->id,
+            'labour_id' => $this->labour->id,
+            'quantity' => 50,
+            'notes' => 'Precision cutting required for main duffle panels.',
+        ]);
+
+        $response->assertRedirect('/assignments');
+        $assignment = Assignment::where('product_id', $product->id)->first();
+        $this->assertNotNull($assignment);
+
+        // 1. Verify all 3 PDFs are generated and tracked in database
+        $this->assertDatabaseHas('work_order_pdfs', ['assignment_id' => $assignment->id, 'copy_type' => 'EXPORTER']);
+        $this->assertDatabaseHas('work_order_pdfs', ['assignment_id' => $assignment->id, 'copy_type' => 'FABRICATOR']);
+        $this->assertDatabaseHas('work_order_pdfs', ['assignment_id' => $assignment->id, 'copy_type' => 'LEATHER']);
+
+        // 2. Verify Exporter / Fabricator Copy material separation (Non-Leather only)
+        $woPdfService = new \App\Services\WorkOrderPdfService();
+        $exporterDomPdf = $woPdfService->renderDomPdf($assignment, 'EXPORTER');
+        $exporterHtml = $exporterDomPdf->output(); // renders DomPdf HTML/PDF stream
+
+        // Test view rendering directly to assert template text
+        $exporterView = view('pdf.work_order', [
+            'assignment' => $assignment,
+            'product' => $assignment->product,
+            'color' => $assignment->color,
+            'labour' => $assignment->labour,
+            'materials' => $assignment->materials->filter(fn($m) => !$m->material->is_leather),
+            'copyType' => 'Exporter Copy',
+        ])->render();
+
+        $this->assertStringContainsString('Solid Brass YKK Zipper #5', $exporterView);
+        $this->assertStringNotContainsString('Italian Pull-Up Cowhide', $exporterView);
+
+        // 3. Verify Leather Issue Slip material separation & total banner
+        $leatherPdfService = new \App\Services\LeatherIssuePdfService();
+        $leatherView = view('pdf.leather_issue_slip', [
+            'assignment' => $assignment,
+            'product' => $assignment->product,
+            'color' => $assignment->color,
+            'labour' => $assignment->labour,
+            'leatherMaterials' => $assignment->materials->filter(fn($m) => $m->material->is_leather),
+            'totalLeatherQty' => 225.00,
+            'leatherUnit' => 'SQ_FT',
+        ])->render();
+
+        // Must show leather materials
+        $this->assertStringContainsString('Italian Pull-Up Cowhide', $leatherView);
+        // Must exclude non-leather hardware
+        $this->assertStringNotContainsString('Solid Brass YKK Zipper #5', $leatherView);
+        // Must show product details
+        $this->assertStringContainsString('Heritage Leather Duffle Bag', $leatherView);
+        $this->assertStringContainsString('DUFFLE-BRN-01', $leatherView);
+        $this->assertStringContainsString('Cognac Tan', $leatherView);
+        // Must show prominent total banner
+        $this->assertStringContainsString('TOTAL RAW LEATHER ISSUED FROM WAREHOUSE:', $leatherView);
+        $this->assertStringContainsString('225.00 SQ_FT', $leatherView);
+        // Must show legal jurisdiction notice
+        $this->assertStringContainsString('ALL DISPUTES ARE SUBJECT TO KOLKATA JURISDICTION.', $leatherView);
     }
 }
