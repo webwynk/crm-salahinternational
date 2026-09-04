@@ -21,3 +21,19 @@ Artisan::command('assignments:wipe {--no-refund : Do not refund stock back to in
     $this->comment($refund ? 'Stock has been refunded back to inventory.' : 'Stock was not refunded.');
 })->purpose('Wipe all Work Order assignments, materials, and PDFs from database and storage disk');
 
+// Reset Admin Password & Clear Lockout Counters
+Artisan::command('admin:reset-password {password=133223@CrM}', function ($password = '133223@CrM') {
+    $admin = \App\Models\User::where('email', 'admin@salahinternational.com')->first();
+    if ($admin) {
+        $admin->update([
+            'password' => \Illuminate\Support\Facades\Hash::make($password),
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
+            'is_active' => true,
+        ]);
+        $this->info("Admin password reset successfully to: {$password}");
+    } else {
+        $this->error("Admin user not found.");
+    }
+})->purpose('Reset admin password and clear lockouts');
+

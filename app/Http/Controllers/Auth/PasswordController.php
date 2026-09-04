@@ -22,8 +22,10 @@ class PasswordController extends Controller
 
         $request->user()->update([
             'password' => Hash::make($validated['password']),
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
         ]);
 
-        return back();
+        return back()->with('success', 'Password successfully updated.');
     }
 }

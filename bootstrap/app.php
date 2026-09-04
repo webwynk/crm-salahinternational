@@ -29,7 +29,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->respond(function ($response, $e, $request) {
             if ($response->getStatusCode() === 419) {
-                return back()->with([
+                // For Inertia SPA and AJAX requests, preserve the 419 status code so Inertia's
+                // router.on('invalid') executes a clean window.location.href hard browser reload
+                // with fresh cookies and fresh CSRF token.
+                if ($request->header('X-Inertia') || $request->ajax() || $request->wantsJson()) {
+                    return response('Your session expired. Please sign in again.', 419);
+                }
+
+                return redirect()->route('login')->with([
                     'error' => 'Your session expired. Please sign in again.',
                 ]);
             }
