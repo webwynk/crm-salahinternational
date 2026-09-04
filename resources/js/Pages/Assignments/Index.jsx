@@ -118,18 +118,20 @@ function WorkOrderActionHub({ row, isAdmin }) {
                                 if (val === 'CANCELLED') {
                                     if (confirm(`Cancel Work Order ${row.assignment_no} and refund all deducted raw materials back to inventory stock?`)) {
                                         router.patch(route('assignments.status', row.id), { status: val });
+                                    } else {
+                                        e.target.value = 'ASSIGNED';
                                     }
-                                } else {
+                                } else if (val === 'COMPLETED') {
                                     router.patch(route('assignments.status', row.id), { status: val });
                                 }
                             }}
-                            className="appearance-none text-[10px] font-semibold h-[23px] pl-2 pr-5.5 rounded-md border border-amber-300/90 bg-amber-50/90 text-amber-900 hover:bg-amber-100 hover:border-amber-400 focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-all leading-none"
+                            className="appearance-none text-[11px] font-semibold py-1 pl-2.5 pr-6 rounded-full border border-amber-300/90 bg-amber-50/90 text-amber-900 hover:bg-amber-100 hover:border-amber-400 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer shadow-2xs transition-all"
                         >
                             <option value="ASSIGNED">Assigned</option>
                             <option value="COMPLETED">Completed</option>
                             <option value="CANCELLED">Cancelled</option>
                         </select>
-                        <ChevronDown className="w-3 h-3 text-amber-700 absolute right-1.5 pointer-events-none" />
+                        <ChevronDown className="w-3.5 h-3.5 text-amber-700 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
                 ) : (
                     <span
