@@ -28,6 +28,15 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* Permanently reserve scrollbar gutter to eliminate horizontal layout shift (CLS = 0) */
+    scrollbar-gutter: stable;
+  }
+
+  /* Fallback for legacy browsers that do not support scrollbar-gutter */
+  @supports not (scrollbar-gutter: stable) {
+    html {
+      overflow-y: scroll;
+    }
   }
 
   body {
