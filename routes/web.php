@@ -111,6 +111,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ], 500);
         }
     })->name('system.clean-db');
+
+    // System Work Order Assignments Clean Web Route (Admin Only) - Wipes ONLY assignments, assignment_materials, PDFs, while preserving catalog & inventory
+    Route::middleware('role:ADMIN')->match(['get', 'post'], '/system/clean-assignments', function (\Illuminate\Http\Request $request, \App\Services\AssignmentService $assignmentService) {
+        try {
+            $refund = $request->boolean('refund', true);
+            $result = $assignmentService->wipeAllAssignments($refund);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => "All Work Order Assignments wiped clean successfully! ({$result['assignments_deleted']} assignments, {$result['materials_cleared']} material lines, {$result['pdfs_cleared']} PDFs removed). All products, materials, variants, and labours remain intact.",
+                'details' => $result,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to clean assignments: ' . $e->getMessage(),
+            ], 500);
+        }
+    })->name('system.clean-assignments');
 });
 
 require __DIR__.'/auth.php';

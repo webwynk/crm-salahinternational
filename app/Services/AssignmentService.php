@@ -261,5 +261,71 @@ class AssignmentService
             return $assignment;
         });
     }
+
+    /**
+     * Atomically wipe all work order assignments, their materials, PDFs, and storage files.
+     * Optionally refund raw materials back to inventory.
+     *
+     * @param bool $refundStock
+     * @return array{assignments_deleted: int, materials_cleared: int, pdfs_cleared: int, stock_refunded: bool}
+     */
+    public function wipeAllAssignments(bool $refundStock = true): array
+    {
+        return DB::transaction(function () use ($refundStock) {
+            $assignmentCount = Assignment::count();
+            $materialsCount = AssignmentMaterial::count();
+            $pdfsCount = \App\Models\WorkOrderPdf::count();
+
+            if ($refundStock) {
+                // Refund deducted stock for any non-cancelled assignments before wiping
+                $activeAssignments = Assignment::with('materials')->where('status', '!=', 'CANCELLED')->get();
+                foreach ($activeAssignments as $assignment) {
+                    foreach ($assignment->materials as $mat) {
+                        if (!$mat->material_id) continue;
+
+                        $query = Inventory::where('material_id', $mat->material_id);
+                        if ($mat->material_variant_id) {
+                            $query->where('material_variant_id', $mat->material_variant_id);
+                        }
+                        $inv = $query->lockForUpdate()->first() ?: Inventory::where('material_id', $mat->material_id)->lockForUpdate()->first();
+
+                        if ($inv) {
+                            $inv->increment('quantity_on_hand', (float) $mat->quantity_used);
+                        }
+                    }
+                }
+            }
+
+            // 1. Delete physical PDF files from storage
+            try {
+                \Illuminate\Support\Facades\Storage::disk('public')->deleteDirectory('work_orders');
+                \Illuminate\Support\Facades\Storage::disk('public')->deleteDirectory('leather_slips');
+                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory('work_orders');
+                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory('leather_slips');
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Storage directory wipe warning: " . $e->getMessage());
+            }
+
+            // 2. Clean database records
+            \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
+            \App\Models\WorkOrderPdf::truncate();
+            AssignmentMaterial::truncate();
+
+            // Clean assignment-related stock transactions
+            StockTransaction::where('note', 'like', '%Work Order%')
+                ->orWhere('note', 'like', '%Assignment%')
+                ->delete();
+
+            Assignment::truncate();
+            \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+
+            return [
+                'assignments_deleted' => $assignmentCount,
+                'materials_cleared'   => $materialsCount,
+                'pdfs_cleared'        => $pdfsCount,
+                'stock_refunded'      => $refundStock,
+            ];
+        });
+    }
 }
 
