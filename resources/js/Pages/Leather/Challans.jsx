@@ -15,6 +15,10 @@ import {
     Eye,
     Phone,
     Package,
+    Calendar,
+    User,
+    Layers,
+    MessageSquare,
 } from 'lucide-react';
 
 /**
@@ -406,122 +410,194 @@ export default function Challans({ challans, stats = {}, filters = {} }) {
                 isOpen={!!previewChallan}
                 onClose={() => setPreviewChallan(null)}
                 title={`Challan Voucher #${previewChallan?.challan_no}`}
+                maxWidth="max-w-2xl"
             >
                 {previewChallan && (
                     <div className="space-y-4 text-xs">
-                        {/* Header Status Strip */}
-                        <div className="p-3 rounded-lg bg-neutral-50 border border-neutral-200 flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <span className="text-[10.5px] uppercase font-bold text-neutral-400 tracking-wider">
-                                    Status
-                                </span>
-                                <div className="flex items-center gap-1.5">
+                        {/* Hero Status & KPI Banner */}
+                        <div className="p-3.5 rounded-xl bg-gradient-to-r from-neutral-50 via-neutral-50/80 to-brand-50/40 border border-neutral-200/80 flex items-center justify-between shadow-xs">
+                            <div className="space-y-1">
+                                <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
+                                    Challan Status
+                                </div>
+                                <div className="flex items-center gap-2">
                                     <span
-                                        className={`w-2 h-2 rounded-full ${
-                                            previewChallan.status === 'ISSUED' ? 'bg-success-500' : 'bg-danger-500'
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                                            previewChallan.status === 'ISSUED'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                                                : 'bg-rose-50 text-rose-700 border-rose-200/80'
                                         }`}
-                                    />
-                                    <span className="font-bold text-neutral-900">
+                                    >
+                                        <span
+                                            className={`w-1.5 h-1.5 rounded-full ${
+                                                previewChallan.status === 'ISSUED'
+                                                    ? 'bg-emerald-500 animate-pulse'
+                                                    : 'bg-rose-500'
+                                            }`}
+                                        />
                                         {previewChallan.status}
                                     </span>
+                                    {previewChallan.created_at && (
+                                        <span className="text-[11px] text-neutral-500 flex items-center gap-1">
+                                            <Calendar className="w-3 h-3 text-neutral-400" />
+                                            {new Date(previewChallan.created_at).toLocaleDateString('en-GB', {
+                                                day: '2-digit',
+                                                month: 'short',
+                                                year: 'numeric',
+                                            })}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
                             <div className="text-right space-y-0.5">
-                                <span className="text-[10.5px] uppercase font-bold text-neutral-400 tracking-wider">
-                                    Total Leather Issued
-                                </span>
-                                <div className="text-base font-black text-brand-900 font-mono">
-                                    {Number(previewChallan.total_sqft).toFixed(2)} sq. ft
+                                <div className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
+                                    Total Leather Allocated
+                                </div>
+                                <div className="flex items-baseline justify-end gap-1.5">
+                                    <span className="text-xl font-black text-neutral-900 font-mono tracking-tight">
+                                        {Number(previewChallan.total_sqft).toFixed(2)}
+                                    </span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 border border-brand-200/70 px-1.5 py-0.5 rounded">
+                                        SQ. FT
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Cutter & Material Grid */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="p-2.5 rounded-lg border border-neutral-200 space-y-1">
-                                <span className="text-[10.5px] uppercase font-bold text-neutral-400">
-                                    Assigned Cutter
-                                </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="p-3 rounded-xl border border-neutral-200/80 bg-white shadow-xs space-y-1.5">
+                                <div className="flex items-center gap-1.5 text-[10.5px] uppercase font-bold text-neutral-400 tracking-wider">
+                                    <User className="w-3.5 h-3.5 text-brand-600" />
+                                    <span>Assigned Cutter</span>
+                                </div>
                                 <div className="font-bold text-neutral-900 text-sm">
                                     {previewChallan.cutter?.name || 'N/A'}
                                 </div>
-                                <div className="text-neutral-500 flex items-center gap-1">
-                                    <Phone className="w-3 h-3 text-neutral-400" />
-                                    <span>{previewChallan.cutter?.phone || 'No phone'}</span>
+                                <div className="flex items-center gap-3 text-neutral-500 text-[11px]">
+                                    <span className="flex items-center gap-1">
+                                        <Phone className="w-3 h-3 text-neutral-400" />
+                                        {previewChallan.cutter?.phone || 'No phone'}
+                                    </span>
+                                    {previewChallan.cutter?.address && (
+                                        <span className="text-neutral-400 text-[10.5px] uppercase truncate">
+                                            • {previewChallan.cutter.address}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
-                            <div className="p-2.5 rounded-lg border border-neutral-200 space-y-1">
-                                <span className="text-[10.5px] uppercase font-bold text-neutral-400">
-                                    Leather Hide & Variant
-                                </span>
-                                <div className="font-bold text-neutral-900 text-sm">
+                            <div className="p-3 rounded-xl border border-neutral-200/80 bg-white shadow-xs space-y-1.5">
+                                <div className="flex items-center gap-1.5 text-[10.5px] uppercase font-bold text-neutral-400 tracking-wider">
+                                    <Layers className="w-3.5 h-3.5 text-brand-600" />
+                                    <span>Leather Hide &amp; Variation</span>
+                                </div>
+                                <div className="font-bold text-neutral-900 text-sm truncate">
                                     {previewChallan.material?.name || 'N/A'}
                                 </div>
-                                <div className="text-brand-700 font-semibold font-mono">
-                                    {previewChallan.variant?.name || 'Standard Hide'}
+                                <div className="flex items-center gap-1.5">
+                                    <span className="inline-flex items-center text-[11px] font-semibold text-brand-800 bg-brand-50/80 border border-brand-200/70 px-2 py-0.5 rounded-md font-mono">
+                                        {previewChallan.variant?.name || 'Standard'}
+                                    </span>
+                                    <span className="text-[10px] text-neutral-400 uppercase">
+                                        • Raw Hide
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Line Items Table */}
+                        {/* Cut Parts & Product Breakdown Table */}
                         <div className="space-y-1.5">
-                            <span className="text-[10.5px] uppercase font-bold text-neutral-400 tracking-wider">
-                                Cut Parts & Product Breakdown
-                            </span>
-                            <div className="border border-neutral-200 rounded-lg overflow-hidden">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10.5px] uppercase font-bold text-neutral-500 tracking-wider">
+                                    Cut Parts &amp; Product Breakdown
+                                </span>
+                                <span className="text-[11px] text-neutral-400 font-medium">
+                                    {previewChallan.items?.length || 0} product lines
+                                </span>
+                            </div>
+                            <div className="border border-neutral-200/90 rounded-xl overflow-hidden shadow-xs bg-white">
                                 <table className="w-full text-left text-xs border-collapse">
                                     <thead>
-                                        <tr className="bg-neutral-50 border-b border-neutral-200 text-neutral-500 font-bold uppercase text-[9.5px]">
-                                            <th className="py-2 px-2.5">Product</th>
-                                            <th className="py-2 px-2">Code</th>
-                                            <th className="py-2 px-2 text-right">Qty</th>
-                                            <th className="py-2 px-2 text-right">Sq.Ft/Pc</th>
-                                            <th className="py-2 px-2.5 text-right">Total</th>
+                                        <tr className="bg-neutral-50/90 border-b border-neutral-200 text-neutral-500 font-bold uppercase text-[9.5px] tracking-wider">
+                                            <th className="py-2.5 px-2.5 text-center w-8">#</th>
+                                            <th className="py-2.5 px-2 text-center w-14">Part No</th>
+                                            <th className="py-2.5 px-2.5">Product Description</th>
+                                            <th className="py-2.5 px-2 w-20">Code</th>
+                                            <th className="py-2.5 px-2 text-right w-16">Qty</th>
+                                            <th className="py-2.5 px-2 text-right w-20">Sq.Ft/Pc</th>
+                                            <th className="py-2.5 px-3 text-right w-24">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-neutral-100">
                                         {previewChallan.items?.map((item, i) => (
-                                            <tr key={i} className="hover:bg-neutral-50/60">
-                                                <td className="py-2 px-2.5 font-semibold text-neutral-900">
+                                            <tr key={i} className="hover:bg-neutral-50/60 transition-colors">
+                                                <td className="py-2.5 px-2.5 text-center text-neutral-400 font-mono text-[11px]">
+                                                    {i + 1}
+                                                </td>
+                                                <td className="py-2.5 px-2 text-center">
+                                                    <span className="font-mono text-[11px] font-bold text-neutral-800">
+                                                        {item.product?.part_no || '-'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-2.5 px-2.5 font-semibold text-neutral-900">
                                                     {item.product?.name || 'Product'}
                                                 </td>
-                                                <td className="py-2 px-2">
+                                                <td className="py-2.5 px-2">
                                                     {item.product?.code ? (
-                                                        <span className="font-mono text-[10.5px] font-bold text-amber-900 bg-amber-100 px-1.5 py-0.2 rounded border border-amber-300">
+                                                        <span className="font-mono text-[10px] font-semibold text-neutral-700 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-200">
                                                             {item.product.code}
                                                         </span>
                                                     ) : (
-                                                        '-'
+                                                        <span className="text-neutral-400">-</span>
                                                     )}
                                                 </td>
-                                                <td className="py-2 px-2 text-right font-bold font-mono">
-                                                    {item.quantity} pcs
+                                                <td className="py-2.5 px-2 text-right font-bold font-mono text-neutral-900">
+                                                    {item.quantity} <span className="text-[10px] font-normal text-neutral-400">pcs</span>
                                                 </td>
-                                                <td className="py-2 px-2 text-right font-mono text-neutral-600">
+                                                <td className="py-2.5 px-2 text-right font-mono text-neutral-600">
                                                     {Number(item.leather_sqft_per_pc).toFixed(2)}
                                                 </td>
-                                                <td className="py-2 px-2.5 text-right font-bold text-brand-800 font-mono">
-                                                    {Number(item.total_sqft).toFixed(2)} sq.ft
+                                                <td className="py-2.5 px-3 text-right font-bold text-brand-800 font-mono">
+                                                    {Number(item.total_sqft).toFixed(2)} <span className="text-[9.5px] font-normal text-neutral-400">sq.ft</span>
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
+                                    <tfoot>
+                                        <tr className="bg-neutral-50/90 border-t border-neutral-200 font-semibold text-neutral-800 text-[11px]">
+                                            <td colSpan={4} className="py-2.5 px-3 text-right text-neutral-500 font-bold uppercase text-[9.5px]">
+                                                Total Summary:
+                                            </td>
+                                            <td className="py-2.5 px-2 text-right font-mono font-bold text-neutral-900">
+                                                {previewChallan.items?.reduce((sum, it) => sum + Number(it.quantity || 0), 0)} pcs
+                                            </td>
+                                            <td className="py-2.5 px-2"></td>
+                                            <td className="py-2.5 px-3 text-right font-mono font-bold text-brand-900">
+                                                {Number(previewChallan.total_sqft).toFixed(2)} sq.ft
+                                            </td>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                         </div>
 
                         {/* Notes if present */}
                         {previewChallan.notes && (
-                            <div className="p-2.5 rounded-lg bg-neutral-50 border border-neutral-200 space-y-0.5">
-                                <span className="text-[10px] uppercase font-bold text-neutral-400">Notes / Instructions</span>
-                                <p className="text-neutral-700 italic">{previewChallan.notes}</p>
+                            <div className="p-3 rounded-xl bg-neutral-50/80 border border-neutral-200/80 space-y-1">
+                                <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
+                                    <MessageSquare className="w-3 h-3 text-neutral-400" />
+                                    <span>Notes / Instructions</span>
+                                </div>
+                                <p className="text-neutral-700 text-xs italic pl-4 border-l-2 border-brand-400">
+                                    {previewChallan.notes}
+                                </p>
                             </div>
                         )}
 
                         {/* Action Buttons */}
-                        <div className="flex items-center justify-between pt-3 border-t border-neutral-200">
+                        <div className="flex items-center justify-between pt-3.5 border-t border-neutral-200">
                             {previewChallan.status === 'ISSUED' && (
                                 <Button
                                     type="button"
@@ -531,7 +607,7 @@ export default function Challans({ challans, stats = {}, filters = {} }) {
                                     className="gap-1.5"
                                 >
                                     <XCircle className="w-3.5 h-3.5" />
-                                    Cancel & Refund
+                                    Cancel &amp; Refund
                                 </Button>
                             )}
                             <div className="flex items-center gap-2 ml-auto">
@@ -539,7 +615,7 @@ export default function Challans({ challans, stats = {}, filters = {} }) {
                                     href={route('leather.challan.pdf', previewChallan.id)}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-700 text-white font-bold text-xs hover:bg-brand-800 shadow-xs transition-colors"
+                                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-700 text-white font-bold text-xs hover:bg-brand-800 shadow-xs hover:shadow-sm transition-all"
                                 >
                                     <Download className="w-3.5 h-3.5" />
                                     Download PDF
