@@ -27,7 +27,7 @@ export default function LeatherTabNav() {
     ];
 
     return (
-        <div className="flex items-center gap-1 border-b border-neutral-200 dark:border-neutral-800 mb-6 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1 border-b border-neutral-200 overflow-x-auto scrollbar-none">
             {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -36,8 +36,8 @@ export default function LeatherTabNav() {
                         href={tab.href}
                         className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-all border-b-2 whitespace-nowrap ${
                             tab.isActive
-                                ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400 font-bold'
-                                : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-white'
+                                ? 'border-brand-600 text-brand-700 font-bold'
+                                : 'border-transparent text-neutral-500 hover:text-neutral-800'
                         }`}
                     >
                         <Icon className="w-4 h-4" />

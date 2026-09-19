@@ -9,14 +9,9 @@ import Button from '@/Components/ui/Button';
 import Modal from '@/Components/ui/Modal';
 import {
     FileText,
-    Scissors,
     Download,
     XCircle,
     Plus,
-    Calendar,
-    User,
-    Layers,
-    CheckCircle,
     AlertTriangle,
 } from 'lucide-react';
 
@@ -54,8 +49,8 @@ export default function Challans({ challans, filters = {} }) {
             accessor: 'challan_no',
             render: (row) => (
                 <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-brand-600 dark:text-brand-400" />
-                    <span className="font-bold text-neutral-900 dark:text-white">
+                    <FileText className="w-4 h-4 text-brand-600" />
+                    <span className="font-bold text-neutral-900 tabular-nums">
                         #{row.challan_no}
                     </span>
                 </div>
@@ -65,7 +60,7 @@ export default function Challans({ challans, filters = {} }) {
             header: 'Date',
             accessor: 'created_at',
             render: (row) => (
-                <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                <span className="text-xs text-neutral-600 tabular-nums">
                     {new Date(row.created_at).toLocaleDateString('en-GB', {
                         day: '2-digit',
                         month: 'short',
@@ -79,10 +74,10 @@ export default function Challans({ challans, filters = {} }) {
             accessor: 'cutter',
             render: (row) => (
                 <div>
-                    <div className="font-semibold text-neutral-900 dark:text-white text-xs">
+                    <div className="font-semibold text-neutral-900 text-xs">
                         {row.cutter?.name || 'N/A'}
                     </div>
-                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    <div className="text-[11px] text-neutral-500">
                         {row.cutter?.phone || '-'}
                     </div>
                 </div>
@@ -93,10 +88,10 @@ export default function Challans({ challans, filters = {} }) {
             accessor: 'material',
             render: (row) => (
                 <div>
-                    <div className="font-medium text-neutral-800 dark:text-neutral-200 text-xs">
+                    <div className="font-medium text-neutral-800 text-xs">
                         {row.material?.name || 'N/A'}
                     </div>
-                    <div className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold">
+                    <div className="text-[11px] text-brand-700 font-semibold">
                         {row.variant?.name ? row.variant.name : 'Standard'}
                     </div>
                 </div>
@@ -106,7 +101,7 @@ export default function Challans({ challans, filters = {} }) {
             header: 'Leather Issued',
             accessor: 'total_sqft',
             render: (row) => (
-                <span className="font-bold text-neutral-900 dark:text-white text-xs">
+                <span className="font-bold text-neutral-900 text-xs tabular-nums">
                     {Number(row.total_sqft).toFixed(2)} sq. ft
                 </span>
             ),
@@ -115,7 +110,7 @@ export default function Challans({ challans, filters = {} }) {
             header: 'Products',
             accessor: 'items_count',
             render: (row) => (
-                <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                <span className="text-xs text-neutral-600 tabular-nums">
                     {row.items_count} {row.items_count === 1 ? 'Product' : 'Products'}
                 </span>
             ),
@@ -142,7 +137,7 @@ export default function Challans({ challans, filters = {} }) {
                         href={route('leather.challan.pdf', row.id)}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-sm border border-neutral-200 bg-white text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
                         title="Download PDF"
                     >
                         <Download className="w-3.5 h-3.5" />
@@ -153,7 +148,7 @@ export default function Challans({ challans, filters = {} }) {
                         <button
                             type="button"
                             onClick={() => setCancelChallan(row)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 text-xs font-semibold text-red-700 dark:text-red-400 hover:bg-red-100 transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-sm border border-danger-200 bg-danger-50 text-xs font-semibold text-danger-700 hover:bg-danger-100 transition-colors"
                             title="Cancel Challan & Refund Stock"
                         >
                             <XCircle className="w-3.5 h-3.5" />
@@ -218,16 +213,16 @@ export default function Challans({ challans, filters = {} }) {
                 title="Cancel Challan & Refund Stock?"
             >
                 <div className="space-y-4 text-sm">
-                    <p className="text-neutral-600 dark:text-neutral-400">
+                    <p className="text-neutral-600">
                         Are you sure you want to cancel Challan{' '}
-                        <strong className="text-neutral-900 dark:text-white font-bold">
+                        <strong className="text-neutral-900 font-bold">
                             #{cancelChallan?.challan_no}
                         </strong>
                         ?
                     </p>
 
-                    <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
-                        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="p-3.5 rounded-lg bg-warning-50 border border-warning-200 flex items-start gap-3 text-xs text-warning-700">
+                        <AlertTriangle className="w-5 h-5 text-warning-500 shrink-0 mt-0.5" />
                         <div>
                             <strong className="font-bold">Automatic Stock Refund:</strong>
                             <div className="mt-0.5">
@@ -238,7 +233,7 @@ export default function Challans({ challans, filters = {} }) {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200">
                         <Button
                             type="button"
                             variant="secondary"

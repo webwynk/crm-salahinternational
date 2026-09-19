@@ -8,7 +8,8 @@ import Badge from '@/Components/ui/Badge';
 import Button from '@/Components/ui/Button';
 import Modal from '@/Components/ui/Modal';
 import Input from '@/Components/ui/Input';
-import { Users, Plus, Edit2, Phone, MapPin, Scissors } from 'lucide-react';
+import Textarea from '@/Components/ui/Textarea';
+import { Plus, Edit2, Phone, MapPin } from 'lucide-react';
 
 export default function Cutters({ cutters, filters = {} }) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -65,21 +66,17 @@ export default function Cutters({ cutters, filters = {} }) {
         };
 
         if (editCutter) {
-            router.match(
-                ['put', 'post', 'patch'],
-                route('leather.cutters.update', editCutter.id),
-                payload,
-                {
-                    onError: (errs) => {
-                        setErrors(errs);
-                        setLoading(false);
-                    },
-                    onSuccess: () => {
-                        setLoading(false);
-                        handleCloseModal();
-                    },
-                }
-            );
+            // Fixed: router.match() is NOT a valid Inertia API. Use router.put() instead.
+            router.put(route('leather.cutters.update', editCutter.id), payload, {
+                onError: (errs) => {
+                    setErrors(errs);
+                    setLoading(false);
+                },
+                onSuccess: () => {
+                    setLoading(false);
+                    handleCloseModal();
+                },
+            });
         } else {
             router.post(route('leather.cutters.store'), payload, {
                 onError: (errs) => {
@@ -94,17 +91,27 @@ export default function Cutters({ cutters, filters = {} }) {
         }
     };
 
+    /**
+     * Generate initials from a cutter name (e.g. "Rahim Cutting Master" → "RC")
+     */
+    const getInitials = (fullName) => {
+        if (!fullName) return '??';
+        const parts = fullName.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    };
+
     const columns = [
         {
             header: 'Cutter / Workshop Name',
             accessor: 'name',
             render: (row) => (
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs">
-                        <Scissors className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-700 flex items-center justify-center font-bold text-xs border border-brand-200">
+                        {getInitials(row.name)}
                     </div>
                     <div>
-                        <div className="font-bold text-neutral-900 dark:text-white text-xs">
+                        <div className="font-bold text-neutral-900 text-xs">
                             {row.name}
                         </div>
                         {row.notes && (
@@ -120,9 +127,9 @@ export default function Cutters({ cutters, filters = {} }) {
             header: 'Phone Number',
             accessor: 'phone',
             render: (row) => (
-                <div className="flex items-center gap-1.5 text-xs text-neutral-700 dark:text-neutral-300">
+                <div className="flex items-center gap-1.5 text-xs text-neutral-700">
                     <Phone className="w-3.5 h-3.5 text-neutral-400" />
-                    <span>{row.phone}</span>
+                    <span className="tabular-nums">{row.phone}</span>
                 </div>
             ),
         },
@@ -130,7 +137,7 @@ export default function Cutters({ cutters, filters = {} }) {
             header: 'Workshop / Address',
             accessor: 'address',
             render: (row) => (
-                <div className="flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400">
+                <div className="flex items-center gap-1.5 text-xs text-neutral-600">
                     <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                     <span className="truncate max-w-xs">{row.address || 'Kolkata'}</span>
                 </div>
@@ -140,7 +147,7 @@ export default function Cutters({ cutters, filters = {} }) {
             header: 'Challans Issued',
             accessor: 'challans_count',
             render: (row) => (
-                <span className="text-xs font-semibold text-neutral-900 dark:text-white">
+                <span className="text-xs font-semibold text-neutral-900 tabular-nums">
                     {row.challans_count ?? 0}
                 </span>
             ),
@@ -229,7 +236,7 @@ export default function Cutters({ cutters, filters = {} }) {
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
-                        label="Cutter / Workshop Name *"
+                        label="Cutter / Workshop Name"
                         placeholder="e.g. Rahim Cutting Master"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -238,7 +245,7 @@ export default function Cutters({ cutters, filters = {} }) {
                     />
 
                     <Input
-                        label="Phone Number *"
+                        label="Phone Number"
                         placeholder="e.g. 9830123456"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
@@ -254,18 +261,13 @@ export default function Cutters({ cutters, filters = {} }) {
                         error={errors.address}
                     />
 
-                    <div>
-                        <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 uppercase tracking-wider">
-                            Notes / Remarks
-                        </label>
-                        <textarea
-                            rows={2}
-                            className="w-full text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-neutral-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                            placeholder="Optional notes regarding cutter rates, specialized tools, etc."
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                        />
-                    </div>
+                    <Textarea
+                        label="Notes / Remarks"
+                        rows={2}
+                        placeholder="Optional notes regarding cutter rates, specialized tools, etc."
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                    />
 
                     <div className="flex items-center gap-2">
                         <input
@@ -273,14 +275,14 @@ export default function Cutters({ cutters, filters = {} }) {
                             id="is_active"
                             checked={isActive}
                             onChange={(e) => setIsActive(e.target.checked)}
-                            className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-neutral-300 dark:border-neutral-700"
+                            className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-neutral-300"
                         />
-                        <label htmlFor="is_active" className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                        <label htmlFor="is_active" className="text-xs font-semibold text-neutral-700">
                             Active (available for new challans)
                         </label>
                     </div>
 
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200">
                         <Button type="button" variant="secondary" onClick={handleCloseModal} disabled={loading}>
                             Cancel
                         </Button>

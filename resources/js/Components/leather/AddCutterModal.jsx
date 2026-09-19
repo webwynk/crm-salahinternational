@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '@/Components/ui/Modal';
 import Input from '@/Components/ui/Input';
+import Textarea from '@/Components/ui/Textarea';
 import Button from '@/Components/ui/Button';
 import axios from 'axios';
 
@@ -52,13 +53,13 @@ export default function AddCutterModal({ isOpen, onClose, onSuccess }) {
         <Modal isOpen={isOpen} onClose={handleClose} title="Add New Cutter / Workshop">
             <form onSubmit={handleSubmit} className="space-y-4">
                 {errors.general && (
-                    <div className="p-3 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="p-3 text-xs font-semibold text-danger-700 bg-danger-50 border border-danger-200 rounded-lg">
                         {errors.general}
                     </div>
                 )}
 
                 <Input
-                    label="Cutter / Workshop Name *"
+                    label="Cutter / Workshop Name"
                     placeholder="e.g. Rahim Cutting Master"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -67,7 +68,7 @@ export default function AddCutterModal({ isOpen, onClose, onSuccess }) {
                 />
 
                 <Input
-                    label="Phone Number *"
+                    label="Phone Number"
                     placeholder="e.g. 9830123456"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -83,20 +84,15 @@ export default function AddCutterModal({ isOpen, onClose, onSuccess }) {
                     error={errors.address?.[0] || errors.address}
                 />
 
-                <div>
-                    <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5 uppercase tracking-wider">
-                        Notes / Remarks
-                    </label>
-                    <textarea
-                        rows={2}
-                        className="w-full text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-neutral-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                        placeholder="Optional notes regarding cutter rates, specialized tools, etc."
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                    />
-                </div>
+                <Textarea
+                    label="Notes / Remarks"
+                    rows={2}
+                    placeholder="Optional notes regarding cutter rates, specialized tools, etc."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                />
 
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200">
                     <Button type="button" variant="secondary" onClick={handleClose} disabled={loading}>
                         Cancel
                     </Button>

@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import PageHeader from '@/Components/layout/PageHeader';
 import LeatherTabNav from '@/Components/leather/LeatherTabNav';
 import AddCutterModal from '@/Components/leather/AddCutterModal';
 import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
 import Select from '@/Components/ui/Select';
+import Textarea from '@/Components/ui/Textarea';
 import {
     ArrowLeft,
     Plus,
@@ -169,7 +169,7 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
 
     return (
         <AppLayout>
-            <Head title="Make Leather Challan — Salah International" />
+            <Head title="New Cutting Challan — Salah International" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
                 <LeatherTabNav />
@@ -177,30 +177,40 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                 {/* Header with Back Link */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <Link
-                            href={route('leather.index')}
-                            className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
+                        <Link href={route('leather.index')}>
+                            <Button type="button" variant="secondary" size="sm">
+                                <ArrowLeft className="w-4 h-4" />
+                            </Button>
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                                <Scissors className="w-6 h-6 text-brand-600 dark:text-brand-400" />
-                                Make Leather Cutting Challan
+                            <h1 className="text-2xl font-bold text-neutral-900 flex items-center gap-2">
+                                <Scissors className="w-6 h-6 text-brand-600" />
+                                New Cutting Challan
                             </h1>
-                            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                            <p className="text-sm text-neutral-500">
                                 Issue raw leather hides to a Cutter for multiple products and deduct stock atomically.
                             </p>
                         </div>
                     </div>
                 </div>
 
+                {/* Server Error Alerts */}
                 {errors.stock && (
-                    <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 flex items-start gap-3 text-red-800 dark:text-red-300">
-                        <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                    <div className="p-4 rounded-lg bg-danger-50 border border-danger-200 flex items-start gap-3 text-danger-700">
+                        <ShieldAlert className="w-5 h-5 text-danger-600 shrink-0 mt-0.5" />
                         <div>
                             <div className="font-bold text-sm">Stock Shortage Error</div>
                             <div className="text-xs mt-0.5">{errors.stock}</div>
+                        </div>
+                    </div>
+                )}
+
+                {errors.error && (
+                    <div className="p-4 rounded-lg bg-danger-50 border border-danger-200 flex items-start gap-3 text-danger-700">
+                        <AlertTriangle className="w-5 h-5 text-danger-600 shrink-0 mt-0.5" />
+                        <div>
+                            <div className="font-bold text-sm">Error</div>
+                            <div className="text-xs mt-0.5">{errors.error}</div>
                         </div>
                     </div>
                 )}
@@ -209,11 +219,11 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                     {/* Top Row: Cutter & Leather Selection */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* 1. Cutter Selection Card */}
-                        <div className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-xs space-y-4">
+                        <div className="p-5 rounded-lg bg-white border border-neutral-200 shadow-sm space-y-4">
                             <div className="flex items-center justify-between">
-                                <label className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                                <label className="text-sm font-bold text-neutral-900 uppercase tracking-wider flex items-center gap-2">
                                     <Scissors className="w-4 h-4 text-brand-600" />
-                                    1. Select Cutter Labour *
+                                    1. Select Cutter Labour
                                 </label>
                                 <Button
                                     type="button"
@@ -223,7 +233,7 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                                     className="flex items-center gap-1.5 text-xs"
                                 >
                                     <UserPlus className="w-3.5 h-3.5" />
-                                    + Add New Cutter
+                                    + Add New
                                 </Button>
                             </div>
 
@@ -242,16 +252,16 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                             </Select>
 
                             {selectedCutter && (
-                                <div className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/60 text-xs space-y-1">
-                                    <div className="font-bold text-neutral-900 dark:text-white">
+                                <div className="p-3 rounded-lg bg-neutral-50 border border-neutral-200 text-xs space-y-1">
+                                    <div className="font-bold text-neutral-900">
                                         {selectedCutter.name}
                                     </div>
-                                    <div className="text-neutral-500 dark:text-neutral-400">
-                                        Phone: <span className="font-medium text-neutral-800 dark:text-neutral-200">{selectedCutter.phone || '-'}</span>
+                                    <div className="text-neutral-500">
+                                        Phone: <span className="font-medium text-neutral-800">{selectedCutter.phone || '-'}</span>
                                     </div>
                                     {selectedCutter.address && (
-                                        <div className="text-neutral-500 dark:text-neutral-400">
-                                            Workshop: <span className="font-medium text-neutral-800 dark:text-neutral-200">{selectedCutter.address}</span>
+                                        <div className="text-neutral-500">
+                                            Workshop: <span className="font-medium text-neutral-800">{selectedCutter.address}</span>
                                         </div>
                                     )}
                                 </div>
@@ -259,15 +269,15 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                         </div>
 
                         {/* 2. Leather Hide Selection Card */}
-                        <div className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-xs space-y-4">
-                            <label className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                        <div className="p-5 rounded-lg bg-white border border-neutral-200 shadow-sm space-y-4">
+                            <label className="text-sm font-bold text-neutral-900 uppercase tracking-wider flex items-center gap-2">
                                 <Layers className="w-4 h-4 text-brand-600" />
-                                2. Select Leather Hide &amp; Variant *
+                                2. Select Leather Hide & Variant
                             </label>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-1.5">
+                                    <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
                                         Leather Hide *
                                     </label>
                                     <Select
@@ -287,7 +297,7 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
 
                                 {hasMultipleVariants ? (
                                     <div>
-                                        <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-1.5">
+                                        <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
                                             Variation (Color/Grade) *
                                         </label>
                                         <Select
@@ -306,10 +316,10 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                                     </div>
                                 ) : (
                                     <div>
-                                        <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-1.5">
+                                        <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
                                             Variation
                                         </label>
-                                        <div className="h-10 px-3 flex items-center rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-500 text-xs font-medium border border-neutral-200 dark:border-neutral-700">
+                                        <div className="h-10 px-3 flex items-center rounded-sm bg-neutral-100 text-neutral-500 text-xs font-medium border border-neutral-200">
                                             Standard Hide (No Variation)
                                         </div>
                                     </div>
@@ -318,11 +328,11 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
 
                             {/* Available Stock Indicator */}
                             {selectedMaterial && (
-                                <div className="flex items-center justify-between p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                                    <span className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider">
+                                <div className="flex items-center justify-between p-3 rounded-lg bg-brand-50 border border-brand-200">
+                                    <span className="text-xs font-bold text-brand-800 uppercase tracking-wider">
                                         Available Leather Stock:
                                     </span>
-                                    <span className="text-sm font-extrabold text-amber-900 dark:text-amber-200">
+                                    <span className="text-sm font-extrabold text-brand-900 tabular-nums">
                                         {availableStock.toFixed(2)} sq. ft
                                     </span>
                                 </div>
@@ -331,14 +341,14 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                     </div>
 
                     {/* 3. Multi-Product Selection Grid */}
-                    <div className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-xs space-y-4">
+                    <div className="p-5 rounded-lg bg-white border border-neutral-200 shadow-sm space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                                <h3 className="text-sm font-bold text-neutral-900 uppercase tracking-wider flex items-center gap-2">
                                     <Package className="w-4 h-4 text-brand-600" />
                                     3. Products to Cut ({items.length} {items.length === 1 ? 'Product' : 'Products'})
                                 </h3>
-                                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                                <p className="text-xs text-neutral-500 mt-0.5">
                                     Select product to auto-fill Part No, Code, and Leather Sq. Ft per piece. Enter quantity to cut.
                                 </p>
                             </div>
@@ -355,10 +365,10 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                         </div>
 
                         {/* Product Rows Table */}
-                        <div className="overflow-x-auto border border-neutral-200 dark:border-neutral-800 rounded-xl">
+                        <div className="overflow-x-auto border border-neutral-200 rounded-lg">
                             <table className="w-full text-left border-collapse text-xs">
                                 <thead>
-                                    <tr className="bg-neutral-50 dark:bg-neutral-800/70 border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 font-bold uppercase tracking-wider">
+                                    <tr className="bg-neutral-50 border-b border-neutral-200 text-neutral-500 font-bold uppercase tracking-wider">
                                         <th className="py-3 px-3 w-10 text-center">#</th>
                                         <th className="py-3 px-3 min-w-[200px]">Product *</th>
                                         <th className="py-3 px-3 w-28">Part No.</th>
@@ -369,11 +379,11 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                                         <th className="py-3 px-3 w-12 text-center"></th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                                <tbody className="divide-y divide-neutral-200">
                                     {items.map((row, index) => {
                                         const lineTotal = (Number(row.quantity) || 0) * (Number(row.leather_sqft_per_pc) || 0);
                                         return (
-                                            <tr key={index} className="hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 transition-colors">
+                                            <tr key={index} className="hover:bg-neutral-50 transition-colors">
                                                 <td className="py-2.5 px-3 text-center text-neutral-400 font-medium">
                                                     {index + 1}
                                                 </td>
@@ -392,13 +402,13 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                                                         ))}
                                                     </Select>
                                                 </td>
-                                                <td className="py-2.5 px-3 font-semibold text-neutral-800 dark:text-neutral-200">
+                                                <td className="py-2.5 px-3 font-semibold text-neutral-800">
                                                     {row.part_no || '-'}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-neutral-600 dark:text-neutral-400">
+                                                <td className="py-2.5 px-3 text-neutral-600">
                                                     {row.code || '-'}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-right font-medium text-neutral-700 dark:text-neutral-300">
+                                                <td className="py-2.5 px-3 text-right font-medium text-neutral-700 tabular-nums">
                                                     {Number(row.leather_sqft_per_pc).toFixed(2)} sq. ft
                                                 </td>
                                                 <td className="py-2.5 px-3 text-right">
@@ -408,11 +418,11 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                                                         step="1"
                                                         value={row.quantity}
                                                         onChange={(e) => handleQuantityChange(index, e.target.value)}
-                                                        className="w-24 text-right text-xs font-bold"
+                                                        className="w-24 text-right text-xs font-bold tabular-nums"
                                                         required
                                                     />
                                                 </td>
-                                                <td className="py-2.5 px-3 text-right font-bold text-brand-600 dark:text-brand-400">
+                                                <td className="py-2.5 px-3 text-right font-bold text-brand-700 tabular-nums">
                                                     {lineTotal.toFixed(2)} sq. ft
                                                 </td>
                                                 <td className="py-2.5 px-3 text-center">
@@ -420,7 +430,7 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                                                         type="button"
                                                         onClick={() => handleRemoveRow(index)}
                                                         disabled={items.length <= 1}
-                                                        className="text-neutral-400 hover:text-red-600 p-1 rounded-md transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                                                        className="text-neutral-400 hover:text-danger-600 p-1 rounded-md transition-colors disabled:opacity-30 disabled:pointer-events-none"
                                                         title="Delete row"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -435,33 +445,33 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                     </div>
 
                     {/* 4. Real-Time Summary & Audit Card */}
-                    <div className="p-5 rounded-2xl bg-neutral-900 text-white shadow-md space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+                    <div className="p-5 rounded-lg bg-white border border-neutral-200 shadow-sm space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 pb-4">
                             <div>
-                                <span className="text-xs uppercase tracking-widest text-neutral-400 font-bold">
+                                <span className="text-xs uppercase tracking-widest text-neutral-500 font-bold">
                                     Grand Total Leather Required
                                 </span>
-                                <div className="text-3xl font-black text-brand-400 mt-0.5">
-                                    {totalSqFtRequired.toFixed(2)} <span className="text-lg font-bold text-neutral-300">sq. ft</span>
+                                <div className="text-3xl font-black text-brand-700 mt-0.5 tabular-nums">
+                                    {totalSqFtRequired.toFixed(2)} <span className="text-lg font-bold text-neutral-500">sq. ft</span>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-6 text-xs text-neutral-300">
+                            <div className="flex items-center gap-6 text-xs text-neutral-600">
                                 <div>
                                     <div className="text-neutral-500 font-semibold uppercase">Total Products</div>
-                                    <div className="text-base font-bold text-white mt-0.5">{items.length}</div>
+                                    <div className="text-base font-bold text-neutral-900 mt-0.5 tabular-nums">{items.length}</div>
                                 </div>
                                 <div>
                                     <div className="text-neutral-500 font-semibold uppercase">Total Pieces</div>
-                                    <div className="text-base font-bold text-white mt-0.5">{totalPieces} pcs</div>
+                                    <div className="text-base font-bold text-neutral-900 mt-0.5 tabular-nums">{totalPieces} pcs</div>
                                 </div>
                                 <div>
                                     <div className="text-neutral-500 font-semibold uppercase">Available Stock</div>
-                                    <div className="text-base font-bold text-white mt-0.5">{availableStock.toFixed(2)} sq. ft</div>
+                                    <div className="text-base font-bold text-neutral-900 mt-0.5 tabular-nums">{availableStock.toFixed(2)} sq. ft</div>
                                 </div>
                                 <div>
                                     <div className="text-neutral-500 font-semibold uppercase">Balance After</div>
-                                    <div className={`text-base font-bold mt-0.5 ${remainingStock < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                                    <div className={`text-base font-bold mt-0.5 tabular-nums ${remainingStock < 0 ? 'text-danger-600' : 'text-success-500'}`}>
                                         {remainingStock.toFixed(2)} sq. ft
                                     </div>
                                 </div>
@@ -470,16 +480,16 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
 
                         {/* Stock Condition Alert */}
                         {isShortage ? (
-                            <div className="p-3.5 rounded-xl bg-red-900/40 border border-red-500/50 flex items-center gap-3 text-red-200 text-xs">
-                                <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+                            <div className="p-3.5 rounded-lg bg-danger-50 border border-danger-200 flex items-center gap-3 text-danger-700 text-xs">
+                                <AlertTriangle className="w-5 h-5 text-danger-600 shrink-0" />
                                 <div>
                                     <strong className="font-bold">Insufficient Stock: </strong>
                                     You need {totalSqFtRequired.toFixed(2)} sq. ft, but only {availableStock.toFixed(2)} sq. ft is available (Shortage: {(totalSqFtRequired - availableStock).toFixed(2)} sq. ft).
                                 </div>
                             </div>
                         ) : selectedMaterial && totalSqFtRequired > 0 ? (
-                            <div className="p-3.5 rounded-xl bg-emerald-900/30 border border-emerald-500/40 flex items-center gap-3 text-emerald-200 text-xs">
-                                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                            <div className="p-3.5 rounded-lg bg-success-50 border border-success-200 flex items-center gap-3 text-success-700 text-xs">
+                                <CheckCircle2 className="w-5 h-5 text-success-500 shrink-0" />
                                 <div>
                                     <strong className="font-bold">Stock Sufficient: </strong>
                                     {totalSqFtRequired.toFixed(2)} sq. ft will be automatically deducted from inventory.
@@ -488,24 +498,19 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                         ) : null}
 
                         {/* Optional Notes */}
-                        <div>
-                            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">
-                                Challan Notes / Cutting Instructions (Optional)
-                            </label>
-                            <textarea
-                                rows={2}
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="e.g. Cut wallet shells from center hide; handle grain direction carefully."
-                                className="w-full text-xs rounded-xl border border-neutral-800 bg-neutral-950 px-3 py-2 text-white placeholder-neutral-600 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                            />
-                        </div>
+                        <Textarea
+                            label="Challan Notes / Cutting Instructions (Optional)"
+                            rows={2}
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="e.g. Cut wallet shells from center hide; handle grain direction carefully."
+                        />
 
                         {/* Actions */}
                         <div className="flex items-center justify-end gap-3 pt-2">
                             <Link
                                 href={route('leather.index')}
-                                className="px-5 py-2.5 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white transition-colors"
+                                className="px-5 py-2.5 rounded-sm text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors"
                             >
                                 Cancel
                             </Link>
@@ -513,7 +518,7 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                                 type="submit"
                                 variant="primary"
                                 disabled={isSubmitting || isShortage || !cutterId || !materialId || totalSqFtRequired <= 0}
-                                className="flex items-center gap-2 text-xs font-bold px-6 py-2.5 shadow-lg"
+                                className="flex items-center gap-2 text-xs font-bold px-6 py-2.5 shadow-sm"
                             >
                                 <FileText className="w-4 h-4" />
                                 {isSubmitting ? 'Deducting Stock & Generating PDF...' : 'Save & Generate Challan PDF'}
