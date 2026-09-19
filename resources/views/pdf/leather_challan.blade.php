@@ -222,16 +222,12 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #fde68a;
             background: #fffbeb;
         }
         .specs-table td {
-            padding: 6px 12px;
+            padding: 8px 12px;
             vertical-align: middle;
-            border-right: 1px solid #fde68a;
-        }
-        .specs-table td:last-child {
-            border-right: none;
         }
         .spec-label {
             font-size: 9.5px;
@@ -239,9 +235,10 @@
             text-transform: uppercase;
             color: #92400e;
             letter-spacing: 0.5px;
+            margin-bottom: 2px;
         }
         .spec-val {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
             color: #78350f;
         }
@@ -255,7 +252,7 @@
         .items-table th {
             background: #1e293b;
             color: #ffffff;
-            font-size: 9.5px;
+            font-size: 10.5px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -265,7 +262,7 @@
         }
         .items-table td {
             padding: 7px 8px;
-            font-size: 10.5px;
+            font-size: 11.5px;
             border: 1px solid #e2e8f0;
             vertical-align: middle;
         }
@@ -280,7 +277,7 @@
         .total-banner {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             background: #fffbeb;
             border: 2px solid #b45309;
         }
@@ -288,19 +285,42 @@
             padding: 10px 14px;
             vertical-align: middle;
         }
+        .total-banner-left {
+            width: 58%;
+        }
         .total-banner-label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             color: #92400e;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            margin-bottom: 3px;
         }
-        .total-banner-val {
-            font-size: 18px;
+        .total-banner-meta {
+            font-size: 10px;
+            color: #78350f;
+            font-weight: normal;
+        }
+        .total-banner-meta strong {
+            font-weight: bold;
+            color: #92400e;
+        }
+        .total-banner-right {
+            width: 42%;
+            text-align: right;
+        }
+        .total-banner-val-badge {
+            display: inline-block;
+            font-size: 21px;
             font-weight: bold;
             color: #b45309;
-            text-align: right;
             letter-spacing: 0.5px;
+        }
+        .total-unit-sub {
+            font-size: 11px;
+            color: #78350f;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
         /* Notes Box */
@@ -379,12 +399,12 @@
                                 <table class="passport-meta-table">
                                     <tr>
                                         <td style="width: 55%;">
-                                            <div class="meta-label">CHALLAN NO.</div>
-                                            <div class="meta-val-bold">#{{ $challan->challan_no }}</div>
+                                             <div class="meta-label">CHALLAN NO.</div>
+                                             <div class="meta-val-bold">#{{ $challan->challan_no }}</div>
                                         </td>
                                         <td style="width: 45%;">
-                                            <div class="meta-label">ISSUE DATE</div>
-                                            <div class="meta-val-date">{{ $challan->created_at ? $challan->created_at->format('d M Y') : date('d M Y') }}</div>
+                                             <div class="meta-label">ISSUE DATE</div>
+                                             <div class="meta-val-date">{{ $challan->created_at ? $challan->created_at->format('d M Y') : date('d M Y') }}</div>
                                         </td>
                                     </tr>
                                 </table>
@@ -407,45 +427,36 @@
         <div class="section-bar">1. Raw Leather Hide Issued</div>
         <table class="specs-table">
             <tr>
-                <td style="width: 35%;">
-                    <div class="spec-label">LEATHER HIDE</div>
-                    <div class="spec-val">{{ $challan->material->name ?? 'N/A' }}</div>
-                </td>
-                <td style="width: 25%;">
-                    <div class="spec-label">VARIATION</div>
-                    <div class="spec-val">{{ $challan->variant ? $challan->variant->name : 'Standard' }}</div>
-                </td>
-                <td style="width: 20%;">
-                    <div class="spec-label">CATEGORY</div>
-                    <div class="spec-val">{{ $challan->material->category ?? 'LEATHER' }}</div>
-                </td>
-                <td style="width: 20%;">
-                    <div class="spec-label">BASE UNIT</div>
-                    <div class="spec-val">SQ. FT</div>
+                <td style="width: 100%;">
+                    <div class="spec-label">LEATHER HIDE &amp; VARIATION</div>
+                    <div class="spec-val">
+                        {{ $challan->material->name ?? 'N/A' }}
+                        <span style="color: #b45309; font-weight: normal; margin: 0 6px;">|</span>
+                        {{ $challan->variant ? $challan->variant->name : 'Standard' }}
+                    </div>
                 </td>
             </tr>
         </table>
 
         <!-- Products to Cut Table -->
-        <div class="section-bar">2. Products &amp; Cutting Breakdown</div>
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 5%;" class="text-center">#</th>
-                    <th style="width: 15%;">Part No.</th>
-                    <th style="width: 15%;">Code / SKU</th>
-                    <th style="width: 30%;">Product Description</th>
-                    <th style="width: 12%;" class="text-right">Sq.Ft / Pc</th>
+                    <th style="width: 4%;" class="text-center">#</th>
+                    <th style="width: 8%;" class="text-center">Part No.</th>
+                    <th style="width: 14%;">Code / SKU</th>
+                    <th style="width: 38%;">Product Description</th>
+                    <th style="width: 11%;" class="text-right">Sq.Ft / Pc</th>
                     <th style="width: 11%;" class="text-right">Qty (Pcs)</th>
-                    <th style="width: 12%;" class="text-right">Total Sq.Ft</th>
+                    <th style="width: 14%;" class="text-right">Total Sq.Ft</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($challan->items as $index => $item)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td class="font-bold">{{ $item->product->part_no ?? '-' }}</td>
-                    <td>{{ $item->product->code ?? '-' }}</td>
+                    <td class="text-center font-bold">{{ $item->product->part_no ?? '-' }}</td>
+                    <td class="font-bold">{{ $item->product->code ?? '-' }}</td>
                     <td class="font-bold">{{ $item->product->name ?? 'N/A' }}</td>
                     <td class="text-right">{{ number_format($item->leather_sqft_per_pc, 2) }}</td>
                     <td class="text-right font-bold">{{ number_format($item->quantity) }}</td>
@@ -458,14 +469,14 @@
         <!-- Grand Total Banner -->
         <table class="total-banner">
             <tr>
-                <td style="width: 60%;">
+                <td class="total-banner-left">
                     <div class="total-banner-label">GRAND TOTAL LEATHER TO DEDUCT &amp; ISSUE</div>
-                    <div style="font-size: 9.5px; color: #78350f; margin-top: 2px;">
-                        Total Products: {{ $challan->items->count() }} &bull; Total Pieces: {{ number_format($challan->items->sum('quantity')) }} Pcs
+                    <div class="total-banner-meta">
+                        Total Products: <strong>{{ $challan->items->count() }}</strong> &bull; Total Quantity: <strong>{{ number_format($challan->items->sum('quantity')) }} Pcs</strong>
                     </div>
                 </td>
-                <td style="width: 40%;">
-                    <div class="total-banner-val">{{ number_format($challan->total_sqft, 2) }} SQ. FT</div>
+                <td class="total-banner-right">
+                    <div class="total-banner-val-badge">{{ number_format($challan->total_sqft, 2) }} <span class="total-unit-sub">SQ. FT</span></div>
                 </td>
             </tr>
         </table>
