@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\CutterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LabourController;
+use App\Http\Controllers\LeatherChallanController;
 use App\Http\Controllers\LeatherController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\ProductController;
@@ -20,8 +22,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::match(['put', 'patch', 'post'], '/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::resource('products', ProductController::class)->except(['update']);
 
-    // Dedicated Leather Stock & Hides Management (Sq. Ft)
+    // Dedicated Leather Stock, Hides, Cutting Challans & Cutters
     Route::get('/leather', [LeatherController::class, 'index'])->name('leather.index');
+    Route::get('/leather/challans', [LeatherChallanController::class, 'index'])->name('leather.challans.index');
+    Route::get('/leather/challan/create', [LeatherChallanController::class, 'create'])->name('leather.challan.create');
+    Route::post('/leather/challan', [LeatherChallanController::class, 'store'])->name('leather.challan.store');
+    Route::get('/leather/challan/{challan}/pdf', [LeatherChallanController::class, 'downloadPdf'])->name('leather.challan.pdf');
+    Route::post('/leather/challan/{challan}/cancel', [LeatherChallanController::class, 'cancel'])->name('leather.challan.cancel');
+
+    // Cutters Directory & Quick-Add
+    Route::get('/leather/cutters', [CutterController::class, 'index'])->name('leather.cutters.index');
+    Route::post('/leather/cutters', [CutterController::class, 'store'])->name('leather.cutters.store');
+    Route::match(['put', 'patch', 'post'], '/leather/cutters/{cutter}', [CutterController::class, 'update'])->name('leather.cutters.update');
+
     Route::middleware('role:ADMIN')->group(function () {
         Route::post('/leather', [LeatherController::class, 'store'])->name('leather.store');
         Route::match(['put', 'patch', 'post'], '/leather/{material}', [LeatherController::class, 'update'])->name('leather.update');
@@ -87,6 +100,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         try {
             \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
             
+            \Illuminate\Support\Facades\DB::table('leather_challan_items')->delete();
+            \Illuminate\Support\Facades\DB::table('leather_challans')->delete();
+            \Illuminate\Support\Facades\DB::table('cutters')->delete();
             \Illuminate\Support\Facades\DB::table('assignment_materials')->delete();
             \Illuminate\Support\Facades\DB::table('assignments')->delete();
             \Illuminate\Support\Facades\DB::table('stock_transactions')->delete();

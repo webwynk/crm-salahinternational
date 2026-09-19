@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Head, useForm, router, usePage } from '@inertiajs/react';
+import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
+import LeatherTabNav from '@/Components/leather/LeatherTabNav';
 import FilterChips from '@/Components/ui/FilterChips';
 import Button from '@/Components/ui/Button';
 import Badge from '@/Components/ui/Badge';
@@ -201,15 +202,24 @@ export default function Index({ materials, categories = [], filters = {} }) {
         <AppLayout>
             <Head title="Leather & Hide Inventory - Leather CRM" />
 
+            <LeatherTabNav />
+
             <PageHeader
                 title="Leather Hide Master"
                 description="Manage leather stock, multi-variation hide grades, and replenish inventory balances"
                 action={
-                    isAdmin ? (
-                        <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
-                            <Plus className="w-4 h-4 mr-1.5" /> Add Leather Hide
-                        </Button>
-                    ) : null
+                    <div className="flex items-center gap-2">
+                        <Link href={route('leather.challan.create')}>
+                            <Button variant="secondary" className="flex items-center gap-1.5 font-bold">
+                                <Scissors className="w-4 h-4 text-brand-600" /> Make Challan
+                            </Button>
+                        </Link>
+                        {isAdmin ? (
+                            <Button variant="primary" onClick={() => setIsAddDrawerOpen(true)}>
+                                <Plus className="w-4 h-4 mr-1.5" /> Add Leather Hide
+                            </Button>
+                        ) : null}
+                    </div>
                 }
             />
 
