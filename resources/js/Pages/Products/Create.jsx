@@ -300,10 +300,10 @@ export default function Create({ materials = [] }) {
 
             <form onSubmit={submit} className="w-full space-y-6">
                 {/* 1. GENERAL PRODUCT SPECIFICATIONS */}
-                <Card className="border-neutral-200/90 shadow-2xs space-y-5">
-                    <div className="pb-3 border-b border-neutral-200">
+                <Card className="border-neutral-200/90 shadow-2xs space-y-3.5 p-4 sm:p-5">
+                    <div className="pb-2.5 border-b border-neutral-200">
                         <h3 className="text-md font-bold text-neutral-900 flex items-center gap-2">
-                            <Tag className="w-5 h-5 text-brand-600" />
+                            <Tag className="w-4 h-4 text-brand-600" />
                             1. General Product Specifications
                         </h3>
                         <p className="text-xs text-neutral-500 mt-0.5">
@@ -311,43 +311,48 @@ export default function Create({ materials = [] }) {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <div className="lg:col-span-8 space-y-4">
-                            {/* 1. Product Code & 2. Part No */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <Input
-                                    label="Product Code / SKU"
-                                    required
-                                    value={data.code}
-                                    onChange={(e) => setData('code', e.target.value.toUpperCase())}
-                                    placeholder="e.g. WAL-001, BAG-LUX-02"
-                                    error={errors.code}
-                                />
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                        <div className="lg:col-span-8 space-y-2.5">
+                            {/* Row 1: 1. Product Code (3 cols) | 2. Part No (3 cols) | 3. Product Name (6 cols) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                                <div className="sm:col-span-3">
+                                    <Input
+                                        label="Product Code / SKU"
+                                        required
+                                        value={data.code}
+                                        onChange={(e) => setData('code', e.target.value.toUpperCase())}
+                                        placeholder="e.g. WAL-001"
+                                        error={errors.code}
+                                    />
+                                </div>
 
-                                <Input
-                                    label="Part No"
-                                    value={data.part_no}
-                                    onChange={(e) => setData('part_no', e.target.value)}
-                                    placeholder="e.g. PRT-2028, P-01"
-                                    error={errors.part_no}
-                                />
+                                <div className="sm:col-span-3">
+                                    <Input
+                                        label="Part No"
+                                        value={data.part_no}
+                                        onChange={(e) => setData('part_no', e.target.value)}
+                                        placeholder="e.g. PRT-2028, P-01"
+                                        error={errors.part_no}
+                                    />
+                                </div>
+
+                                <div className="sm:col-span-6">
+                                    <Input
+                                        label="Product Name"
+                                        required
+                                        value={data.name}
+                                        onChange={(e) => setData('name', e.target.value)}
+                                        placeholder="e.g. Colourblocked Crossbody Sling Bag"
+                                        error={errors.name}
+                                    />
+                                </div>
                             </div>
 
-                            {/* 3. Product Name */}
-                            <Input
-                                label="Product Name"
-                                required
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                placeholder="e.g. Minimalist Bifold Leather Wallet"
-                                error={errors.name}
-                            />
-
-                            {/* 4. Category & 5. Leather Sqft */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {/* Row 2: 4. Category (6 cols) | 5. Leather Sqft (6 cols) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <Input
                                     label="Category"
-                                    placeholder="e.g. Wallet, Bag, Belt, Cardholder"
+                                    placeholder="e.g. Bag, Wallet, Belt"
                                     value={data.category}
                                     onChange={(e) => setData('category', e.target.value)}
                                     error={errors.category}
