@@ -274,10 +274,10 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                                         <button
                                             type="button"
                                             onClick={() => setIsAddCutterOpen(true)}
-                                            className="inline-flex items-center gap-0.5 text-[10.5px] font-semibold text-brand-700 hover:text-brand-900 hover:underline"
+                                            className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-brand-700 hover:text-brand-900 hover:underline"
                                         >
                                             <UserPlus className="w-3 h-3" />
-                                            + Add
+                                            Add Cutter
                                         </button>
                                     </div>
                                     <Select
@@ -369,7 +369,7 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
                                     className="flex items-center gap-1 text-[11px] font-semibold h-7 px-2.5 py-0.5"
                                 >
                                     <Plus className="w-3 h-3" />
-                                    + Add Product Line
+                                    Add Product Line
                                 </Button>
                             </div>
 

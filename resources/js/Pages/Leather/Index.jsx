@@ -849,7 +849,7 @@ export default function Index({ materials, categories = [], kpis = {}, filters =
                                     onClick={handleAddVariantRow}
                                     className="text-[11px] font-bold text-brand-700 hover:text-brand-900 flex items-center gap-1"
                                 >
-                                    <Plus className="w-3 h-3" /> + Add Variation
+                                    <Plus className="w-3 h-3" /> Add Variation
                                 </button>
                             </div>
 

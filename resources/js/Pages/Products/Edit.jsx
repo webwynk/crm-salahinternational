@@ -754,7 +754,7 @@ export default function Edit({ product, materials = [] }) {
                             >
                                 <Plus className="w-4 h-4 text-neutral-600" />
                                 <span>
-                                    + Add Component / Material Item {hasColors && colors[activeColorIndex] ? `(${colors[activeColorIndex].color_name})` : ''}
+                                    Add Component / Material Item {hasColors && colors[activeColorIndex] ? `(${colors[activeColorIndex].color_name})` : ''}
                                 </span>
                             </button>
                         </div>
