@@ -9,6 +9,7 @@ export default function ImageUpload({
     helperText = 'PNG, JPG, WEBP up to 5MB, or enter image URL',
     error,
     compact = false,
+    mode = 'default',
 }) {
     const [previewUrl, setPreviewUrl] = useState(value || '');
     const [useUrlInput, setUseUrlInput] = useState(false);
@@ -39,11 +40,87 @@ export default function ImageUpload({
         handleFileSelect(file);
     };
 
-    const handleRemove = () => {
+    const handleRemove = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         setPreviewUrl('');
         if (onChange) onChange('');
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
+
+    // Square 1:1 Aspect Ratio Mode
+    if (mode === 'square') {
+        return (
+            <div className="w-full space-y-1.5 flex flex-col items-start">
+                {label && (
+                    <label className="block text-sm font-medium text-neutral-700 truncate w-full">
+                        {label}
+                    </label>
+                )}
+
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e.target.files[0])}
+                    className="hidden"
+                />
+
+                <div className="relative inline-block group">
+                    {previewUrl ? (
+                        <div className="relative w-[44px] h-[44px] aspect-square rounded-md border border-brand-300 bg-brand-50/40 p-0.5 flex items-center justify-center shadow-2xs group-hover:border-brand-500 transition-all">
+                            <img
+                                src={previewUrl}
+                                alt="Preview"
+                                className="w-full h-full object-cover rounded-sm"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleRemove}
+                                className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-danger-600 hover:bg-danger-700 text-white flex items-center justify-center shadow-xs transition-transform hover:scale-110 cursor-pointer z-20"
+                                title="Remove image"
+                                aria-label="Remove image"
+                            >
+                                <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={handleDrop}
+                                className="w-[44px] h-[44px] aspect-square rounded-md border-2 border-dashed border-neutral-300 hover:border-brand-500 bg-neutral-50/60 hover:bg-brand-50/30 flex items-center justify-center cursor-pointer transition-colors shadow-2xs group"
+                                title="Click to upload image or drag & drop"
+                            >
+                                <UploadCloud className="w-5 h-5 text-neutral-400 group-hover:text-brand-600 transition-colors" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const url = window.prompt('Enter image URL:', previewUrl || '');
+                                    if (url !== null && url.trim() !== '') {
+                                        setPreviewUrl(url.trim());
+                                        if (onChange) onChange(url.trim());
+                                    }
+                                }}
+                                title="Enter image URL"
+                                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white border border-neutral-300 hover:border-brand-500 text-neutral-500 hover:text-brand-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-2xs cursor-pointer z-10"
+                            >
+                                <LinkIcon className="w-2.5 h-2.5" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {error && <p className="text-xs text-danger-700 font-medium">{error}</p>}
+            </div>
+        );
+    }
 
     // Compact Horizontal Strip Mode
     if (compact) {

@@ -311,81 +311,82 @@ export default function Create({ materials = [] }) {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-                        <div className="lg:col-span-8 space-y-2.5">
-                            {/* Row 1: 1. Product Code (3 cols) | 2. Part No (3 cols) | 3. Product Name (6 cols) */}
-                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                                <div className="sm:col-span-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-3 items-end">
+                        {/* 1. Part No (1 col) */}
+                        <div className="col-span-1 sm:col-span-2 lg:col-span-1">
+                            <Input
+                                label="Part No"
+                                value={data.part_no}
+                                onChange={(e) => setData('part_no', e.target.value)}
+                                placeholder="e.g. P-01"
+                                error={errors.part_no}
+                            />
+                        </div>
+
+                        {/* 2. Product Code / SKU (2 cols) */}
+                        <div className="col-span-1 sm:col-span-4 lg:col-span-2">
+                            <Input
+                                label="Product Code / SKU"
+                                required
+                                value={data.code}
+                                onChange={(e) => setData('code', e.target.value.toUpperCase())}
+                                placeholder="e.g. WAL-001"
+                                error={errors.code}
+                            />
+                        </div>
+
+                        {/* 3. Product Name (4 cols) */}
+                        <div className="col-span-1 sm:col-span-6 lg:col-span-4">
+                            <Input
+                                label="Product Name"
+                                required
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                placeholder="e.g. Colourblocked Crossbody Sling Bag"
+                                error={errors.name}
+                            />
+                        </div>
+
+                        {/* 4. Category (2 cols) */}
+                        <div className="col-span-1 sm:col-span-3 lg:col-span-2">
+                            <Input
+                                label="Category"
+                                placeholder="e.g. Bag, Wallet"
+                                value={data.category}
+                                onChange={(e) => setData('category', e.target.value)}
+                                error={errors.category}
+                            />
+                        </div>
+
+                        {/* 5. Leather (sq ft) (2 cols) */}
+                        <div className="col-span-1 sm:col-span-3 lg:col-span-2">
+                            <div className="w-full space-y-1.5">
+                                <label className="block text-sm font-medium text-neutral-700 truncate">
+                                    Leather (sq ft)
+                                </label>
+                                <div className="relative">
                                     <Input
-                                        label="Product Code / SKU"
-                                        required
-                                        value={data.code}
-                                        onChange={(e) => setData('code', e.target.value.toUpperCase())}
-                                        placeholder="e.g. WAL-001"
-                                        error={errors.code}
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="e.g. 2.50"
+                                        value={data.leather_sqft}
+                                        onChange={(e) => setData('leather_sqft', e.target.value)}
+                                        error={errors.leather_sqft}
+                                        className="pr-14 font-sans tabular-nums"
                                     />
-                                </div>
-
-                                <div className="sm:col-span-3">
-                                    <Input
-                                        label="Part No"
-                                        value={data.part_no}
-                                        onChange={(e) => setData('part_no', e.target.value)}
-                                        placeholder="e.g. PRT-2028, P-01"
-                                        error={errors.part_no}
-                                    />
-                                </div>
-
-                                <div className="sm:col-span-6">
-                                    <Input
-                                        label="Product Name"
-                                        required
-                                        value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
-                                        placeholder="e.g. Colourblocked Crossbody Sling Bag"
-                                        error={errors.name}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Row 2: 4. Category (6 cols) | 5. Leather Sqft (6 cols) */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <Input
-                                    label="Category"
-                                    placeholder="e.g. Bag, Wallet, Belt"
-                                    value={data.category}
-                                    onChange={(e) => setData('category', e.target.value)}
-                                    error={errors.category}
-                                />
-
-                                <div className="space-y-1">
-                                    <label className="block text-xs font-semibold text-neutral-700">
-                                        Leather (sq ft)
-                                    </label>
-                                    <div className="relative">
-                                        <Input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            placeholder="e.g. 2.50"
-                                            value={data.leather_sqft}
-                                            onChange={(e) => setData('leather_sqft', e.target.value)}
-                                            error={errors.leather_sqft}
-                                            className="pr-14 font-sans tabular-nums"
-                                        />
-                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-2xs font-bold text-neutral-400 pointer-events-none uppercase">
-                                            sq ft
-                                        </span>
-                                    </div>
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-2xs font-bold text-neutral-400 pointer-events-none uppercase">
+                                        sq ft
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 6. Product Photo */}
-                        <div className="lg:col-span-4 flex flex-col">
+                        {/* 6. Product Photo 1:1 (1 col) */}
+                        <div className="col-span-1 sm:col-span-3 lg:col-span-1 flex flex-col items-start">
                             <ImageUpload
-                                label="Primary Product Photo (Optional)"
-                                compact
+                                label="Photo"
+                                mode="square"
                                 value={data.image_url}
                                 onChange={(url) => setData('image_url', url)}
                                 error={errors.image_url}
