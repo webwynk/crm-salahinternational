@@ -171,7 +171,7 @@ export default function MakeChallan({ cutters = [], materials = [], products = [
         <AppLayout>
             <Head title="New Cutting Challan — Salah International" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            <div className="space-y-6">
                 <LeatherTabNav />
 
                 {/* Header with Back Link */}

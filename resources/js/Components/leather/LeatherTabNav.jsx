@@ -27,7 +27,7 @@ export default function LeatherTabNav() {
     ];
 
     return (
-        <div className="flex items-center gap-1 border-b border-neutral-200 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1 border-b border-neutral-200 mb-6 overflow-x-auto scrollbar-none">
             {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
