@@ -32,12 +32,6 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
             active: url.startsWith('/products'),
         },
         {
-            label: 'Leather Stock',
-            href: route('leather.index'),
-            icon: Scissors,
-            active: url.startsWith('/leather'),
-        },
-        {
             label: 'Materials Master',
             href: route('materials.index'),
             icon: Boxes,
@@ -54,6 +48,12 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
             href: route('assignments.index'),
             icon: ClipboardList,
             active: url.startsWith('/assignments'),
+        },
+        {
+            label: 'Leather Stock',
+            href: route('leather.index'),
+            icon: Scissors,
+            active: url.startsWith('/leather'),
         },
     ];
 

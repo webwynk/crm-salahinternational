@@ -131,7 +131,7 @@ class AssignmentController extends Controller
 
     public function show(Assignment $assignment): Response
     {
-        $assignment->load(['product.materials.material', 'labour', 'materials.material', 'materials.variant', 'assigner', 'pdfs']);
+        $assignment->load(['product.materials.material', 'color', 'labour', 'materials.material', 'materials.variant', 'assigner', 'pdfs']);
 
         return Inertia::render('Assignments/Show', [
             'assignment' => $assignment,
