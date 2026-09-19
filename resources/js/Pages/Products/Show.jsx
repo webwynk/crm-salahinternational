@@ -56,10 +56,25 @@ export default function Show({ product }) {
                             </div>
                         )}
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center gap-2.5 mb-2 flex-wrap">
                                 <span className="font-sans font-bold text-xs text-brand-700 bg-brand-50 px-3 py-1 rounded border border-brand-200">
                                     {product.code}
                                 </span>
+                                {product.part_no && (
+                                    <span className="font-sans font-semibold text-xs text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded border border-neutral-200">
+                                        Part No: <strong>{product.part_no}</strong>
+                                    </span>
+                                )}
+                                {product.category && (
+                                    <span className="text-xs text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded border border-neutral-200">
+                                        {product.category}
+                                    </span>
+                                )}
+                                {product.leather_sqft && (
+                                    <span className="font-sans font-semibold text-xs text-amber-800 bg-amber-50 px-2.5 py-1 rounded border border-amber-200">
+                                        Leather: <strong>{Number(product.leather_sqft).toFixed(2)} sq ft</strong>
+                                    </span>
+                                )}
                                 <StatusPill status={product.is_active ? 'ACTIVE' : 'INACTIVE'} />
                                 {hasColors && (
                                     <span className="text-xs font-bold text-brand-700 bg-brand-50 px-2.5 py-0.5 rounded-full border border-brand-200">

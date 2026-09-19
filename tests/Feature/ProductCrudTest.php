@@ -522,5 +522,66 @@ class ProductCrudTest extends TestCase
             ->where('products.data.0.colors.0.color_name', 'Tuscan Tan')
         );
     }
+
+    public function test_authenticated_user_can_create_and_update_product_with_part_no_and_leather_sqft(): void
+    {
+        $this->actingAs($this->user);
+
+        // 1. Create with part_no and leather_sqft
+        $createResponse = $this->post('/products', [
+            'code' => 'LW-2028-TEST',
+            'part_no' => 'PRT-LW-01',
+            'name' => 'Colourblocked Crossbody Sling Bag',
+            'category' => 'Bag',
+            'leather_sqft' => 3.75,
+            'materials' => [
+                [
+                    'material_id' => $this->material->id,
+                    'material_type' => 'CONSUMABLE',
+                    'label' => 'Main Shell Leather',
+                    'quantity_min' => 1,
+                    'unit' => 'pcs',
+                ],
+            ],
+        ]);
+
+        $createResponse->assertRedirect('/products');
+
+        $this->assertDatabaseHas('products', [
+            'code' => 'LW-2028-TEST',
+            'part_no' => 'PRT-LW-01',
+            'name' => 'Colourblocked Crossbody Sling Bag',
+            'category' => 'Bag',
+            'leather_sqft' => '3.75',
+        ]);
+
+        $product = Product::where('code', 'LW-2028-TEST')->first();
+
+        // 2. Update with modified part_no and leather_sqft
+        $updateResponse = $this->put("/products/{$product->id}", [
+            'code' => 'LW-2028-TEST',
+            'part_no' => 'PRT-LW-02-REVISED',
+            'name' => 'Colourblocked Crossbody Sling Bag V2',
+            'category' => 'Bag',
+            'leather_sqft' => 4.20,
+            'materials' => [
+                [
+                    'material_id' => $this->material->id,
+                    'material_type' => 'CONSUMABLE',
+                    'label' => 'Main Shell Leather',
+                    'quantity_min' => 1,
+                    'unit' => 'pcs',
+                ],
+            ],
+        ]);
+
+        $updateResponse->assertRedirect('/products');
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'part_no' => 'PRT-LW-02-REVISED',
+            'leather_sqft' => '4.20',
+        ]);
+    }
 }
 

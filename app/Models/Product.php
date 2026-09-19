@@ -22,8 +22,10 @@ class Product extends Model
 
     protected $fillable = [
         'code',
+        'part_no',
         'name',
         'category',
+        'leather_sqft',
         'description',
         'image_url',
         'has_colors',
@@ -32,8 +34,9 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'is_active'  => 'boolean',
-        'has_colors' => 'boolean',
+        'is_active'     => 'boolean',
+        'has_colors'    => 'boolean',
+        'leather_sqft'  => 'decimal:2',
     ];
 
     /**

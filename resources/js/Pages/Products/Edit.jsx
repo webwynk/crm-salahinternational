@@ -80,8 +80,10 @@ export default function Edit({ product, materials = [] }) {
 
     const { data, setData, post, processing, errors, transform } = useForm({
         code: product.code || '',
+        part_no: product.part_no || '',
         name: product.name || '',
         category: product.category || 'Wallet',
+        leather_sqft: product.leather_sqft != null ? String(product.leather_sqft) : '',
         image_url: product.image_url || '',
         has_colors: initialHasColors,
         materials: [],
@@ -351,8 +353,9 @@ export default function Edit({ product, materials = [] }) {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <div className="lg:col-span-8">
-                            <div className="grid grid-cols-1 md:grid-cols-[5fr_11fr_4fr] gap-4">
+                        <div className="lg:col-span-8 space-y-4">
+                            {/* 1. Product Code & 2. Part No */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Input
                                     label="Product Code / SKU"
                                     required
@@ -363,14 +366,26 @@ export default function Edit({ product, materials = [] }) {
                                 />
 
                                 <Input
-                                    label="Product Name"
-                                    required
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    placeholder="e.g. Minimalist Bifold Leather Wallet"
-                                    error={errors.name}
+                                    label="Part No"
+                                    value={data.part_no}
+                                    onChange={(e) => setData('part_no', e.target.value)}
+                                    placeholder="e.g. PRT-2028, P-01"
+                                    error={errors.part_no}
                                 />
+                            </div>
 
+                            {/* 3. Product Name */}
+                            <Input
+                                label="Product Name"
+                                required
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                placeholder="e.g. Minimalist Bifold Leather Wallet"
+                                error={errors.name}
+                            />
+
+                            {/* 4. Category & 5. Leather Sqft */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Input
                                     label="Category"
                                     placeholder="e.g. Wallet, Bag, Belt, Cardholder"
@@ -378,9 +393,31 @@ export default function Edit({ product, materials = [] }) {
                                     onChange={(e) => setData('category', e.target.value)}
                                     error={errors.category}
                                 />
+
+                                <div className="space-y-1">
+                                    <label className="block text-xs font-semibold text-neutral-700">
+                                        Leather (sq ft)
+                                    </label>
+                                    <div className="relative">
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            placeholder="e.g. 2.50"
+                                            value={data.leather_sqft}
+                                            onChange={(e) => setData('leather_sqft', e.target.value)}
+                                            error={errors.leather_sqft}
+                                            className="pr-14 font-sans tabular-nums"
+                                        />
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-2xs font-bold text-neutral-400 pointer-events-none uppercase">
+                                            sq ft
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
+                        {/* 6. Product Photo */}
                         <div className="lg:col-span-4 flex flex-col">
                             <ImageUpload
                                 label="Primary Product Photo (Optional)"

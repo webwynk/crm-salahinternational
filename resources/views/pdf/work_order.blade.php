@@ -597,6 +597,9 @@
             <tr>
                 <td class="product-main">
                     <span class="product-code-lead">{{ $product?->code ?? 'PROD' }}</span>
+                    @if(!empty($product?->part_no))
+                        <span style="font-size: 11px; font-weight: normal; color: #64748b; margin-left: 4px;">(Part: {{ $product->part_no }})</span>
+                    @endif
                     <span class="product-title-sep">|</span>
                     <span class="product-title-text">{{ $product?->name ?? 'Custom Leather Article' }}</span>
                 </td>

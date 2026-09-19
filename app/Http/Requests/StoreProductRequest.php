@@ -71,8 +71,10 @@ class StoreProductRequest extends FormRequest
 
         return [
             'code' => ['required', 'string', 'max:30', 'alpha_dash', 'unique:products,code'],
+            'part_no' => ['nullable', 'string', 'max:60'],
             'name' => ['required', 'string', 'max:150'],
             'category' => ['nullable', 'string', 'max:40'],
+            'leather_sqft' => ['nullable', 'numeric', 'min:0', 'max:99999.99'],
             'description' => ['nullable', 'string', 'max:1000'],
             'image_url' => ['nullable', 'string'],
             'has_colors' => ['nullable', 'boolean'],

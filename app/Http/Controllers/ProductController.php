@@ -9,6 +9,7 @@ use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,7 +60,7 @@ class ProductController extends Controller
         $hasColors = (bool) ($validated['has_colors'] ?? false);
 
         DB::transaction(function () use ($validated, $request, $hasColors, &$product) {
-            $product = Product::create([
+            $productData = [
                 'code' => strtoupper($validated['code']),
                 'name' => $validated['name'],
                 'category' => $validated['category'] ?? null,
@@ -67,7 +68,16 @@ class ProductController extends Controller
                 'image_url' => $validated['image_url'] ?? null,
                 'has_colors' => $hasColors,
                 'created_by' => $request->user()->id,
-            ]);
+            ];
+
+            if (Schema::hasColumn('products', 'part_no')) {
+                $productData['part_no'] = $validated['part_no'] ?? null;
+            }
+            if (Schema::hasColumn('products', 'leather_sqft')) {
+                $productData['leather_sqft'] = isset($validated['leather_sqft']) && $validated['leather_sqft'] !== '' ? (float) $validated['leather_sqft'] : null;
+            }
+
+            $product = Product::create($productData);
 
             if ($hasColors && !empty($validated['colors'])) {
                 foreach ($validated['colors'] as $cIdx => $colorData) {
@@ -127,14 +137,23 @@ class ProductController extends Controller
         $hasColors = (bool) ($validated['has_colors'] ?? false);
 
         DB::transaction(function () use ($validated, $hasColors, $product) {
-            $product->update([
+            $updateData = [
                 'code' => strtoupper($validated['code']),
                 'name' => $validated['name'],
                 'category' => $validated['category'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'image_url' => $validated['image_url'] ?? null,
                 'has_colors' => $hasColors,
-            ]);
+            ];
+
+            if (Schema::hasColumn('products', 'part_no')) {
+                $updateData['part_no'] = $validated['part_no'] ?? null;
+            }
+            if (Schema::hasColumn('products', 'leather_sqft')) {
+                $updateData['leather_sqft'] = isset($validated['leather_sqft']) && $validated['leather_sqft'] !== '' ? (float) $validated['leather_sqft'] : null;
+            }
+
+            $product->update($updateData);
 
             if ($hasColors && !empty($validated['colors'])) {
                 // Delete any previous single-color materials
