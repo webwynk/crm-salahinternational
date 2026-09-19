@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductMaterial;
 use App\Models\StockTransaction;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AssignmentService
 {
@@ -155,18 +156,25 @@ class AssignmentService
             }
             $assignmentNo = sprintf('WO-%d-%04d', $year, $seq);
 
-            $assignment = Assignment::create([
+            $assignmentData = [
                 'assignment_no'    => $assignmentNo,
                 'product_id'       => $productId,
                 'product_color_id' => $productColorId ? (int) $productColorId : null,
                 'labour_id'        => $labourId,
                 'quantity'         => $quantity,
-                'rate'             => $rate,
-                'delivery_date'    => $deliveryDate,
                 'assigned_by'      => $assignedByUserId,
                 'status'           => 'ASSIGNED',
                 'notes'            => $notes,
-            ]);
+            ];
+
+            if (Schema::hasColumn('assignments', 'rate')) {
+                $assignmentData['rate'] = $rate;
+            }
+            if (Schema::hasColumn('assignments', 'delivery_date')) {
+                $assignmentData['delivery_date'] = $deliveryDate;
+            }
+
+            $assignment = Assignment::create($assignmentData);
 
             foreach ($lockedInventory as $data) {
                 AssignmentMaterial::create([
