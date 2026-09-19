@@ -109,7 +109,9 @@ class AssignmentController extends Controller
                 (int) $validated['quantity'],
                 $request->user()->id,
                 $validated['notes'] ?? null,
-                $validated['product_color_id'] ?? null
+                $validated['product_color_id'] ?? null,
+                isset($validated['rate']) && $validated['rate'] !== '' ? (float) $validated['rate'] : null,
+                $validated['delivery_date'] ?? null
             );
 
             // Auto-generate Exporter and Fabricator Work Order PDF copies

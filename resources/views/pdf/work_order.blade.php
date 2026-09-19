@@ -151,17 +151,29 @@
             border-right: 1px solid #e2e8f0;
         }
         .meta-strip-cell-rate {
-            width: 28%;
+            width: 20%;
             background: #fafaf9;
         }
         .meta-strip-cell-delivery {
-            width: 36%;
+            width: 26%;
             background: #fafaf9;
         }
         .meta-strip-cell-color {
-            width: 36%;
-            border-right: none;
+            width: 27%;
             background: #ffffff;
+        }
+        .meta-strip-cell-leather {
+            width: 27%;
+            border-right: none;
+            background: #fafaf9;
+        }
+        .meta-val-filled {
+            font-size: 13px;
+            font-weight: bold;
+            color: #0f172a;
+            line-height: 1.2;
+            display: block;
+            margin-top: 3px;
         }
         .meta-kicker {
             font-size: 11.5px;
@@ -543,18 +555,26 @@
             </tr>
         </table>
 
-        <!-- PRODUCTION METADATA STRIP: RATE, DELIVERY DATE & COLORWAY -->
+        <!-- PRODUCTION METADATA STRIP: RATE, DELIVERY DATE, COLORWAY & LEATHER -->
         <table class="meta-strip-table">
             <tr>
                 <td class="meta-strip-cell meta-strip-cell-rate">
                     <span class="meta-kicker">Rate</span>
-                    <div class="manual-space">
-                        <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 13px; font-weight: bold; color: #64748b;">&#8377;</span>
-                    </div>
+                    @if(!empty($assignment->rate))
+                        <span class="meta-val-filled"><span style="font-family: 'DejaVu Sans', sans-serif;">&#8377;</span> {{ number_format((float) $assignment->rate, 2) }}</span>
+                    @else
+                        <div class="manual-space">
+                            <span style="font-family: 'DejaVu Sans', sans-serif; font-size: 13px; font-weight: bold; color: #64748b;">&#8377;</span>
+                        </div>
+                    @endif
                 </td>
                 <td class="meta-strip-cell meta-strip-cell-delivery">
                     <span class="meta-kicker">Delivery Date</span>
-                    <div class="manual-space"></div>
+                    @if(!empty($assignment->delivery_date))
+                        <span class="meta-val-filled">{{ \Carbon\Carbon::parse($assignment->delivery_date)->format('d/m/Y') }}</span>
+                    @else
+                        <div class="manual-space"></div>
+                    @endif
                 </td>
                 <td class="meta-strip-cell meta-strip-cell-color">
                     <span class="meta-kicker">Color</span>
@@ -564,6 +584,10 @@
                     @else
                         <span class="meta-val-standard">Standard</span>
                     @endif
+                </td>
+                <td class="meta-strip-cell meta-strip-cell-leather">
+                    <span class="meta-kicker">Leather</span>
+                    <div class="manual-space"></div>
                 </td>
             </tr>
         </table>

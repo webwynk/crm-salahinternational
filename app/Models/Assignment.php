@@ -31,6 +31,8 @@ class Assignment extends Model
         'product_color_id',
         'labour_id',
         'quantity',
+        'rate',
+        'delivery_date',
         'status',
         'assigned_by',
         'assigned_at',
@@ -40,6 +42,8 @@ class Assignment extends Model
 
     protected $casts = [
         'quantity' => 'integer',
+        'rate' => 'decimal:2',
+        'delivery_date' => 'date',
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
     ];

@@ -69,6 +69,8 @@ export default function Create({ products = [], labours = [], labour = [], categ
         product_color_id: '',
         labour_id: '',
         quantity: 10,
+        rate: '',
+        delivery_date: '',
     });
 
     // Auto-select first product if available and none selected
@@ -683,6 +685,50 @@ export default function Create({ products = [], labours = [], labour = [], categ
                                     <p className="text-[10px] text-neutral-500 font-medium">Assigned Artisan</p>
                                     <p className="font-semibold text-neutral-900 truncate">{selectedArtisan?.name || 'Not Selected'}</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Production Details: Rate & Delivery Date (Optional) */}
+                    <div className="p-3 bg-neutral-50/70 rounded-xl border border-neutral-200/90 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <span className="font-bold text-brand-600 text-xs font-sans">₹</span>
+                                Production Rate & Delivery Schedule <span className="text-[10px] font-normal text-neutral-400 lowercase">(optional)</span>
+                            </h4>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-2xs font-semibold text-neutral-600 uppercase tracking-wider mb-1">
+                                    Rate (₹)
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-xs">₹</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="Leave blank for manual entry"
+                                        value={data.rate}
+                                        onChange={(e) => setData('rate', e.target.value)}
+                                        className="w-full text-xs pl-7 pr-3 py-1.5 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 font-sans tabular-nums"
+                                    />
+                                </div>
+                                {errors.rate && <p className="text-2xs text-danger-600 mt-0.5">{errors.rate}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-2xs font-semibold text-neutral-600 uppercase tracking-wider mb-1">
+                                    Delivery Date
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="date"
+                                        value={data.delivery_date}
+                                        onChange={(e) => setData('delivery_date', e.target.value)}
+                                        className="w-full text-xs px-2.5 py-1.5 border border-neutral-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 font-sans"
+                                    />
+                                </div>
+                                {errors.delivery_date && <p className="text-2xs text-danger-600 mt-0.5">{errors.delivery_date}</p>}
                             </div>
                         </div>
                     </div>

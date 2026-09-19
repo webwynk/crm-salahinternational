@@ -82,9 +82,11 @@ class AssignmentService
         int $quantity,
         int|string $assignedByUserId,
         ?string $notes = null,
-        int|string|null $productColorId = null
+        int|string|null $productColorId = null,
+        ?float $rate = null,
+        ?string $deliveryDate = null
     ): Assignment {
-        return DB::transaction(function () use ($productId, $labourId, $quantity, $assignedByUserId, $notes, $productColorId) {
+        return DB::transaction(function () use ($productId, $labourId, $quantity, $assignedByUserId, $notes, $productColorId, $rate, $deliveryDate) {
             $product = Product::with(['materials.material.variants', 'materials.variant', 'colors'])->findOrFail($productId);
             /** @var \Illuminate\Database\Eloquent\Collection<int, ProductMaterial> $bom */
             if ($productColorId) {
@@ -159,6 +161,8 @@ class AssignmentService
                 'product_color_id' => $productColorId ? (int) $productColorId : null,
                 'labour_id'        => $labourId,
                 'quantity'         => $quantity,
+                'rate'             => $rate,
+                'delivery_date'    => $deliveryDate,
                 'assigned_by'      => $assignedByUserId,
                 'status'           => 'ASSIGNED',
                 'notes'            => $notes,

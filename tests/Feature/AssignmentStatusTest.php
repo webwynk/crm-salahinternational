@@ -272,6 +272,8 @@ class AssignmentStatusTest extends TestCase
             'product_color_id' => $tanColor->id,
             'labour_id' => $this->labour->id,
             'quantity' => 10,
+            'rate' => 450.50,
+            'delivery_date' => '2026-10-15',
         ]);
 
         $response->assertRedirect('/assignments');
@@ -280,12 +282,16 @@ class AssignmentStatusTest extends TestCase
         $this->assertEquals(30.0, (float) $tanInv->fresh()->quantity_on_hand);
         $this->assertEquals(50.0, (float) $blackInv->fresh()->quantity_on_hand);
 
-        // Verify assignment recorded product_color_id
+        // Verify assignment recorded product_color_id and rate
         $this->assertDatabaseHas('assignments', [
             'product_id' => $product->id,
             'product_color_id' => $tanColor->id,
             'quantity' => 10,
+            'rate' => 450.50,
         ]);
+        $assignedWo = Assignment::where('product_id', $product->id)->first();
+        $this->assertNotNull($assignedWo->delivery_date);
+        $this->assertEquals('2026-10-15', $assignedWo->delivery_date->format('Y-m-d'));
 
         // Verify Exporter, Fabricator, and Leather Slip PDFs generate for assignment
         $assignedWo = Assignment::where('product_id', $product->id)->first();
@@ -433,6 +439,7 @@ class AssignmentStatusTest extends TestCase
 
         $this->assertStringContainsString('Solid Brass YKK Zipper #5', $exporterView);
         $this->assertStringNotContainsString('Italian Pull-Up Cowhide', $exporterView);
+        $this->assertStringContainsString('Leather', $exporterView);
 
         // 3. Verify Leather Issue Slip material separation & total banner
         $leatherPdfService = new \App\Services\LeatherIssuePdfService();
