@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from '@inertiajs/react';
-import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react';
 import Button from '@/Components/ui/Button';
 import EmptyState from '@/Components/ui/EmptyState';
-import { SkeletonTable } from '@/Components/ui/Skeleton';
+import { SkeletonLine } from '@/Components/ui/Skeleton';
 
 export default function DataTable({
     columns = [],
@@ -28,9 +28,40 @@ export default function DataTable({
     compact = false,
     itemLabel = 'records',
 }) {
-    if (isLoading) {
-        return <SkeletonTable cols={columns.length + (renderRowActions ? 1 : 0)} rows={6} />;
-    }
+    // Internal debounced search state to ensure typing is 100% uninterrupted
+    const [localSearch, setLocalSearch] = useState(search || '');
+    const isInitialMount = useRef(true);
+    const inputRef = useRef(null);
+
+    // Sync local state when external search prop changes (e.g. Clear Filters or reset)
+    useEffect(() => {
+        if (document.activeElement !== inputRef.current || search === '') {
+            setLocalSearch(search || '');
+        }
+    }, [search]);
+
+    // Debounced search dispatch (300ms)
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            if (onSearchChange && localSearch !== (search || '')) {
+                onSearchChange(localSearch);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [localSearch]);
+
+    const handleClearSearch = () => {
+        setLocalSearch('');
+        if (onSearchChange) {
+            onSearchChange('');
+        }
+    };
 
     if (error) {
         return (
@@ -50,7 +81,7 @@ export default function DataTable({
     }
 
     const hasData = data && data.length > 0;
-    const _isFiltered = isFiltered || Boolean(search || (filters && Object.values(filters).some(Boolean)));
+    const _isFiltered = isFiltered || Boolean(localSearch || (filters && Object.values(filters).some(Boolean)));
 
     // Build pagination prev/next links from Laravel paginator links array
     const prevLink = pagination?.links?.find(l => l.label.includes('Previous') || l.label.includes('&laquo;'));
@@ -59,25 +90,55 @@ export default function DataTable({
         !l.label.includes('&laquo;') && !l.label.includes('&raquo;'));
 
     return (
-        <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-xs">
-            {/* Filter & Search Header — only if using built-in search */}
+        <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-xs relative">
+            {/* Slim top indeterminate loading bar */}
+            {isLoading && (
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-brand-100 overflow-hidden z-20">
+                    <div className="h-full bg-brand-600 animate-pulse w-full" />
+                </div>
+            )}
+
+            {/* Filter & Search Header — stays permanently mounted */}
             {(onSearchChange || filters) && (
                 <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     {onSearchChange && (
                         <div className="relative flex-1 max-w-md">
-                            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                            {isLoading ? (
+                                <Loader2 className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-brand-600 animate-spin pointer-events-none" />
+                            ) : (
+                                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+                            )}
                             <input
+                                ref={inputRef}
                                 type="text"
-                                value={search}
-                                onChange={(e) => onSearchChange(e.target.value)}
+                                value={localSearch}
+                                onChange={(e) => setLocalSearch(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape') {
+                                        handleClearSearch();
+                                    }
+                                }}
                                 placeholder={searchPlaceholder}
-                                className="w-full text-[12.5px] pl-8 pr-3 py-2 border border-neutral-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 placeholder:text-neutral-300 shadow-2xs"
+                                className="w-full text-[12.5px] pl-8 pr-8 py-2 border border-neutral-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 placeholder:text-neutral-300 shadow-2xs transition-colors"
                             />
+                            {localSearch && (
+                                <button
+                                    type="button"
+                                    onClick={handleClearSearch}
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-neutral-400 hover:text-neutral-700 rounded-full hover:bg-neutral-100 transition-colors cursor-pointer"
+                                    title="Clear search (Esc)"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            )}
                         </div>
                     )}
 
                     {_isFiltered && onClearFilters && (
-                        <Button variant="ghost" size="sm" onClick={onClearFilters}>
+                        <Button variant="ghost" size="sm" onClick={() => {
+                            handleClearSearch();
+                            onClearFilters();
+                        }}>
                             Clear Filters
                         </Button>
                     )}
@@ -86,17 +147,30 @@ export default function DataTable({
 
             {/* Table Content */}
             {!hasData ? (
-                _isFiltered ? (
+                isLoading ? (
+                    <div className="p-6 space-y-3 animate-pulse">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="h-12 bg-neutral-100/80 rounded-lg w-full flex items-center px-4 gap-4">
+                                <div className="w-10 h-10 bg-neutral-200 rounded-md shrink-0" />
+                                <div className="h-4 bg-neutral-200 rounded w-1/3" />
+                                <div className="h-4 bg-neutral-200 rounded w-1/4 ml-auto" />
+                            </div>
+                        ))}
+                    </div>
+                ) : _isFiltered ? (
                     <div className="py-16 text-center">
                         <Filter className="w-7 h-7 text-neutral-300 mx-auto mb-3" />
                         <h4 className="text-sm font-semibold text-neutral-700 mb-1">
-                            No results{search ? ` for "${search}"` : ''}
+                            No results{localSearch ? ` for "${localSearch}"` : ''}
                         </h4>
                         <p className="text-[12.5px] text-neutral-400 mb-4">
                             Try adjusting your search or clearing active filters.
                         </p>
                         {onClearFilters && (
-                            <Button variant="outline" size="sm" onClick={onClearFilters}>
+                            <Button variant="outline" size="sm" onClick={() => {
+                                handleClearSearch();
+                                onClearFilters();
+                            }}>
                                 Reset Filters
                             </Button>
                         )}
@@ -150,7 +224,9 @@ export default function DataTable({
                                     )}
                                 </tr>
                             </thead>
-                            <tbody className={`divide-y divide-neutral-100 text-neutral-800 ${compact ? 'text-xs' : 'text-sm'}`}>
+                            <tbody className={`divide-y divide-neutral-100 text-neutral-800 ${compact ? 'text-xs' : 'text-sm'} transition-opacity duration-150 ${
+                                isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'
+                            }`}>
                                 {data.map((row, index) => (
                                     <tr
                                         key={row.id || index}
@@ -183,7 +259,9 @@ export default function DataTable({
                     </div>
 
                     {/* Mobile Card Layout — visible only below md */}
-                    <div className="md:hidden divide-y divide-neutral-200">
+                    <div className={`md:hidden divide-y divide-neutral-200 transition-opacity duration-150 ${
+                        isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'
+                    }`}>
                         {data.map((row, index) => (
                             <div
                                 key={row.id || index}

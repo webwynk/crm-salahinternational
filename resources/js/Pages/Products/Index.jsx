@@ -25,7 +25,7 @@ export default function Index({ products, categories = [], filters = {} }) {
     });
 
     const navigate = (params) =>
-        router.get(route('products.index'), { ...filters, page: 1, ...params }, { preserveState: true, replace: true });
+        router.get(route('products.index'), { ...filters, page: 1, ...params }, { preserveState: true, preserveScroll: true, replace: true });
 
     const handleSearch     = (val) => { setSearch(val);             navigate({ search: val }); };
     const handleCategory   = (cat) => { setSelectedCategory(cat);   navigate({ category: cat }); };
