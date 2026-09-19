@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
 import Card from '@/Components/ui/Card';
 import StatusPill from '@/Components/ui/StatusPill';
 import Button from '@/Components/ui/Button';
-import { Edit3, ArrowLeft, Layers, Image as ImageIcon } from 'lucide-react';
+import { Edit3, ArrowLeft, Layers, Image as ImageIcon, Palette } from 'lucide-react';
 
 export default function Show({ product }) {
-    const leatherItems = product.materials?.filter((m) => m.material_type === 'LEATHER' || m.material?.is_leather) || [];
-    const hardwareItems = product.materials?.filter((m) => m.material_type !== 'LEATHER' && !m.material?.is_leather && m.material_type !== 'PROCESS_NOTE') || [];
-    const processNotes = product.materials?.filter((m) => m.material_type === 'PROCESS_NOTE') || [];
+    const hasColors = Boolean(product.has_colors && product.colors?.length > 0);
+    const [activeColorIndex, setActiveColorIndex] = useState(0);
+
+    const activeColor = hasColors ? product.colors[activeColorIndex] : null;
+    const currentMaterials = hasColors
+        ? (activeColor?.materials || [])
+        : (product.materials || []);
 
     return (
         <AppLayout>
@@ -57,82 +61,116 @@ export default function Show({ product }) {
                                     {product.code}
                                 </span>
                                 <StatusPill status={product.is_active ? 'ACTIVE' : 'INACTIVE'} />
+                                {hasColors && (
+                                    <span className="text-xs font-bold text-brand-700 bg-brand-50 px-2.5 py-0.5 rounded-full border border-brand-200">
+                                        {product.colors.length} {product.colors.length === 1 ? 'Colorway' : 'Colorways'}
+                                    </span>
+                                )}
                             </div>
                             <h2 className="text-xl font-bold text-neutral-900">{product.name}</h2>
+                            {product.description && (
+                                <p className="text-xs text-neutral-600 mt-2 leading-relaxed max-w-2xl">
+                                    {product.description}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </Card>
 
-                {/* 1. Dedicated Leather Cutting Specifications Table */}
-                <Card className="border-brand-200/90 shadow-2xs">
-                    <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-brand-200 flex items-center justify-between">
+                {/* Colorway Switcher (if multi-color) */}
+                {hasColors && (
+                    <div className="rounded-xl border border-brand-200 bg-white p-4 shadow-xs space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Palette className="w-4 h-4 text-brand-600" />
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                                    Colorway Variations
+                                </h4>
+                            </div>
+                            <span className="text-xs font-bold text-brand-700 bg-brand-50 px-2.5 py-0.5 rounded-full border border-brand-200">
+                                Viewing: <strong>{activeColor?.color_name}</strong>
+                            </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                            {product.colors.map((c, idx) => {
+                                const isActive = idx === activeColorIndex;
+                                return (
+                                    <button
+                                        key={c.id || idx}
+                                        type="button"
+                                        onClick={() => setActiveColorIndex(idx)}
+                                        className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                            isActive
+                                                ? 'bg-brand-600 text-white shadow-sm ring-2 ring-brand-500/30'
+                                                : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700 border border-neutral-200'
+                                        }`}
+                                    >
+                                        <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-brand-500'}`} />
+                                        <span>{c.color_name}</span>
+                                        <span className={`text-[10px] px-1.5 py-0.2 rounded ${isActive ? 'bg-white/20 text-white' : 'bg-neutral-200 text-neutral-600'}`}>
+                                            {c.materials?.length || 0}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Unified Bill of Materials (BOM) & Components */}
+                <Card className="border-neutral-200/90 shadow-2xs">
+                    <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-neutral-200 flex items-center justify-between">
                         <span className="flex items-center gap-2">
-                            <Layers className="w-5 h-5 text-brand-700" /> Leather Cutting Specifications (Per Single Unit)
+                            <Layers className="w-5 h-5 text-brand-700" /> Bill of Materials (BOM) & Components
+                            {hasColors && activeColor && (
+                                <span className="text-xs font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200 ml-1">
+                                    {activeColor.color_name}
+                                </span>
+                            )}
                         </span>
-                        <span className="text-xs font-bold text-brand-800 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-200">
-                            Leather Hides BOM
+                        <span className="text-xs font-bold text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200">
+                            {currentMaterials.length} {currentMaterials.length === 1 ? 'Component' : 'Components'}
                         </span>
                     </h3>
-                    {leatherItems.length === 0 ? (
-                        <p className="text-sm text-neutral-500 py-3">No specific leather items assigned to this BOM.</p>
+
+                    {currentMaterials.length === 0 ? (
+                        <p className="text-sm text-neutral-500 py-3">No components or materials assigned to this BOM.</p>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-brand-50/40 text-xs font-semibold text-brand-900 uppercase border-b border-brand-200">
+                                <thead className="bg-neutral-50 text-xs font-semibold text-neutral-600 uppercase border-b border-neutral-200">
                                     <tr>
-                                        <th className="px-3 py-2">Leather Component / Cut</th>
-                                        <th className="px-3 py-2">Leather Hide & Tannage</th>
-                                        <th className="px-3 py-2">Color Variation</th>
-                                        <th className="px-3 py-2">Cutting Qty (Sq. Ft)</th>
+                                        <th className="px-3 py-2">Component / Part</th>
+                                        <th className="px-3 py-2">Material Master</th>
+                                        <th className="px-3 py-2">Variation / Tone</th>
+                                        <th className="px-3 py-2">Type</th>
+                                        <th className="px-3 py-2 text-right">Required Qty</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-200">
-                                    {leatherItems.map((item) => (
-                                        <tr key={item.id} className="hover:bg-brand-50/20">
+                                    {currentMaterials.map((item) => (
+                                        <tr key={item.id} className="hover:bg-neutral-50/60">
                                             <td className="px-3 py-3 font-semibold text-neutral-900">{item.label}</td>
                                             <td className="px-3 py-3 font-medium text-neutral-700">
-                                                {item.material ? item.material.name : 'Leather Hide'}
+                                                {item.material ? item.material.name : '—'}
                                             </td>
                                             <td className="px-3 py-3 text-neutral-600">
-                                                {item.variant ? item.variant.name : 'Standard'}
+                                                {item.variant ? item.variant.name : '—'}
                                             </td>
-                                            <td className="px-3 py-3 font-bold text-brand-800 tabular-nums">
-                                                {item.quantity_min} {item.unit || 'sq_ft'}
+                                            <td className="px-3 py-3">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${
+                                                    item.material_type === 'LEATHER'
+                                                        ? 'bg-amber-100 text-amber-800'
+                                                        : item.material_type === 'HARDWARE'
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : 'bg-neutral-100 text-neutral-700'
+                                                }`}>
+                                                    {item.material_type || 'CONSUMABLE'}
+                                                </span>
                                             </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </Card>
-
-                {/* 2. Hardware & Consumables Table */}
-                <Card className="border-neutral-200 shadow-2xs">
-                    <h3 className="text-md font-bold text-neutral-900 mb-3 pb-2 border-b border-neutral-200 flex items-center gap-2">
-                        <Layers className="w-5 h-5 text-neutral-700" /> Hardware, Lining & Consumables
-                    </h3>
-                    {hardwareItems.length === 0 ? (
-                        <p className="text-sm text-neutral-500 py-3">No additional hardware fittings required.</p>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-neutral-50 text-xs font-semibold text-neutral-500 uppercase border-b border-neutral-200">
-                                    <tr>
-                                        <th className="px-3 py-2">Fitting / Component</th>
-                                        <th className="px-3 py-2">Material Master</th>
-                                        <th className="px-3 py-2">Required Qty</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-neutral-200">
-                                    {hardwareItems.map((h) => (
-                                        <tr key={h.id} className="hover:bg-neutral-50">
-                                            <td className="px-3 py-3 font-semibold text-neutral-900">{h.label}</td>
-                                            <td className="px-3 py-3 text-neutral-700">
-                                                {h.material ? h.material.name : 'Hardware'}
-                                            </td>
-                                            <td className="px-3 py-3 font-bold text-neutral-900 tabular-nums">
-                                                {h.quantity_min} {h.unit}
+                                            <td className="px-3 py-3 font-bold text-neutral-900 text-right tabular-nums">
+                                                {item.quantity_min} {item.unit || 'pcs'}
                                             </td>
                                         </tr>
                                     ))}
