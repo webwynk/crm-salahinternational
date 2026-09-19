@@ -63,6 +63,11 @@ export default function Index({ products, categories = [], filters = {} }) {
                             <span className="font-sans font-bold text-xs text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200/80 inline-block">
                                 {row.code}
                             </span>
+                            {row.part_no && (
+                                <span className="font-sans font-semibold text-xs text-neutral-600 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-200 inline-block">
+                                    Part: {row.part_no}
+                                </span>
+                            )}
                             {Boolean(row.has_colors && row.colors && row.colors.length > 0) && (
                                 <span
                                     className="font-sans font-bold text-[11px] text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200/90 inline-flex items-center gap-1 cursor-help hover:bg-purple-100/80 transition-colors shadow-xs"
@@ -85,6 +90,22 @@ export default function Index({ products, categories = [], filters = {} }) {
                 <span className="text-xs font-medium text-neutral-700 bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200">
                     {row.category || 'General'}
                 </span>
+            ),
+        },
+        {
+            header: 'Leather',
+            accessor: 'leather_sqft',
+            sortable: true,
+            numeric: true,
+            render: (row) => (
+                row.leather_sqft ? (
+                    <span className="text-xs font-semibold text-neutral-800 tabular-nums">
+                        {Number(row.leather_sqft).toFixed(2)}{' '}
+                        <span className="font-normal text-neutral-400 text-2xs uppercase">sq ft</span>
+                    </span>
+                ) : (
+                    <span className="text-xs text-neutral-300">—</span>
+                )
             ),
         },
         {
@@ -141,7 +162,8 @@ export default function Index({ products, categories = [], filters = {} }) {
                 isLoading={isLoading}
                 search={search}
                 onSearchChange={handleSearch}
-                searchPlaceholder="Search by product code or name…"
+                searchPlaceholder="Search by code, part no, or name…"
+                itemLabel="products"
                 activeSort={sort}
                 onSort={handleSort}
                 filters={{ category: selectedCategory }}

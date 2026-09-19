@@ -23,7 +23,8 @@ class ProductController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('code', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%");
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('part_no', 'like', "%{$search}%");
             });
         }
 
@@ -31,8 +32,9 @@ class ProductController extends Controller
             $query->where('category', $request->category);
         }
 
-        $sortColumn = $request->sort ?? 'created_at';
-        $sortDirection = $request->direction ?? 'desc';
+        $allowedSorts = ['created_at', 'code', 'name', 'category', 'leather_sqft', 'part_no'];
+        $sortColumn = in_array($request->sort, $allowedSorts, true) ? $request->sort : 'created_at';
+        $sortDirection = $request->direction === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortColumn, $sortDirection);
 
         $products = $query->paginate($request->pageSize ?? 10)->withQueryString();

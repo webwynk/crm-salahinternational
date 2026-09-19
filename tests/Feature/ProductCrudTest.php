@@ -583,5 +583,35 @@ class ProductCrudTest extends TestCase
             'leather_sqft' => '4.20',
         ]);
     }
+
+    public function test_authenticated_user_can_search_products_by_part_no(): void
+    {
+        $this->actingAs($this->user);
+
+        $matchProduct = Product::create([
+            'code' => 'SEARCH-A',
+            'name' => 'Premium Messenger Bag',
+            'part_no' => 'PART-SPECIAL-777',
+            'category' => 'Bag',
+            'created_by' => $this->user->id,
+        ]);
+
+        $otherProduct = Product::create([
+            'code' => 'SEARCH-B',
+            'name' => 'Minimalist Card Holder',
+            'part_no' => 'PART-COMMON-111',
+            'category' => 'Wallet',
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->get('/products?search=SPECIAL-777');
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Products/Index')
+            ->has('products.data', 1)
+            ->where('products.data.0.id', $matchProduct->id)
+            ->where('products.data.0.part_no', 'PART-SPECIAL-777')
+        );
+    }
 }
 

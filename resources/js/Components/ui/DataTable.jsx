@@ -26,6 +26,7 @@ export default function DataTable({
     onEmptyAction = null,
     renderRowActions = null,
     compact = false,
+    itemLabel = 'records',
 }) {
     if (isLoading) {
         return <SkeletonTable cols={columns.length + (renderRowActions ? 1 : 0)} rows={6} />;
@@ -220,7 +221,7 @@ export default function DataTable({
                         <span className="font-semibold text-neutral-600">{pagination.to || data.length}</span>
                         {' '}of{' '}
                         <span className="font-semibold text-neutral-600">{pagination.total}</span>
-                        {' '}work orders
+                        {' '}{itemLabel}
                     </p>
 
                     {/* Ghost-style Prev / Page numbers / Next */}
