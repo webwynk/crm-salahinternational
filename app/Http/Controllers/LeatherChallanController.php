@@ -44,8 +44,16 @@ class LeatherChallanController extends Controller
 
         $challans = $query->orderByDesc('created_at')->paginate($request->pageSize ?? 10)->withQueryString();
 
+        $stats = [
+            'total_challans'       => LeatherChallan::count(),
+            'issued_challans'      => LeatherChallan::where('status', LeatherChallan::STATUS_ISSUED)->count(),
+            'total_sqft_issued'    => (float) LeatherChallan::where('status', LeatherChallan::STATUS_ISSUED)->sum('total_sqft'),
+            'active_cutters_count' => Cutter::where('is_active', true)->count(),
+        ];
+
         return Inertia::render('Leather/Challans', [
             'challans' => $challans,
+            'stats'    => $stats,
             'filters'  => $request->only(['search', 'status', 'pageSize']),
         ]);
     }
