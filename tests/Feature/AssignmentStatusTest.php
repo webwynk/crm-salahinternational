@@ -547,4 +547,85 @@ class AssignmentStatusTest extends TestCase
             ->where('assignments.data.0.color.color_name', 'Cognac Tan')
         );
     }
+
+    public function test_admin_can_create_assignment_with_rate_and_delivery_date_and_view_in_pdf(): void
+    {
+        $this->actingAs($this->admin);
+
+        $response = $this->post(route('assignments.store'), [
+            'product_id' => $this->product->id,
+            'labour_id' => $this->labour->id,
+            'quantity' => 5,
+            'rate' => 150.50,
+            'delivery_date' => '2026-10-15',
+        ]);
+
+        $response->assertRedirect(route('assignments.index'));
+        $response->assertSessionHas('success');
+
+        $assignment = Assignment::latest('id')->first();
+        $this->assertNotNull($assignment);
+        $this->assertEquals('150.50', (string) $assignment->rate);
+        $this->assertEquals('2026-10-15', $assignment->delivery_date->format('Y-m-d'));
+
+        // Verify PDF download route
+        $pdfResponse = $this->get(route('assignments.pdf', $assignment));
+        $pdfResponse->assertOk();
+        $this->assertEquals('application/pdf', $pdfResponse->headers->get('content-type'));
+
+        // Verify blade HTML rendered contents
+        $html = view('pdf.work_order', [
+            'assignment' => $assignment->load(['product.colors', 'color', 'labour', 'materials.material', 'materials.variant']),
+            'product' => $assignment->product,
+            'color' => $assignment->color,
+            'labour' => $assignment->labour,
+            'materials' => $assignment->materials,
+            'copyType' => 'Fabricator Copy',
+        ])->render();
+
+        $this->assertStringContainsString('150.50', $html);
+        $this->assertStringContainsString('&#8377;', $html);
+        $this->assertStringContainsString('15/10/2026', $html);
+        $this->assertStringContainsString('Leather', $html);
+    }
+
+    public function test_admin_can_create_assignment_without_rate_and_delivery_date_and_see_dotted_lines_in_pdf(): void
+    {
+        $this->actingAs($this->admin);
+
+        $response = $this->post(route('assignments.store'), [
+            'product_id' => $this->product->id,
+            'labour_id' => $this->labour->id,
+            'quantity' => 2,
+            'rate' => null,
+            'delivery_date' => null,
+        ]);
+
+        $response->assertRedirect(route('assignments.index'));
+        $response->assertSessionHas('success');
+
+        $assignment = Assignment::latest('id')->first();
+        $this->assertNotNull($assignment);
+        $this->assertNull($assignment->rate);
+        $this->assertNull($assignment->delivery_date);
+
+        // Verify PDF download route
+        $pdfResponse = $this->get(route('assignments.pdf', $assignment));
+        $pdfResponse->assertOk();
+        $this->assertEquals('application/pdf', $pdfResponse->headers->get('content-type'));
+
+        // Verify blade HTML rendered contents
+        $html = view('pdf.work_order', [
+            'assignment' => $assignment->load(['product.colors', 'color', 'labour', 'materials.material', 'materials.variant']),
+            'product' => $assignment->product,
+            'color' => $assignment->color,
+            'labour' => $assignment->labour,
+            'materials' => $assignment->materials,
+            'copyType' => 'Fabricator Copy',
+        ])->render();
+
+        // In the PDF, empty Rate and Delivery Date should display manual-space (dotted line container)
+        $this->assertStringContainsString('manual-space', $html);
+        $this->assertStringContainsString('Leather', $html);
+    }
 }
