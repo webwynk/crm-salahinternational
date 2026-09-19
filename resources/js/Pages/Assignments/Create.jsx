@@ -6,7 +6,6 @@ import Card from '@/Components/ui/Card';
 import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
 import Select from '@/Components/ui/Select';
-import Textarea from '@/Components/ui/Textarea';
 import Alert from '@/Components/ui/Alert';
 import Badge from '@/Components/ui/Badge';
 import Modal from '@/Components/ui/Modal';
@@ -70,7 +69,6 @@ export default function Create({ products = [], labours = [], labour = [], categ
         product_color_id: '',
         labour_id: '',
         quantity: 10,
-        notes: '',
     });
 
     // Auto-select first product if available and none selected
@@ -381,7 +379,7 @@ export default function Create({ products = [], labours = [], labour = [], categ
                                 2. Artisan Worker & Production Targets
                             </h3>
                             <p className="text-[11px] text-neutral-500">
-                                Assign craftsman, set order quantity, and add crafting notes
+                                Assign craftsman and set order batch quantity
                             </p>
                         </div>
 
@@ -465,15 +463,6 @@ export default function Create({ products = [], labours = [], labour = [], categ
                                     </div>
                                 </div>
                             </div>
-
-                            <Textarea
-                                label="Production & Finishing Instructions (Optional)"
-                                rows={2}
-                                value={data.notes}
-                                onChange={(e) => setData('notes', e.target.value)}
-                                placeholder="e.g. Priority dispatch by Friday, custom contrast edge paint finish..."
-                                error={errors.notes}
-                            />
                         </div>
                     </Card>
                 </div>
@@ -696,14 +685,6 @@ export default function Create({ products = [], labours = [], labour = [], categ
                                 </div>
                             </div>
                         </div>
-
-                        {/* Notes Callout */}
-                        {data.notes && (
-                            <div className="p-2.5 bg-amber-50/60 rounded-lg border border-amber-200/70 text-xs text-amber-900 italic flex items-start gap-2">
-                                <span className="text-amber-600 not-italic font-bold text-xs">Note:</span>
-                                <span>"{data.notes}"</span>
-                            </div>
-                        )}
                     </div>
 
                     {/* DEDUCTED RAW MATERIALS RECIPE GRID */}
