@@ -98,8 +98,7 @@ class AssignmentController extends Controller
     public function store(
         StoreAssignmentRequest $request,
         AssignmentService $assignmentService,
-        WorkOrderPdfService $pdfService,
-        LeatherIssuePdfService $leatherPdfService
+        WorkOrderPdfService $pdfService
     ): RedirectResponse {
         $validated = $request->validated();
 
@@ -113,11 +112,10 @@ class AssignmentController extends Controller
                 $validated['product_color_id'] ?? null
             );
 
-            // Auto-generate all 3 PDF copies: Exporter Copy, Fabricator Copy, and Leather Slip
+            // Auto-generate Exporter and Fabricator Work Order PDF copies
             try {
                 $pdfService->generatePdf($assignment, $request->user()->id, 'EXPORTER');
                 $pdfService->generatePdf($assignment, $request->user()->id, 'FABRICATOR');
-                $leatherPdfService->generatePdf($assignment, $request->user()->id);
             } catch (\Exception $pdfEx) {
                 Log::warning("Initial PDF generation error for Assignment #{$assignment->id}: " . $pdfEx->getMessage());
                 return redirect()->route('assignments.index')->with('warning', "Assignment #{$assignment->assignment_no} created and stock deducted, but PDF generation failed. You can retry generating PDF from the assignments list.");

@@ -44,11 +44,6 @@ export default function Show({ assignment }) {
                                 <FileText className="w-4 h-4 mr-1.5 text-amber-700" /> Fabricator Copy PDF
                             </Button>
                         </a>
-                        <a href={route('assignments.leather-pdf', assignment.id)} target="_blank" rel="noreferrer">
-                            <Button variant="primary" size="sm">
-                                <Scissors className="w-4 h-4 mr-1.5" /> Leather Slip PDF
-                            </Button>
-                        </a>
                     </div>
                 }
             />

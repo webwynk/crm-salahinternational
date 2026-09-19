@@ -374,14 +374,6 @@ export default function Dashboard({
                                                                     <FileText className="w-3.5 h-3.5" />
                                                                 </button>
                                                             </a>
-                                                            <a href={route('assignments.leather-pdf', wo.id)} target="_blank" rel="noreferrer">
-                                                                <button
-                                                                    className="p-1 text-neutral-400 hover:text-brand-700 hover:bg-neutral-100 rounded transition-colors cursor-pointer"
-                                                                    title="Download Leather Cutting Slip PDF"
-                                                                >
-                                                                    <Scissors className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            </a>
                                                         </div>
                                                     </div>
                                                 </div>

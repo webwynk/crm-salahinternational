@@ -6,7 +6,7 @@ import Button from '@/Components/ui/Button';
 import SlowNetworkBanner from '@/Components/ui/SlowNetworkBanner';
 import useInertiaLoading from '@/hooks/useInertiaLoading';
 import {
-    Plus, Eye, FileText, Scissors,
+    Plus, Eye, FileText,
     ClipboardList, CheckCircle2, Clock, Package,
     CheckCheck, XCircle, ChevronDown,
 } from 'lucide-react';
@@ -167,14 +167,6 @@ function WorkOrderActionHub({ row, isAdmin }) {
                     className="inline-flex items-center justify-center w-7 h-7 rounded-md text-amber-500 hover:text-amber-700 hover:bg-amber-50 transition-all"
                 >
                     <FileText className="w-3.5 h-3.5" />
-                </a>
-                <a
-                    href={route('assignments.leather-pdf', row.id)}
-                    target="_blank" rel="noreferrer"
-                    title="Leather Cutting Slip"
-                    className="inline-flex items-center justify-center w-7 h-7 rounded-md text-brand-600 hover:text-brand-800 hover:bg-brand-50 transition-all"
-                >
-                    <Scissors className="w-3.5 h-3.5" />
                 </a>
             </div>
         </div>

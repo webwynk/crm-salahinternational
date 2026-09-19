@@ -297,7 +297,7 @@ class AssignmentStatusTest extends TestCase
             'assignment_id' => $assignedWo->id,
             'copy_type' => 'FABRICATOR',
         ]);
-        $this->assertDatabaseHas('work_order_pdfs', [
+        $this->assertDatabaseMissing('work_order_pdfs', [
             'assignment_id' => $assignedWo->id,
             'copy_type' => 'LEATHER',
         ]);
@@ -411,10 +411,10 @@ class AssignmentStatusTest extends TestCase
         $assignment = Assignment::where('product_id', $product->id)->first();
         $this->assertNotNull($assignment);
 
-        // 1. Verify all 3 PDFs are generated and tracked in database
+        // 1. Verify Exporter & Fabricator PDFs are generated, and Cutter/Leather PDF is NOT auto-generated
         $this->assertDatabaseHas('work_order_pdfs', ['assignment_id' => $assignment->id, 'copy_type' => 'EXPORTER']);
         $this->assertDatabaseHas('work_order_pdfs', ['assignment_id' => $assignment->id, 'copy_type' => 'FABRICATOR']);
-        $this->assertDatabaseHas('work_order_pdfs', ['assignment_id' => $assignment->id, 'copy_type' => 'LEATHER']);
+        $this->assertDatabaseMissing('work_order_pdfs', ['assignment_id' => $assignment->id, 'copy_type' => 'LEATHER']);
 
         // 2. Verify Exporter / Fabricator Copy material separation (Non-Leather only)
         $woPdfService = new \App\Services\WorkOrderPdfService();
