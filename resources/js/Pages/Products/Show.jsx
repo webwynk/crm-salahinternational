@@ -12,9 +12,20 @@ export default function Show({ product }) {
     const [activeColorIndex, setActiveColorIndex] = useState(0);
 
     const activeColor = hasColors ? product.colors[activeColorIndex] : null;
-    const currentMaterials = hasColors
+
+    const isLeatherItem = (item) => {
+        const flag = Boolean(item.material?.is_leather);
+        const type = (item.material_type || '').toUpperCase() === 'LEATHER';
+        const unit = ['sq_ft', 'sq_dm', 'sq_m', 'hides'].includes((item.unit || '').toLowerCase());
+        return flag || type || unit;
+    };
+
+    const rawMaterials = hasColors
         ? (activeColor?.materials || [])
         : (product.materials || []);
+
+    // Strictly filter out leather items (managed in Leather module / Challans)
+    const currentMaterials = rawMaterials.filter((item) => !isLeatherItem(item));
 
     return (
         <AppLayout>
@@ -181,7 +192,7 @@ export default function Show({ product }) {
                                                 <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
                                                     isActive ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-600 border border-neutral-200'
                                                 }`}>
-                                                    {c.materials?.length || 0}
+                                                    {c.materials?.filter((m) => !isLeatherItem(m)).length || 0}
                                                 </span>
                                             </button>
                                         );

@@ -17,9 +17,7 @@ export default function Create({ materials = [] }) {
     // Helper to generate fresh BOM row
     const createDefaultBomRow = (label = 'Main Component') => {
         const firstMat = materials[0] || null;
-        const defaultType = firstMat?.is_leather
-            ? 'LEATHER'
-            : (firstMat?.category === 'HARDWARE' ? 'HARDWARE' : 'CONSUMABLE');
+        const defaultType = firstMat?.category === 'HARDWARE' ? 'HARDWARE' : 'CONSUMABLE';
 
         return {
             material_id: firstMat?.id || '',
@@ -165,9 +163,7 @@ export default function Create({ materials = [] }) {
                     if (selectedMat) {
                         updated[index].label = selectedMat.name;
                         updated[index].unit = selectedMat.base_unit || 'pcs';
-                        updated[index].material_type = selectedMat.is_leather
-                            ? 'LEATHER'
-                            : (selectedMat.category === 'HARDWARE' ? 'HARDWARE' : 'CONSUMABLE');
+                        updated[index].material_type = selectedMat.category === 'HARDWARE' ? 'HARDWARE' : 'CONSUMABLE';
                         if (selectedMat.variants && selectedMat.variants.length > 0) {
                             updated[index].material_variant_id = selectedMat.variants[0].id;
                         } else {
@@ -228,7 +224,7 @@ export default function Create({ materials = [] }) {
                         sanitizeBomRow(
                             {
                                 material_id: materials[0]?.id || null,
-                                material_type: materials[0]?.is_leather ? 'LEATHER' : 'CONSUMABLE',
+                                material_type: materials[0]?.category === 'HARDWARE' ? 'HARDWARE' : 'CONSUMABLE',
                                 label: `${c.color_name} Component`,
                                 quantity_min: '1',
                                 unit: materials[0]?.base_unit || 'pcs',
@@ -258,7 +254,7 @@ export default function Create({ materials = [] }) {
                 sanitizeBomRow(
                     {
                         material_id: materials[0]?.id || null,
-                        material_type: materials[0]?.is_leather ? 'LEATHER' : 'CONSUMABLE',
+                        material_type: materials[0]?.category === 'HARDWARE' ? 'HARDWARE' : 'CONSUMABLE',
                         label: 'Main Component',
                         quantity_min: '1',
                         unit: materials[0]?.base_unit || 'pcs',

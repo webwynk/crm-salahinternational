@@ -49,7 +49,7 @@ class ProductController extends Controller
 
     public function create(): Response
     {
-        $materials = Material::with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
+        $materials = Material::materialsOnly()->with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
 
         return Inertia::render('Products/Create', [
             'materials' => $materials,
@@ -125,7 +125,7 @@ class ProductController extends Controller
             'colors.materials.variant',
             'colors.materials.material',
         ]);
-        $materials = Material::with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
+        $materials = Material::materialsOnly()->with('variants.inventory')->where('is_active', true)->orderBy('name')->get();
 
         return Inertia::render('Products/Edit', [
             'product'   => $product,
