@@ -217,30 +217,30 @@
             color: #0f172a;
         }
 
-        /* Leather Hide Specs Summary Card */
+        /* Leather Hide Specs Minimal Strip (No Background Color) */
         .specs-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 12px;
-            border: 1px solid #fde68a;
-            background: #fffbeb;
+            border: 1px solid #e2e8f0;
+            background: transparent;
         }
         .specs-table td {
-            padding: 8px 12px;
+            padding: 7px 12px;
             vertical-align: middle;
         }
         .spec-label {
             font-size: 9.5px;
             font-weight: bold;
             text-transform: uppercase;
-            color: #92400e;
+            color: #64748b;
             letter-spacing: 0.5px;
             margin-bottom: 2px;
         }
         .spec-val {
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: bold;
-            color: #78350f;
+            color: #0f172a;
         }
 
         /* Products Table */
@@ -423,15 +423,14 @@
             </tr>
         </table>
 
-        <!-- Leather Specifications Banner -->
-        <div class="section-bar">1. Raw Leather Hide Issued</div>
+        <!-- Leather Specifications Minimal Strip (No Background Color) -->
         <table class="specs-table">
             <tr>
                 <td style="width: 100%;">
                     <div class="spec-label">LEATHER HIDE &amp; VARIATION</div>
                     <div class="spec-val">
                         {{ $challan->material->name ?? 'N/A' }}
-                        <span style="color: #b45309; font-weight: normal; margin: 0 6px;">|</span>
+                        <span style="color: #94a3b8; font-weight: normal; margin: 0 6px;">|</span>
                         {{ $challan->variant ? $challan->variant->name : 'Standard' }}
                     </div>
                 </td>
