@@ -66,13 +66,13 @@
 
         /* Page Content Wrapper with Calibrated A4 Margins */
         .page-content {
-            padding: 9mm 11mm 24mm 11mm;
+            padding: 9mm 11mm 27mm 11mm;
         }
 
-        /* Bottom-Aligned Footer: Signatures */
+        /* Bottom-Aligned Footer: Signatures & Jurisdiction */
         .footer-bottom-wrap {
             position: fixed;
-            bottom: 8mm;
+            bottom: 6mm;
             left: 11mm;
             right: 11mm;
         }
@@ -273,54 +273,56 @@
         .text-right { text-align: right; }
         .font-bold { font-weight: bold; }
 
-        /* Grand Total Banner */
+        /* Grand Total Banner (Clean Executive Voucher Layout) */
         .total-banner {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 14px;
-            background: #fffbeb;
-            border: 2px solid #b45309;
+            background: #ffffff;
+            border-top: 2px solid #0f172a;
+            border-bottom: 2px solid #0f172a;
         }
         .total-banner td {
-            padding: 10px 14px;
+            padding: 9px 10px;
             vertical-align: middle;
         }
         .total-banner-left {
-            width: 58%;
+            width: 55%;
         }
         .total-banner-label {
             font-size: 11px;
             font-weight: bold;
-            color: #92400e;
+            color: #0f172a;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             margin-bottom: 3px;
         }
         .total-banner-meta {
             font-size: 10px;
-            color: #78350f;
+            color: #475569;
             font-weight: normal;
         }
         .total-banner-meta strong {
             font-weight: bold;
-            color: #92400e;
+            color: #1e293b;
         }
         .total-banner-right {
-            width: 42%;
+            width: 45%;
             text-align: right;
         }
         .total-banner-val-badge {
             display: inline-block;
             font-size: 21px;
             font-weight: bold;
-            color: #b45309;
+            color: #0f172a;
             letter-spacing: 0.5px;
         }
         .total-unit-sub {
-            font-size: 11px;
-            color: #78350f;
+            font-size: 11.5px;
+            color: #64748b;
             font-weight: bold;
             text-transform: uppercase;
+            margin-left: 4px;
         }
 
         /* Notes Box */
@@ -358,6 +360,22 @@
             font-size: 8.5px;
             color: #94a3b8;
             margin-top: 1px;
+        }
+
+        /* Legal Jurisdiction Notice */
+        .footer-legal {
+            border-top: 1px solid #e2e8f0;
+            margin-top: 6px;
+            padding-top: 3px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        .legal-notice {
+            font-size: 11px;
+            font-weight: bold;
+            color: #b45309;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
         }
     </style>
 </head>
@@ -465,7 +483,7 @@
             </tbody>
         </table>
 
-        <!-- Grand Total Banner -->
+        <!-- Grand Total Banner (Executive Voucher Layout) -->
         <table class="total-banner">
             <tr>
                 <td class="total-banner-left">
@@ -504,6 +522,11 @@
                     </td>
                 </tr>
             </table>
+
+            <!-- Jurisdiction Legal Notice -->
+            <div class="footer-legal">
+                <div class="legal-notice">ALL DISPUTES ARE SUBJECT TO KOLKATA JURISDICTION.</div>
+            </div>
         </div>
 
     </div>
