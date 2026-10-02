@@ -103,9 +103,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             \Illuminate\Support\Facades\DB::table('leather_challan_items')->delete();
             \Illuminate\Support\Facades\DB::table('leather_challans')->delete();
             \Illuminate\Support\Facades\DB::table('cutters')->delete();
+            \Illuminate\Support\Facades\DB::table('work_order_pdfs')->delete();
             \Illuminate\Support\Facades\DB::table('assignment_materials')->delete();
             \Illuminate\Support\Facades\DB::table('assignments')->delete();
             \Illuminate\Support\Facades\DB::table('stock_transactions')->delete();
+            \Illuminate\Support\Facades\DB::table('product_colors')->delete();
             \Illuminate\Support\Facades\DB::table('product_materials')->delete();
             \Illuminate\Support\Facades\DB::table('products')->delete();
             \Illuminate\Support\Facades\DB::table('inventory')->delete();
