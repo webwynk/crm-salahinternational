@@ -13,14 +13,174 @@ import {
     SlidersHorizontal,
     Tag,
 } from 'lucide-react';
-import Input from '@/Components/ui/Input';
 import Button from '@/Components/ui/Button';
 import Badge from '@/Components/ui/Badge';
-import {
-    STANDARD_SIZES,
-    STANDARD_TYPES,
-    STANDARD_LEATHER_COLORS,
-} from '@/constants/materialAttributes';
+
+// Helper function to add one or more tags (supports comma-separated string, enter, or array)
+function addDimensionTags(rawInput, currentList, setList) {
+    if (!rawInput) return;
+    const parts = rawInput
+        .split(/[,;\n]/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+
+    if (parts.length === 0) return;
+
+    setList((prev) => {
+        const next = [...prev];
+        parts.forEach((p) => {
+            if (!next.some((existing) => existing.toLowerCase() === p.toLowerCase())) {
+                next.push(p);
+            }
+        });
+        return next;
+    });
+}
+
+function removeDimensionTag(tagToRemove, setList) {
+    setList((prev) => prev.filter((item) => item !== tagToRemove));
+}
+
+// Simple color helper for table preview dots
+function getSimpleColorHex(colorName) {
+    if (!colorName) return '#94a3b8';
+    const lower = colorName.toLowerCase().trim();
+    const commonColors = {
+        black: '#171717',
+        white: '#f8fafc',
+        red: '#dc2626',
+        blue: '#2563eb',
+        navy: '#1e3a8a',
+        green: '#16a34a',
+        yellow: '#eab308',
+        orange: '#ea580c',
+        brown: '#78350f',
+        grey: '#64748b',
+        gray: '#64748b',
+        gold: '#d97706',
+        silver: '#94a3b8',
+        purple: '#9333ea',
+        pink: '#ec4899',
+        tan: '#b45309',
+        khaki: '#c2b280',
+        cream: '#fef08a',
+        beige: '#f5f5dc',
+        maroon: '#800000',
+        burgundy: '#800020',
+        teal: '#0d9488',
+        olive: '#65a30d',
+    };
+    for (const [key, hex] of Object.entries(commonColors)) {
+        if (lower.includes(key)) return hex;
+    }
+    return '#94a3b8';
+}
+
+// Reusable Dimension Tag Input Card
+function DimensionTagSection({
+    title,
+    icon: Icon,
+    items,
+    setItems,
+    inputVal,
+    setInputVal,
+    placeholder,
+    helperText,
+    badgeColorClass = 'bg-brand-50 border-brand-200 text-brand-900',
+}) {
+    const handleAdd = (e) => {
+        if (e) e.preventDefault();
+        addDimensionTags(inputVal, items, setItems);
+        setInputVal('');
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            handleAdd();
+        }
+    };
+
+    const handlePaste = (e) => {
+        const pastedText = e.clipboardData.getData('text');
+        if (pastedText && (pastedText.includes(',') || pastedText.includes('\n'))) {
+            e.preventDefault();
+            addDimensionTags(pastedText, items, setItems);
+            setInputVal('');
+        }
+    };
+
+    return (
+        <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-neutral-800 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Icon className="w-3.5 h-3.5 text-brand-600" />
+                    {title} ({items.length})
+                </label>
+                {items.length > 0 && (
+                    <button
+                        type="button"
+                        onClick={() => setItems([])}
+                        className="text-[11px] font-semibold text-neutral-400 hover:text-danger-600 transition-colors"
+                    >
+                        Clear All
+                    </button>
+                )}
+            </div>
+
+            {/* Input with Add button */}
+            <form onSubmit={handleAdd} className="flex items-center gap-2">
+                <div className="relative flex-1">
+                    <input
+                        type="text"
+                        placeholder={placeholder}
+                        value={inputVal}
+                        onChange={(e) => setInputVal(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
+                        className="w-full text-xs px-3 py-2 border border-neutral-300 rounded-lg focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none bg-neutral-0"
+                    />
+                </div>
+                <Button
+                    type="submit"
+                    variant="secondary"
+                    size="sm"
+                    disabled={!inputVal.trim()}
+                    className="shrink-0 text-xs py-2 px-3"
+                >
+                    <Plus className="w-3.5 h-3.5 mr-1" />
+                    Add
+                </Button>
+            </form>
+
+            {/* Active Tags Display */}
+            {items.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 p-2 bg-neutral-50/80 rounded-lg border border-neutral-200/60 max-h-40 overflow-y-auto">
+                    {items.map((item) => (
+                        <span
+                            key={item}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border shadow-2xs ${badgeColorClass}`}
+                        >
+                            <span>{item}</span>
+                            <button
+                                type="button"
+                                onClick={() => removeDimensionTag(item, setItems)}
+                                className="text-neutral-400 hover:text-danger-600 p-0.5 rounded transition-colors"
+                                title={`Remove ${item}`}
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-[11px] text-neutral-400 italic px-1">
+                    {helperText}
+                </p>
+            )}
+        </div>
+    );
+}
 
 export default function MatrixVariantBuilder({
     baseUnit = 'pcs',
@@ -28,7 +188,7 @@ export default function MatrixVariantBuilder({
     defaultInitialStock = '0',
     onChange,
 }) {
-    // Dimension States (Empty clean slate by default)
+    // Dimension States (Manual entry, empty clean slate)
     const [selectedSizes, setSelectedSizes] = useState([]);
     const [customSizeInput, setCustomSizeInput] = useState('');
 
@@ -46,67 +206,6 @@ export default function MatrixVariantBuilder({
     const [tableSearch, setTableSearch] = useState('');
     const [bulkStock, setBulkStock] = useState('');
     const [bulkReorder, setBulkReorder] = useState('');
-
-    // Toggle Size Selection
-    const toggleSize = (sizeVal) => {
-        setSelectedSizes((prev) =>
-            prev.includes(sizeVal) ? prev.filter((s) => s !== sizeVal) : [...prev, sizeVal]
-        );
-    };
-
-    const handleAddCustomSize = (e) => {
-        e.preventDefault();
-        const trimmed = customSizeInput.trim();
-        if (trimmed && !selectedSizes.includes(trimmed)) {
-            setSelectedSizes((prev) => [...prev, trimmed]);
-            setCustomSizeInput('');
-        }
-    };
-
-    // Toggle Type Selection
-    const toggleType = (typeVal) => {
-        setSelectedTypes((prev) =>
-            prev.includes(typeVal) ? prev.filter((t) => t !== typeVal) : [...prev, typeVal]
-        );
-    };
-
-    const handleAddCustomType = (e) => {
-        e.preventDefault();
-        const trimmed = customTypeInput.trim();
-        if (trimmed && !selectedTypes.includes(trimmed)) {
-            setSelectedTypes((prev) => [...prev, trimmed]);
-            setCustomTypeInput('');
-        }
-    };
-
-    // Toggle Color Selection
-    const toggleColor = (colorName) => {
-        setSelectedColors((prev) =>
-            prev.includes(colorName) ? prev.filter((c) => c !== colorName) : [...prev, colorName]
-        );
-    };
-
-    const handleAddCustomColor = (e) => {
-        e.preventDefault();
-        const trimmed = customColorInput.trim();
-        if (trimmed && !selectedColors.includes(trimmed)) {
-            setSelectedColors((prev) => [...prev, trimmed]);
-            setCustomColorInput('');
-        }
-    };
-
-    const handleSelectTopColors = () => {
-        const top5 = ['Black', 'Dark Brown', 'Tan / Cognac', 'Red', 'Navy Blue'];
-        setSelectedColors(top5);
-    };
-
-    const handleSelectAllColors = () => {
-        setSelectedColors(STANDARD_LEATHER_COLORS.map((c) => c.name));
-    };
-
-    const handleClearColors = () => {
-        setSelectedColors([]);
-    };
 
     // Flexible dimension fallback lists (handles cases where a dimension is skipped)
     const sizesList = selectedSizes.length > 0 ? selectedSizes : [''];
@@ -212,21 +311,15 @@ export default function MatrixVariantBuilder({
 
     const enabledCount = generatedItems.filter((i) => i.enabled).length;
 
-    // Helper to find color hex
-    const getColorHex = (name) => {
-        const found = STANDARD_LEATHER_COLORS.find((c) => c.name.toLowerCase() === name.toLowerCase());
-        return found ? found.hex : '#94a3b8';
-    };
-
     return (
         <div className="space-y-5">
-            {/* 1. ATTRIBUTE DIMENSION BUILDERS */}
-            <div className="p-4 bg-neutral-0 rounded-xl border border-neutral-200 shadow-2xs space-y-4">
+            {/* 1. ATTRIBUTE DIMENSION BUILDERS (ALL MANUAL ENTRY) */}
+            <div className="p-4 bg-neutral-0 rounded-xl border border-neutral-200 shadow-2xs space-y-5">
                 <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
                     <div className="flex items-center gap-2">
                         <SlidersHorizontal className="w-4 h-4 text-brand-600" />
                         <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
-                            Step 1: Choose Attribute Dimensions
+                            Step 1: Manually Enter Attribute Dimensions
                         </h4>
                     </div>
                     <span className="text-[11px] font-semibold text-neutral-500">
@@ -235,238 +328,46 @@ export default function MatrixVariantBuilder({
                 </div>
 
                 {/* Dimension A: Sizes */}
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-neutral-700 flex items-center gap-1.5">
-                            <Tag className="w-3.5 h-3.5 text-neutral-400" />
-                            Sizes / Gauges ({selectedSizes.length} selected)
-                        </label>
-                        <form onSubmit={handleAddCustomSize} className="flex items-center gap-1.5">
-                            <input
-                                type="text"
-                                placeholder="+ Custom Size (e.g. #8, 20cm)"
-                                value={customSizeInput}
-                                onChange={(e) => setCustomSizeInput(e.target.value)}
-                                className="h-6 text-[11px] px-2 border border-neutral-300 rounded focus:border-brand-500 focus:outline-none w-36"
-                            />
-                            <button
-                                type="submit"
-                                className="h-6 px-1.5 text-[11px] font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded transition-colors"
-                            >
-                                <Plus className="w-3 h-3" />
-                            </button>
-                        </form>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5">
-                        {STANDARD_SIZES.map((sz) => {
-                            const isSelected = selectedSizes.includes(sz.value);
-                            return (
-                                <button
-                                    key={sz.value}
-                                    type="button"
-                                    onClick={() => toggleSize(sz.value)}
-                                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 border ${
-                                        isSelected
-                                            ? 'bg-brand-50 border-brand-500 text-brand-800 shadow-2xs font-semibold'
-                                            : 'bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100'
-                                    }`}
-                                >
-                                    {isSelected && <Check className="w-3 h-3 text-brand-600" />}
-                                    {sz.label}
-                                </button>
-                            );
-                        })}
-
-                        {/* Custom user-added sizes */}
-                        {selectedSizes
-                            .filter((s) => !STANDARD_SIZES.some((std) => std.value === s))
-                            .map((s) => (
-                                <button
-                                    key={s}
-                                    type="button"
-                                    onClick={() => toggleSize(s)}
-                                    className="px-2.5 py-1 rounded-md text-xs font-semibold bg-brand-50 border border-brand-500 text-brand-800 flex items-center gap-1.5"
-                                >
-                                    <Check className="w-3 h-3 text-brand-600" />
-                                    {s}
-                                    <X
-                                        className="w-3 h-3 text-neutral-400 hover:text-danger-600 ml-1"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleSize(s);
-                                        }}
-                                    />
-                                </button>
-                            ))}
-                    </div>
-                </div>
+                <DimensionTagSection
+                    title="Sizes / Gauges"
+                    icon={Tag}
+                    items={selectedSizes}
+                    setItems={setSelectedSizes}
+                    inputVal={customSizeInput}
+                    setInputVal={setCustomSizeInput}
+                    placeholder="Type sizes (e.g. 3, 5, #5, 20cm) and press Enter or comma..."
+                    helperText="No sizes added yet. Type your custom sizes above and press Enter."
+                    badgeColorClass="bg-brand-50 border-brand-200 text-brand-900"
+                />
 
                 {/* Dimension B: Types / Finishes */}
-                <div className="space-y-2 pt-2 border-t border-neutral-100">
-                    <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-neutral-700 flex items-center gap-1.5">
-                            <Layers className="w-3.5 h-3.5 text-neutral-400" />
-                            Types / Finishes ({selectedTypes.length} selected)
-                        </label>
-                        <form onSubmit={handleAddCustomType} className="flex items-center gap-1.5">
-                            <input
-                                type="text"
-                                placeholder="+ Custom Type"
-                                value={customTypeInput}
-                                onChange={(e) => setCustomTypeInput(e.target.value)}
-                                className="h-6 text-[11px] px-2 border border-neutral-300 rounded focus:border-brand-500 focus:outline-none w-32"
-                            />
-                            <button
-                                type="submit"
-                                className="h-6 px-1.5 text-[11px] font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded transition-colors"
-                            >
-                                <Plus className="w-3 h-3" />
-                            </button>
-                        </form>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5">
-                        {STANDARD_TYPES.map((t) => {
-                            const isSelected = selectedTypes.includes(t.value);
-                            return (
-                                <button
-                                    key={t.value}
-                                    type="button"
-                                    onClick={() => toggleType(t.value)}
-                                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 border ${
-                                        isSelected
-                                            ? 'bg-brand-50 border-brand-500 text-brand-800 shadow-2xs font-semibold'
-                                            : 'bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100'
-                                    }`}
-                                >
-                                    {isSelected && <Check className="w-3 h-3 text-brand-600" />}
-                                    {t.label}
-                                </button>
-                            );
-                        })}
-
-                        {/* Custom user-added types */}
-                        {selectedTypes
-                            .filter((t) => !STANDARD_TYPES.some((std) => std.value === t))
-                            .map((t) => (
-                                <button
-                                    key={t}
-                                    type="button"
-                                    onClick={() => toggleType(t)}
-                                    className="px-2.5 py-1 rounded-md text-xs font-semibold bg-brand-50 border border-brand-500 text-brand-800 flex items-center gap-1.5"
-                                >
-                                    <Check className="w-3 h-3 text-brand-600" />
-                                    {t}
-                                    <X
-                                        className="w-3 h-3 text-neutral-400 hover:text-danger-600 ml-1"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleType(t);
-                                        }}
-                                    />
-                                </button>
-                            ))}
-                    </div>
+                <div className="pt-3 border-t border-neutral-100">
+                    <DimensionTagSection
+                        title="Types / Finishes"
+                        icon={Layers}
+                        items={selectedTypes}
+                        setItems={setSelectedTypes}
+                        inputVal={customTypeInput}
+                        setInputVal={setCustomTypeInput}
+                        placeholder="Type finishes/types (e.g. Nickel, Metal, Kata) and press Enter or comma..."
+                        helperText="No types added yet. Type your custom finishes or types above and press Enter."
+                        badgeColorClass="bg-neutral-100 border-neutral-300 text-neutral-800"
+                    />
                 </div>
 
-                {/* Dimension C: Colors Palette */}
-                <div className="space-y-2 pt-2 border-t border-neutral-100">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <label className="text-xs font-semibold text-neutral-700 flex items-center gap-1.5">
-                            <span className="w-2.5 h-2.5 rounded-full bg-brand-500 inline-block" />
-                            Colors ({selectedColors.length} selected)
-                        </label>
-
-                        <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1 text-[11px]">
-                                <button
-                                    type="button"
-                                    onClick={handleSelectTopColors}
-                                    className="px-2 py-0.5 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition-colors"
-                                >
-                                    Top 5
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleSelectAllColors}
-                                    className="px-2 py-0.5 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition-colors"
-                                >
-                                    All 22
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleClearColors}
-                                    className="px-2 py-0.5 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-danger-600 transition-colors"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleAddCustomColor} className="flex items-center gap-1">
-                                <input
-                                    type="text"
-                                    placeholder="+ Custom Color"
-                                    value={customColorInput}
-                                    onChange={(e) => setCustomColorInput(e.target.value)}
-                                    className="h-6 text-[11px] px-2 border border-neutral-300 rounded focus:border-brand-500 focus:outline-none w-28"
-                                />
-                                <button
-                                    type="submit"
-                                    className="h-6 px-1.5 text-[11px] font-bold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded transition-colors"
-                                >
-                                    <Plus className="w-3 h-3" />
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-1.5 bg-neutral-50/50 rounded-lg border border-neutral-200/60">
-                        {STANDARD_LEATHER_COLORS.map((col) => {
-                            const isSelected = selectedColors.includes(col.name);
-                            return (
-                                <button
-                                    key={col.name}
-                                    type="button"
-                                    onClick={() => toggleColor(col.name)}
-                                    className={`px-2 py-1 rounded text-xs transition-all flex items-center gap-1.5 border ${
-                                        isSelected
-                                            ? 'bg-neutral-0 border-brand-500 shadow-2xs font-bold text-neutral-900 ring-1 ring-brand-500'
-                                            : 'bg-neutral-0 border-neutral-200 text-neutral-600 hover:border-neutral-300'
-                                    }`}
-                                >
-                                    <span
-                                        className="w-2.5 h-2.5 rounded-full shrink-0 border border-neutral-300"
-                                        style={{ backgroundColor: col.hex }}
-                                    />
-                                    {col.name}
-                                    {isSelected && <Check className="w-3 h-3 text-brand-600 ml-0.5" />}
-                                </button>
-                            );
-                        })}
-
-                        {/* Custom user-added colors */}
-                        {selectedColors
-                            .filter((c) => !STANDARD_LEATHER_COLORS.some((std) => std.name === c))
-                            .map((c) => (
-                                <button
-                                    key={c}
-                                    type="button"
-                                    onClick={() => toggleColor(c)}
-                                    className="px-2 py-1 rounded text-xs font-bold bg-neutral-0 border border-brand-500 text-neutral-900 shadow-2xs flex items-center gap-1.5 ring-1 ring-brand-500"
-                                >
-                                    <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-neutral-400" />
-                                    {c}
-                                    <X
-                                        className="w-3 h-3 text-neutral-400 hover:text-danger-600 ml-1"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleColor(c);
-                                        }}
-                                    />
-                                </button>
-                            ))}
-                    </div>
+                {/* Dimension C: Colors */}
+                <div className="pt-3 border-t border-neutral-100">
+                    <DimensionTagSection
+                        title="Colors / Variations"
+                        icon={Sparkles}
+                        items={selectedColors}
+                        setItems={setSelectedColors}
+                        inputVal={customColorInput}
+                        setInputVal={setCustomColorInput}
+                        placeholder="Type colors (e.g. Red, Black, Blue) and press Enter, or paste list..."
+                        helperText="No colors added yet. Type or paste your 30+ colors here (e.g. Red, Black, Navy, Brown...)."
+                        badgeColorClass="bg-brand-50 border-brand-300 text-brand-950"
+                    />
                 </div>
 
                 {/* GENERATE ACTION BAR */}
@@ -484,7 +385,7 @@ export default function MatrixVariantBuilder({
                             </span>
                         ) : (
                             <span className="text-xs text-neutral-500 italic">
-                                No attributes selected yet. Select or type sizes, finishes, or colors above to generate combinations.
+                                No attributes added yet. Type your custom sizes, finishes, or colors above to generate combinations.
                             </span>
                         )}
                     </div>
@@ -653,7 +554,7 @@ export default function MatrixVariantBuilder({
                                                 <div className="flex items-center gap-1.5">
                                                     <span
                                                         className="w-2.5 h-2.5 rounded-full shrink-0 border border-neutral-300"
-                                                        style={{ backgroundColor: getColorHex(item.color) }}
+                                                        style={{ backgroundColor: getSimpleColorHex(item.color) }}
                                                     />
                                                     <span className="truncate">{item.color}</span>
                                                 </div>
