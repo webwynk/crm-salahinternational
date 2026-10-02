@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import Button from '@/Components/ui/Button';
 import Input from '@/Components/ui/Input';
 import Alert from '@/Components/ui/Alert';
 import Checkbox from '@/Components/ui/Checkbox';
-import { Gem, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Gem, Lock, Mail } from 'lucide-react';
 
 export default function Login({ status, canResetPassword }) {
     const { url, props } = usePage();
@@ -16,6 +16,8 @@ export default function Login({ status, canResetPassword }) {
         password: '',
         remember: false,
     });
+
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => () => reset('password'), []);
 
@@ -103,7 +105,7 @@ export default function Login({ status, canResetPassword }) {
                         <Input
                             label="Password"
                             id="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             name="password"
                             value={data.password}
                             autoComplete="current-password"
@@ -111,6 +113,19 @@ export default function Login({ status, canResetPassword }) {
                             placeholder="••••••••"
                             onChange={(e) => setData('password', e.target.value)}
                             error={errors.password}
+                            suffix={
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((v) => !v)}
+                                    className="text-neutral-400 hover:text-neutral-600 transition-colors focus:outline-none"
+                                    tabIndex={-1}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                >
+                                    {showPassword
+                                        ? <EyeOff className="w-4 h-4" strokeWidth={1.75} />
+                                        : <Eye className="w-4 h-4" strokeWidth={1.75} />}
+                                </button>
+                            }
                         />
 
                         <div className="flex items-center justify-between">
