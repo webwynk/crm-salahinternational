@@ -68,11 +68,9 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
             )}
 
             <aside
-                className={`fixed top-0 left-0 bottom-0 z-40 bg-neutral-900 text-white flex flex-col transition-all duration-200 ${
-                    isCollapsed ? 'w-[72px]' : 'w-60'
-                } ${
-                    isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-                }`}
+                className={`fixed top-0 left-0 bottom-0 z-40 bg-neutral-900 text-white flex flex-col transition-all duration-200 ${isCollapsed ? 'w-[72px]' : 'w-60'
+                    } ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                    }`}
             >
                 {/* Brand Header */}
                 <div className="h-[68px] flex items-center justify-between px-3.5 border-b border-neutral-800 shrink-0">
@@ -108,11 +106,10 @@ export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, o
                                 href={item.href}
                                 onClick={onCloseMobile}
                                 title={isCollapsed ? item.label : undefined}
-                                className={`flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium transition-all group ${
-                                    item.active
-                                        ? 'bg-brand-500/15 text-brand-400 font-bold border border-brand-500/20 shadow-xs'
-                                        : 'text-neutral-400 hover:bg-neutral-800/80 hover:text-white'
-                                }`}
+                                className={`flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium transition-all group ${item.active
+                                    ? 'bg-brand-500/15 text-brand-400 font-bold border border-brand-500/20 shadow-xs'
+                                    : 'text-neutral-400 hover:bg-neutral-800/80 hover:text-white'
+                                    }`}
                             >
                                 <Icon
                                     className={`w-5 h-5 shrink-0 ${item.active ? 'text-brand-400' : 'text-neutral-400 group-hover:text-white'}`}
