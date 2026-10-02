@@ -6,6 +6,7 @@ use App\Http\Requests\RestockMaterialRequest;
 use App\Http\Requests\RestockVariantRequest;
 use App\Http\Requests\StoreMaterialRequest;
 use App\Http\Requests\StoreMaterialVariantRequest;
+use App\Http\Requests\StoreMaterialVariantsBulkRequest;
 use App\Http\Requests\UpdateMaterialRequest;
 use App\Models\Inventory;
 use App\Models\Material;
@@ -166,6 +167,60 @@ class MaterialController extends Controller
         });
 
         return redirect()->route('materials.index')->with('success', "Variation '{$variant->name}' added to '{$material->name}'.");
+    }
+
+    public function storeVariantsBulk(StoreMaterialVariantsBulkRequest $request, Material $material): RedirectResponse
+    {
+        $validated = $request->validated();
+        $createdCount = 0;
+
+        DB::transaction(function () use ($validated, $material, $request, &$createdCount) {
+            $existingNames = $material->variants()->pluck('name')->map(fn($n) => strtolower(trim($n)))->toArray();
+
+            foreach ($validated['variants'] as $vData) {
+                $name = trim($vData['name']);
+                if (in_array(strtolower($name), $existingNames, true)) {
+                    continue; // Skip already existing variant name
+                }
+
+                $variant = MaterialVariant::create([
+                    'material_id'   => $material->id,
+                    'name'          => $name,
+                    'sku'           => $vData['sku'] ?? null,
+                    'reorder_level' => (float) ($vData['reorder_level'] ?? 0),
+                    'is_active'     => true,
+                ]);
+
+                $initialStock = (float) ($vData['initial_stock'] ?? 0);
+
+                Inventory::create([
+                    'material_id'         => $material->id,
+                    'material_variant_id' => $variant->id,
+                    'quantity_on_hand'    => $initialStock,
+                    'unit'                => $material->base_unit,
+                ]);
+
+                if ($initialStock > 0) {
+                    StockTransaction::create([
+                        'material_id'         => $material->id,
+                        'material_variant_id' => $variant->id,
+                        'change_qty'          => $initialStock,
+                        'type'                => StockTransaction::TYPE_RESTOCK,
+                        'balance_after'       => $initialStock,
+                        'note'                => "Initial inventory stock for variant '{$variant->name}'",
+                        'created_by'          => $request->user()->id,
+                    ]);
+                }
+
+                $existingNames[] = strtolower($name);
+                $createdCount++;
+            }
+        });
+
+        return redirect()->route('materials.index')->with(
+            'success',
+            "Added {$createdCount} new variation" . ($createdCount === 1 ? '' : 's') . " to '{$material->name}'."
+        );
     }
 
     public function restockVariant(RestockVariantRequest $request, MaterialVariant $variant): RedirectResponse

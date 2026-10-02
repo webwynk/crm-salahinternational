@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/materials/{material}/restock', [MaterialController::class, 'restock'])->name('materials.restock');
         Route::delete('/materials/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
         Route::post('/materials/{material}/variants', [MaterialController::class, 'storeVariant'])->name('materials.variants.store');
+        Route::post('/materials/{material}/variants/bulk', [MaterialController::class, 'storeVariantsBulk'])->name('materials.variants.bulk-store');
         Route::post('/materials/variants/{variant}/restock', [MaterialController::class, 'restockVariant'])->name('materials.variants.restock');
         Route::delete('/materials/variants/{variant}', [MaterialController::class, 'destroyVariant'])->name('materials.variants.destroy');
     });

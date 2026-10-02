@@ -125,6 +125,60 @@ class MaterialCrudTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_bulk_add_variations_to_existing_material(): void
+    {
+        $this->actingAs($this->admin);
+
+        $material = Material::create([
+            'name' => 'Continuous Zipper Roll',
+            'category' => 'ZIPPER',
+            'base_unit' => 'm',
+            'reorder_level' => 50,
+        ]);
+
+        $response = $this->post("/materials/{$material->id}/variants/bulk", [
+            'variants' => [
+                [
+                    'name' => '#5 Metal - Black',
+                    'reorder_level' => 20,
+                    'initial_stock' => 150,
+                ],
+                [
+                    'name' => '#5 Metal - Red',
+                    'reorder_level' => 20,
+                    'initial_stock' => 80,
+                ],
+                [
+                    'name' => '#3 Kata - Navy',
+                    'reorder_level' => 15,
+                    'initial_stock' => 60,
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect('/materials');
+        $this->assertCount(3, $material->fresh()->variants);
+
+        $this->assertDatabaseHas('material_variants', [
+            'material_id' => $material->id,
+            'name' => '#5 Metal - Black',
+        ]);
+        $this->assertDatabaseHas('material_variants', [
+            'material_id' => $material->id,
+            'name' => '#5 Metal - Red',
+        ]);
+        $this->assertDatabaseHas('material_variants', [
+            'material_id' => $material->id,
+            'name' => '#3 Kata - Navy',
+        ]);
+
+        $black = MaterialVariant::where('name', '#5 Metal - Black')->firstOrFail();
+        $this->assertDatabaseHas('inventory', [
+            'material_variant_id' => $black->id,
+            'quantity_on_hand' => 150,
+        ]);
+    }
+
     public function test_admin_can_restock_specific_variant(): void
     {
         $this->actingAs($this->admin);
