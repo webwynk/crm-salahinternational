@@ -28,14 +28,14 @@ export default function MatrixVariantBuilder({
     defaultInitialStock = '0',
     onChange,
 }) {
-    // Dimension States
-    const [selectedSizes, setSelectedSizes] = useState(['#3', '#5']);
+    // Dimension States (Empty clean slate by default)
+    const [selectedSizes, setSelectedSizes] = useState([]);
     const [customSizeInput, setCustomSizeInput] = useState('');
 
-    const [selectedTypes, setSelectedTypes] = useState(['Nickel', 'Antique Brass', 'Kata']);
+    const [selectedTypes, setSelectedTypes] = useState([]);
     const [customTypeInput, setCustomTypeInput] = useState('');
 
-    const [selectedColors, setSelectedColors] = useState(['Black', 'Dark Brown', 'Tan / Cognac', 'Red', 'Navy Blue']);
+    const [selectedColors, setSelectedColors] = useState([]);
     const [customColorInput, setCustomColorInput] = useState('');
 
     // Generated Combinations State
@@ -108,8 +108,13 @@ export default function MatrixVariantBuilder({
         setSelectedColors([]);
     };
 
-    // Computed Combinations Count
-    const totalPotentialCombos = selectedSizes.length * selectedTypes.length * selectedColors.length;
+    // Flexible dimension fallback lists (handles cases where a dimension is skipped)
+    const sizesList = selectedSizes.length > 0 ? selectedSizes : [''];
+    const typesList = selectedTypes.length > 0 ? selectedTypes : [''];
+    const colorsList = selectedColors.length > 0 ? selectedColors : [''];
+
+    const hasAnySelection = selectedSizes.length > 0 || selectedTypes.length > 0 || selectedColors.length > 0;
+    const totalPotentialCombos = hasAnySelection ? sizesList.length * typesList.length * colorsList.length : 0;
 
     // Generate Matrix Combinations Function
     const handleGenerate = () => {
@@ -118,17 +123,19 @@ export default function MatrixVariantBuilder({
         const results = [];
         let idCounter = 1;
 
-        selectedSizes.forEach((size) => {
-            selectedTypes.forEach((type) => {
-                selectedColors.forEach((color) => {
-                    const name = `${size} ${type} - ${color}`.trim();
+        sizesList.forEach((size) => {
+            typesList.forEach((type) => {
+                colorsList.forEach((color) => {
+                    const prefix = [size, type].filter(Boolean).join(' ');
+                    const name = prefix && color ? `${prefix} - ${color}` : (prefix || color);
+
                     results.push({
                         id: `gen-${idCounter++}`,
                         enabled: true,
-                        size,
-                        type,
-                        color,
-                        name,
+                        size: size || '—',
+                        type: type || '—',
+                        color: color || '—',
+                        name: name.trim(),
                         initial_stock: defaultInitialStock,
                         reorder_level: defaultReorderLevel,
                     });
@@ -466,14 +473,20 @@ export default function MatrixVariantBuilder({
                 <div className="pt-3 border-t border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-brand-50/40 p-3 rounded-lg border">
                     <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-brand-600 shrink-0" />
-                        <span className="text-xs text-neutral-700">
-                            <strong>{selectedSizes.length}</strong> Sizes ×{' '}
-                            <strong>{selectedTypes.length}</strong> Types ×{' '}
-                            <strong>{selectedColors.length}</strong> Colors ={' '}
-                            <span className="font-bold text-brand-700 text-sm">
-                                {totalPotentialCombos} Combinations
+                        {totalPotentialCombos > 0 ? (
+                            <span className="text-xs text-neutral-700">
+                                <strong>{selectedSizes.length || 1}</strong> Size{selectedSizes.length !== 1 ? 's' : ''} ×{' '}
+                                <strong>{selectedTypes.length || 1}</strong> Type{selectedTypes.length !== 1 ? 's' : ''} ×{' '}
+                                <strong>{selectedColors.length || 1}</strong> Color{selectedColors.length !== 1 ? 's' : ''} ={' '}
+                                <span className="font-bold text-brand-700 text-sm">
+                                    {totalPotentialCombos} Combinations
+                                </span>
                             </span>
-                        </span>
+                        ) : (
+                            <span className="text-xs text-neutral-500 italic">
+                                No attributes selected yet. Select or type sizes, finishes, or colors above to generate combinations.
+                            </span>
+                        )}
                     </div>
 
                     <Button
