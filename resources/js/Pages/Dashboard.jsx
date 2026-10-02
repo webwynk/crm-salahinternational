@@ -304,12 +304,19 @@ export default function Dashboard({
                                 </div>
 
                             {recent_assignments.length === 0 ? (
-                                <div className="text-center py-8 bg-neutral-50 rounded-xl border border-neutral-200 space-y-3">
-                                    <ClipboardList className="w-8 h-8 text-neutral-400 mx-auto" />
-                                    <p className="text-xs text-neutral-600">No work orders issued yet.</p>
+                                <div className="flex flex-col items-center justify-center py-10 px-4 rounded-xl border border-neutral-200 bg-neutral-50/60">
+                                    {/* Branded icon ring */}
+                                    <div className="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-200/70 flex items-center justify-center mb-3 shadow-xs">
+                                        <ClipboardList className="w-5 h-5 text-brand-600" strokeWidth={1.75} />
+                                    </div>
+                                    {/* Heading + sub-text */}
+                                    <p className="text-sm font-semibold text-neutral-800 mb-0.5">No work orders yet</p>
+                                    <p className="text-xs text-neutral-500 mb-4 text-center max-w-[180px]">
+                                        Assign a work order to an artisan to get started.
+                                    </p>
                                     <Link href={route('assignments.create')}>
-                                        <Button variant="primary" size="sm">
-                                            Assign Work Order
+                                        <Button variant="outline" size="sm" className="text-brand-700 border-brand-300 hover:bg-brand-50">
+                                            + Assign Work Order
                                         </Button>
                                     </Link>
                                 </div>
