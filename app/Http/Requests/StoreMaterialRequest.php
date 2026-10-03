@@ -14,6 +14,12 @@ class StoreMaterialRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        if (! $this->boolean('is_leather') && ! $this->routeIs('leather.*') && $this->has('name') && is_string($this->name)) {
+            $this->merge([
+                'name' => trim(strtoupper($this->name)),
+            ]);
+        }
+
         if ($this->has('category') && is_string($this->category)) {
             $this->merge([
                 'category' => trim(strtoupper($this->category)),

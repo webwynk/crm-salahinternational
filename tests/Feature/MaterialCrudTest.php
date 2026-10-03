@@ -38,11 +38,11 @@ class MaterialCrudTest extends TestCase
 
             $response->assertRedirect('/materials');
             $this->assertDatabaseHas('materials', [
-                'name' => "Material in {$unit}",
+                'name' => strtoupper("Material in {$unit}"),
                 'base_unit' => $unit,
             ]);
 
-            $material = Material::where('name', "Material in {$unit}")->first();
+            $material = Material::where('name', strtoupper("Material in {$unit}"))->first();
             $this->assertDatabaseHas('inventory', [
                 'material_id' => $material->id,
                 'quantity_on_hand' => 50.5,
@@ -77,7 +77,7 @@ class MaterialCrudTest extends TestCase
 
         $response->assertRedirect('/materials');
 
-        $material = Material::where('name', 'Full-Grain Calfskin Leather')->firstOrFail();
+        $material = Material::where('name', 'FULL-GRAIN CALFSKIN LEATHER')->firstOrFail();
         $this->assertCount(2, $material->variants);
 
         $this->assertDatabaseHas('material_variants', [
@@ -289,7 +289,7 @@ class MaterialCrudTest extends TestCase
         $response->assertRedirect('/materials');
 
         $this->assertDatabaseHas('materials', [
-            'name' => 'Heavy Duty Brass Zipper #5',
+            'name' => 'HEAVY DUTY BRASS ZIPPER #5',
             'category' => 'ZIPPER',
             'base_unit' => 'm',
         ]);
@@ -409,11 +409,11 @@ class MaterialCrudTest extends TestCase
 
         $response->assertRedirect('/materials');
         $this->assertDatabaseHas('materials', [
-            'name' => 'Edge Adhesive Compound',
+            'name' => 'EDGE ADHESIVE COMPOUND',
             'base_unit' => 'kg',
         ]);
 
-        $material = Material::where('name', 'Edge Adhesive Compound')->first();
+        $material = Material::where('name', 'EDGE ADHESIVE COMPOUND')->first();
         $this->assertDatabaseHas('inventory', [
             'material_id' => $material->id,
             'quantity_on_hand' => 12.75,
@@ -430,7 +430,7 @@ class MaterialCrudTest extends TestCase
         $updateResponse->assertRedirect('/materials');
         $this->assertDatabaseHas('materials', [
             'id' => $material->id,
-            'name' => 'Edge Adhesive Compound Premium',
+            'name' => 'EDGE ADHESIVE COMPOUND PREMIUM',
             'base_unit' => 'kg',
             'reorder_level' => 8,
         ]);

@@ -145,7 +145,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
         e.preventDefault();
 
         addForm.transform((data) => ({
-            name: data.name,
+            name: data.name ? data.name.trim().toUpperCase() : '',
             category: data.category,
             base_unit: data.base_unit,
             ...(hasVariations ? {
@@ -348,7 +348,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                             <Boxes className="w-4 h-4" />
                                                         </div>
                                                         <div>
-                                                            <span className="font-bold text-neutral-900 block leading-tight">
+                                                            <span className="font-bold text-neutral-900 block leading-tight uppercase tracking-wide">
                                                                 {material.name}
                                                             </span>
                                                             <div className="flex items-center gap-2 mt-1">
@@ -422,7 +422,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                                                             <div className="px-4 py-2.5 bg-neutral-100/70 border-b border-neutral-200 flex items-center justify-between">
                                                                 <span className="text-xs font-bold text-neutral-700 uppercase tracking-wider flex items-center gap-1.5">
                                                                     <Layers className="w-3.5 h-3.5 text-brand-600" />
-                                                                    Variations of {material.name} ({variantCount})
+                                                                    Variations of {material.name?.toUpperCase()} ({variantCount})
                                                                 </span>
                                                                 {isAdmin && (
                                                                     <Button
@@ -595,9 +595,10 @@ export default function Index({ materials, categories = [], filters = {} }) {
                         <Input
                             label="Material Name"
                             required
-                            placeholder="e.g. Full-Grain Calfskin Leather"
+                            placeholder="e.g. FULL-GRAIN CALFSKIN LEATHER, ADJUSTER"
                             value={addForm.data.name}
-                            onChange={(e) => addForm.setData('name', e.target.value)}
+                            onChange={(e) => addForm.setData('name', e.target.value.toUpperCase())}
+                            className="uppercase"
                             error={addForm.errors.name}
                         />
 
@@ -898,7 +899,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                     bulkVariantForm.reset();
                 }}
                 maxWidth={existingMaterialVariantMode === 'matrix' ? 'max-w-4xl' : 'max-w-lg'}
-                title={`Add Variations: ${addVariantMaterial?.name}`}
+                title={`Add Variations: ${addVariantMaterial?.name?.toUpperCase()}`}
             >
                 <div className="space-y-4 text-left">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-neutral-200">
@@ -1046,7 +1047,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                     <div className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 text-xs space-y-1">
                         <div className="flex justify-between">
                             <span className="text-neutral-500">Material Master:</span>
-                            <strong className="text-neutral-900">{restockVariant?.materialName}</strong>
+                            <strong className="text-neutral-900 uppercase">{restockVariant?.materialName}</strong>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-neutral-500">Variation:</span>
@@ -1133,7 +1134,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
             <Modal
                 isOpen={Boolean(deleteMaterial)}
                 onClose={() => !isDeleting && setDeleteMaterial(null)}
-                title={`Delete Material: ${deleteMaterial?.name}`}
+                title={`Delete Material: ${deleteMaterial?.name?.toUpperCase()}`}
             >
                 <div className="space-y-4 text-left">
                     <div className="p-3.5 bg-danger-50 border border-danger-200 rounded-lg flex items-start gap-3">
