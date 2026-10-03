@@ -19,7 +19,6 @@ import {
     Trash2,
     ChevronDown,
     ChevronRight,
-    ChevronLeft,
     Search,
     Layers,
     Tag,
@@ -276,7 +275,7 @@ export default function Index({ materials, categories = [], filters = {} }) {
                             onClick={() => {
                                 setSearch('');
                                 setSelectedCategory('');
-                                router.get(route('materials.index'), {}, { preserveState: true, replace: true });
+                                router.get(route('materials.index'), filters.pageSize ? { pageSize: filters.pageSize } : {}, { preserveState: true, replace: true });
                             }}
                         >
                             Clear Filters
