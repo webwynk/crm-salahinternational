@@ -10,6 +10,7 @@ export const BASE_UNITS = [
     { value: 'sq_dm', label: 'Square Decimeter (sq_dm)' },
     { value: 'hides', label: 'Hides / Sides (hides)' },
     { value: 'cm2', label: 'Square Centimeter (cm2)' },
+    { value: 'kg', label: 'Kilogram (kg)' },
     { value: 'g', label: 'Gram (g)' },
 ];
 

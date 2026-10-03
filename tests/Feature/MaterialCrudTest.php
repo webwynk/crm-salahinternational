@@ -25,7 +25,7 @@ class MaterialCrudTest extends TestCase
     {
         $this->actingAs($this->admin);
 
-        $units = ['pcs', 'm', 'cm', 'in', 'yard', 'feet', 'sq m'];
+        $units = ['pcs', 'm', 'cm', 'in', 'yard', 'feet', 'sq m', 'kg', 'g'];
 
         foreach ($units as $unit) {
             $response = $this->post('/materials', [
@@ -394,4 +394,46 @@ class MaterialCrudTest extends TestCase
 
         $this->assertDatabaseHas('materials', ['id' => $material->id]);
     }
+
+    public function test_admin_can_create_and_update_material_with_kg_unit(): void
+    {
+        $this->actingAs($this->admin);
+
+        $response = $this->post('/materials', [
+            'name' => 'Edge Adhesive Compound',
+            'category' => 'GLUE',
+            'base_unit' => 'kg',
+            'reorder_level' => 5,
+            'initial_stock' => 12.75,
+        ]);
+
+        $response->assertRedirect('/materials');
+        $this->assertDatabaseHas('materials', [
+            'name' => 'Edge Adhesive Compound',
+            'base_unit' => 'kg',
+        ]);
+
+        $material = Material::where('name', 'Edge Adhesive Compound')->first();
+        $this->assertDatabaseHas('inventory', [
+            'material_id' => $material->id,
+            'quantity_on_hand' => 12.75,
+            'unit' => 'kg',
+        ]);
+
+        $updateResponse = $this->put("/materials/{$material->id}", [
+            'name' => 'Edge Adhesive Compound Premium',
+            'category' => 'GLUE',
+            'base_unit' => 'kg',
+            'reorder_level' => 8,
+        ]);
+
+        $updateResponse->assertRedirect('/materials');
+        $this->assertDatabaseHas('materials', [
+            'id' => $material->id,
+            'name' => 'Edge Adhesive Compound Premium',
+            'base_unit' => 'kg',
+            'reorder_level' => 8,
+        ]);
+    }
 }
+
