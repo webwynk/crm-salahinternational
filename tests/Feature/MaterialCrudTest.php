@@ -435,5 +435,52 @@ class MaterialCrudTest extends TestCase
             'reorder_level' => 8,
         ]);
     }
+
+    public function test_materials_index_paginates_and_respects_page_size(): void
+    {
+        $this->actingAs($this->admin);
+
+        for ($i = 1; $i <= 15; $i++) {
+            $num = str_pad((string) $i, 2, '0', STR_PAD_LEFT);
+            Material::create([
+                'name' => "Batch Raw Material {$num}",
+                'category' => 'HARDWARE',
+                'base_unit' => 'pcs',
+                'reorder_level' => 10,
+                'is_active' => true,
+            ]);
+        }
+
+        // Test default pagination (pageSize = 10)
+        $response = $this->get('/materials');
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Materials/Index')
+            ->has('materials.data', 10)
+            ->where('materials.per_page', 10)
+            ->where('materials.current_page', 1)
+            ->has('materials.links')
+        );
+
+        // Test page 2
+        $page2Response = $this->get('/materials?page=2');
+        $page2Response->assertOk();
+        $page2Response->assertInertia(fn ($page) => $page
+            ->component('Materials/Index')
+            ->where('materials.current_page', 2)
+            ->has('materials.data', 5)
+        );
+
+        // Test custom pageSize = 25
+        $pageSizeResponse = $this->get('/materials?pageSize=25');
+        $pageSizeResponse->assertOk();
+        $pageSizeResponse->assertInertia(fn ($page) => $page
+            ->component('Materials/Index')
+            ->where('materials.per_page', 25)
+            ->has('materials.data', 15)
+            ->where('filters.pageSize', '25')
+        );
+    }
 }
+
 

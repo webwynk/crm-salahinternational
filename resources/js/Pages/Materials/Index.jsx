@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, useForm, router, usePage } from '@inertiajs/react';
+import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import PageHeader from '@/Components/layout/PageHeader';
 import FilterChips from '@/Components/ui/FilterChips';
@@ -19,6 +19,7 @@ import {
     Trash2,
     ChevronDown,
     ChevronRight,
+    ChevronLeft,
     Search,
     Layers,
     Tag,
@@ -95,6 +96,14 @@ export default function Index({ materials, categories = [], filters = {} }) {
     const handleCategoryFilter = (cat) => {
         setSelectedCategory(cat);
         router.get(route('materials.index'), { ...filters, category: cat, page: 1 }, { preserveState: true, replace: true });
+    };
+
+    const handlePageSizeChange = (newSize) => {
+        router.get(
+            route('materials.index'),
+            { ...filters, search, category: selectedCategory, pageSize: newSize, page: 1 },
+            { preserveState: true, replace: true }
+        );
     };
 
     const toggleRow = (materialId) => {
@@ -286,7 +295,8 @@ export default function Index({ materials, categories = [], filters = {} }) {
                         />
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <>
+                        <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-neutral-50 border-b border-neutral-200 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                                 <tr>
@@ -518,6 +528,53 @@ export default function Index({ materials, categories = [], filters = {} }) {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Footer */}
+                    {materials.total > 0 && (
+                        <div className="p-3 bg-neutral-50/80 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-500">
+                            <div className="flex items-center gap-3">
+                                <div>
+                                    Showing <strong className="font-semibold text-neutral-900">{materials.from || 0}</strong> to{' '}
+                                    <strong className="font-semibold text-neutral-900">{materials.to || 0}</strong> of{' '}
+                                    <strong className="font-semibold text-neutral-900">{materials.total}</strong> raw materials
+                                </div>
+                                <div className="hidden sm:flex items-center gap-1.5 pl-3 border-l border-neutral-200 text-neutral-500">
+                                    <span>Rows:</span>
+                                    <select
+                                        value={filters.pageSize || '10'}
+                                        onChange={(e) => handlePageSizeChange(e.target.value)}
+                                        className="text-xs py-0.5 px-2 bg-white border border-neutral-300 rounded text-neutral-700 focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium cursor-pointer"
+                                    >
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {materials.links && materials.links.length > 3 && (
+                                <div className="flex items-center gap-1">
+                                    {materials.links.map((link, idx) => (
+                                        <Link
+                                            key={idx}
+                                            href={link.url || '#'}
+                                            preserveState
+                                            className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
+                                                link.active
+                                                    ? 'bg-brand-700 text-white font-bold shadow-2xs'
+                                                    : link.url
+                                                    ? 'bg-white text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 border border-neutral-200'
+                                                    : 'text-neutral-300 pointer-events-none'
+                                            }`}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </>
                 )}
             </div>
 

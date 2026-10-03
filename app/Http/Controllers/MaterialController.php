@@ -39,13 +39,18 @@ class MaterialController extends Controller
             $query->where('category', $request->category);
         }
 
-        $materials = $query->orderBy('name')->paginate($request->pageSize ?? 10)->withQueryString();
+        $pageSize = in_array((int) $request->pageSize, [10, 25, 50, 100], true) ? (int) $request->pageSize : 10;
+        $materials = $query->orderBy('name')->paginate($pageSize)->withQueryString();
         $categories = Material::materialsOnly()->distinct()->pluck('category');
 
         return Inertia::render('Materials/Index', [
             'materials' => $materials,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'category', 'pageSize']),
+            'filters' => [
+                'search' => $request->search ?? '',
+                'category' => $request->category ?? '',
+                'pageSize' => (string) $pageSize,
+            ],
         ]);
     }
 
